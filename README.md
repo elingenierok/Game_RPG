@@ -10,15 +10,16 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.0-beta · Arquitectura modular completa |
+| **Versión actual** | v1.0 · Arquitectura modular + GitHub Pages |
 | **Última actualización** | 2026-10-09 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
-| **Ejecución** | Live Server en VS Code (obligatorio por HTTP) |
+| **Ejecución local** | Live Server en VS Code |
+| **Ejecución pública** | [elingenierok.github.io/Game_RPG](https://elingenierok.github.io/Game_RPG/) |
+| **Repositorio** | [github.com/elingenierok/Game_RPG](https://github.com/elingenierok/Game_RPG) |
 | **Editor** | VS Code |
 | **Carpeta raíz** | `C:\Users\Usuario\Game_RPG` |
-| **Repositorio** | _(pendiente: GitHub)_ |
 
 ---
 
@@ -38,15 +39,29 @@ Probar una **jugabilidad base** que, si resulta entretenida, escala hacia:
 
 ## 🚀 Cómo ejecutar
 
+### Opción A · Desarrollo local (Live Server)
+
 1. Abrir VS Code en `C:\Users\Usuario\Game_RPG`
 2. Click derecho en `index.html` → **Open with Live Server**
 3. Editar cualquier archivo y guardar (Ctrl+S) → Live Server recarga solo
 
 **⚠️ Importante:** por la arquitectura de múltiples archivos, **abrir el `index.html` con doble clic ya no funciona** (CORS bloquea la carga de `.js` desde `file://`). **Siempre usar Live Server.**
 
-**Controles:** WASD o flechas direccionales.
+### Opción B · Versión pública (GitHub Pages)
 
-**⚠️ Recarga forzada:** al modificar `.js` o `.css`, usar **Ctrl+Shift+R** en el navegador. Live Server a veces no invalida el caché.
+Abrí directamente en el navegador:
+
+**👉 [https://elingenierok.github.io/Game_RPG/](https://elingenierok.github.io/Game_RPG/)**
+
+Se actualiza automáticamente cuando hacés `git push`.
+
+### Controles
+
+- **WASD** o **flechas direccionales** para moverte
+- Enter en el input de semilla → aplicar
+- Botón 🎲 → semilla aleatoria
+
+**⚠️ Recarga forzada:** al modificar `.js` o `.css`, usar **Ctrl+Shift+R** en el navegador.
 
 ---
 
@@ -56,6 +71,7 @@ Probar una **jugabilidad base** que, si resulta entretenida, escala hacia:
 Game_RPG/
 ├── index.html              ← Solo HTML (estructura + <script src>)
 ├── README.md               ← Este documento
+├── .gitignore              ← Archivos ignorados por Git
 ├── css/
 │   └── estilo.css          ← Todo el CSS del juego
 └── js/
@@ -79,6 +95,29 @@ Game_RPG/
 config → tiles → rng → mundo → estado → items → chunks → render
 → jugador → victoria → input → limite → main
 ```
+
+---
+
+## 🔄 Flujo de trabajo con Git
+
+### Hacer cambios y publicarlos
+
+```powershell
+git add .
+git commit -m "descripción breve del cambio"
+git push
+```
+
+En 30-60 segundos, GitHub Pages actualiza la URL pública.
+
+### Clonar el proyecto en otra PC
+
+```powershell
+git clone https://github.com/elingenierok/Game_RPG.git
+cd Game_RPG
+```
+
+Después abrir con Live Server en VS Code.
 
 ---
 
@@ -205,7 +244,7 @@ Cada decisión de diseño lleva uno de estos marcadores:
 | U3 | Log de mensajes | 🧪 | Console.log + overlay | Sistema formal → futuro |
 | U4 | Estilo de menús | ⏸️ | Overlay simple | Combate/acertijos → futuro |
 | U5 | Sonido/música | ⏸️ | No | Fase muy tardía |
-| U6 | Plataforma | 🟢 | Navegador (PC) + Live Server | Móvil → futuro lejano |
+| U6 | Plataforma | 🟢 | Navegador (PC) · Live Server + GitHub Pages | Móvil → futuro lejano |
 | U7 | Guardado/carga | ⏸️ | No | Fase futura |
 | U8 | Control de semilla en UI | 🟢 | Input + botón Aplicar + botón 🎲 | v0.4 |
 | U9 | Barra de zonas respeta límite | 🟢 | Slots fuera de rango en gris | v0.4 |
@@ -216,13 +255,14 @@ Cada decisión de diseño lleva uno de estos marcadores:
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| R1 | Un solo archivo vs múltiples | 🟢 | **Múltiples archivos** | v1.0-beta |
-| R2 | Método de carga | 🟢 | `<script src>` clásicos (sin módulos ES) | v1.0-beta |
-| R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server) | Obligatorio por CORS |
-| R4 | Separación del CSS | 🟢 | `css/estilo.css` | v1.0-beta |
-| R5 | Bloques referenciables | 🟢 | Comentarios `// ═══ BLOQUE N ═══` | v1.0-beta |
+| R1 | Un solo archivo vs múltiples | 🟢 | **Múltiples archivos** | v1.0 |
+| R2 | Método de carga | 🟢 | `<script src>` clásicos (sin módulos ES) | v1.0 |
+| R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server / GitHub Pages) | Obligatorio por CORS |
+| R4 | Separación del CSS | 🟢 | `css/estilo.css` | v1.0 |
+| R5 | Bloques referenciables | 🟢 | Comentarios `// ═══ BLOQUE N ═══` | v1.0 |
 | R6 | Orden de carga | 🟢 | config → tiles → rng → mundo → estado → items → chunks → render → jugador → victoria → input → limite → main | Respetar dependencias |
-| R7 | Versionado del código | 🟢 | Git + GitHub | v1.0-beta |
+| R7 | Versionado del código | 🟢 | Git + GitHub | v1.0 |
+| R8 | **Deploy público** | 🟢 | **GitHub Pages** | **v1.0** |
 
 ---
 
@@ -247,7 +287,7 @@ Cada decisión de diseño lleva uno de estos marcadores:
 
 ---
 
-## 🧪 MARCO 10 · Sistema de Test (v1.0-beta)
+## 🧪 MARCO 10 · Sistema de Test (v1.0)
 
 ### Lo que hay ahora
 - Mundo E-O acotado (±5 chunks por defecto, configurable)
@@ -263,7 +303,8 @@ Cada decisión de diseño lleva uno de estos marcadores:
 - Inventario visible en el HUD
 - Control de semilla en UI (input + botones + Enter)
 - Barra de zonas con 5 slots, jugador centrado, límite respetado
-- **Arquitectura modular: 13 archivos `.js` + 1 CSS + index limpio**
+- Arquitectura modular: 13 archivos `.js` + 1 CSS + index limpio
+- **Versionado con Git + deploy público en GitHub Pages**
 
 ### Lo que el test responde
 1. ¿Se siente bien el cambio de zona? → ✅ OK
@@ -322,16 +363,16 @@ Cada decisión de diseño lleva uno de estos marcadores:
 - [x] Ítems recolectables (🍎)
 - [x] Inventario en HUD
 - [x] Carga de semilla dinámica desde UI
-- [x] **Refactorización completa a múltiples archivos**
-- [x] **CSS separado en `css/estilo.css`**
-- [x] **Documentación README v1.0-beta**
+- [x] Refactorización completa a múltiples archivos
+- [x] CSS separado en `css/estilo.css`
+- [x] Documentación README
+- [x] **Subir el proyecto a GitHub**
+- [x] **Activar GitHub Pages para URL pública**
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | Subir el proyecto a GitHub | ⏸️ | Versionado + respaldo en la nube |
-| 🔥 Alta | Activar GitHub Pages para URL pública | ⏸️ | Jugar sin Live Server |
 | 🔥 Alta | Agregar 1 tipo de enemigo simple | ⏸️ | Probar movimiento + colisión |
 | 🔥 Alta | Sistema de HP + daño básico | ⏸️ | Necesario para combate |
 | 🟡 Media | Pantalla de combate (menú RPG por turnos) | ⏸️ | Depende de enemigos + HP |
@@ -356,13 +397,20 @@ Cada decisión de diseño lleva uno de estos marcadores:
 
 ## 📝 Changelog
 
+### v1.0 · 2026-10-09
+- ☁️ **Proyecto subido a GitHub**: [github.com/elingenierok/Game_RPG](https://github.com/elingenierok/Game_RPG)
+- 🌐 **GitHub Pages activado**: [elingenierok.github.io/Game_RPG](https://elingenierok.github.io/Game_RPG/)
+- 📖 README con flujo de trabajo Git documentado
+- 🔧 `.gitignore` creado (ignora `.vscode/`, `node_modules/`, logs, etc.)
+- 📖 Documentado cómo clonar el proyecto en otra PC
+- ✅ Versionado completo con Git
+
 ### v1.0-beta · 2026-10-09
-- 🏗️ **Refactorización completa a múltiples archivos**
+- 🏗️ Refactorización completa a múltiples archivos
 - ➕ 13 archivos `.js` (uno por bloque lógico)
 - ➕ `css/estilo.css` con todo el CSS
 - ➕ `index.html` limpio: solo HTML + `<script src>` + `<link>`
 - ➕ Bloques 12-18 movidos a `jugador.js`, `victoria.js`, `input.js`, `limite.js`, `main.js`
-- 📖 README actualizado con estructura completa y ubicación de cada bloque
 
 ### v0.5 · 2026-10-09
 - 🏗️ Refactorización parcial (bloques 1-11)
@@ -442,7 +490,7 @@ Cada decisión de diseño lleva uno de estos marcadores:
 3. Anotar brevemente en "Notas"
 
 ### Al cambiar de versión:
-1. Bump en el encabezado (`v1.0-beta` → `v1.1`)
+1. Bump en el encabezado (`v1.0` → `v1.1`)
 2. Agregar entrada en el changelog
 3. Actualizar la fecha
 
@@ -472,6 +520,7 @@ Cada decisión de diseño lleva uno de estos marcadores:
 - **Recarga forzada**: usar **Ctrl+Shift+R** cuando se modifican archivos `.js` o `.css`.
 - **Orden de `<script src>`**: cambiar el orden rompe las dependencias.
 - **RNG separado por capa**: `@zona` para terreno, `@items` para ítems, `@llave` para la llave.
+- **GitHub Pages tarda ~30-60s** en actualizarse tras un `git push`.
 
 ---
 
