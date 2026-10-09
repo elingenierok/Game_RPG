@@ -1,0 +1,25 @@
+// ═══════════════════════════════════════════════════════════════
+//  BLOQUE 2 · TILES Y PROPIEDADES
+// ═══════════════════════════════════════════════════════════════
+const GRASS  = 0, TREE   = 1, WALL   = 2, WATER = 3,
+      SAND   = 4, BUSH   = 5, ROCK   = 6, TALLGRASS = 7,
+      PATH   = 8, LLAGUE = 9, PLAYER = 10, LUPA = 11,
+      MANZANA = 12;
+
+const ICONOS = {
+  [GRASS]:     "🟩",
+  [TREE]:      "🌳",
+  [WALL]:      "🧱",
+  [WATER]:     "🌊",
+  [SAND]:      "🟨",
+  [BUSH]:      "🌿",
+  [ROCK]:      "🪨",
+  [TALLGRASS]: "🌾",
+  [PATH]:      "🟫",
+  [LLAGUE]:    "🔑",
+  [PLAYER]:    "🧑",
+  [LUPA]:      "🔍",
+  [MANZANA]:   "🍎",
+};
+
+const BLOQUEANTES = new Set([TREE, WALL, WATER, ROCK]);

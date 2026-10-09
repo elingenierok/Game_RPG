@@ -1,0 +1,487 @@
+# 🎮 Game_RPG · Proyecto Roguelike Procedural
+
+> Motor de mundo procedural con semilla, exploración acotada E-O por zonas,
+> con fronteras compartidas entre chunks, ítems recolectables, arquitectura
+> modular en múltiples archivos, y base jugable escalable hacia un roguelike completo.
+
+---
+
+## 📌 Estado actual del proyecto
+
+| Campo | Valor |
+|-------|-------|
+| **Versión actual** | v1.0-beta · Arquitectura modular completa |
+| **Última actualización** | 2026-10-09 |
+| **Estado global** | 🧪 En fase de test · Prototipo jugable |
+| **Archivo principal** | `index.html` (solo estructura HTML) |
+| **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
+| **Ejecución** | Live Server en VS Code (obligatorio por HTTP) |
+| **Editor** | VS Code |
+| **Carpeta raíz** | `C:\Users\Usuario\Game_RPG` |
+| **Repositorio** | _(pendiente: GitHub)_ |
+
+---
+
+## 🎯 Objetivo del proyecto
+
+Probar una **jugabilidad base** que, si resulta entretenida, escala hacia:
+
+- Mapas más grandes y complejos
+- Enemigos y sistema de combate
+- Objetos recolectables e inventario (en progreso)
+- Misiones y acertijos
+- Múltiples pantallas/menús
+
+**Frase guía:** *"Si el test se siente entretenido, agrego complejidad."*
+
+---
+
+## 🚀 Cómo ejecutar
+
+1. Abrir VS Code en `C:\Users\Usuario\Game_RPG`
+2. Click derecho en `index.html` → **Open with Live Server**
+3. Editar cualquier archivo y guardar (Ctrl+S) → Live Server recarga solo
+
+**⚠️ Importante:** por la arquitectura de múltiples archivos, **abrir el `index.html` con doble clic ya no funciona** (CORS bloquea la carga de `.js` desde `file://`). **Siempre usar Live Server.**
+
+**Controles:** WASD o flechas direccionales.
+
+**⚠️ Recarga forzada:** al modificar `.js` o `.css`, usar **Ctrl+Shift+R** en el navegador. Live Server a veces no invalida el caché.
+
+---
+
+## 📁 Estructura del proyecto
+
+```
+Game_RPG/
+├── index.html              ← Solo HTML (estructura + <script src>)
+├── README.md               ← Este documento
+├── css/
+│   └── estilo.css          ← Todo el CSS del juego
+└── js/
+    ├── config.js           ← BLOQUE 1: constantes globales
+    ├── tiles.js            ← BLOQUE 2: tiles, iconos, bloqueantes
+    ├── rng.js              ← BLOQUE 3: hash, PRNG, randInt
+    ├── mundo.js            ← BLOQUES 4, 5, 6: generación de chunks
+    ├── estado.js           ← BLOQUE 7: estado global
+    ├── items.js            ← BLOQUE 7.5: ítems y recolección
+    ├── chunks.js           ← BLOQUE 8: caché y carga de pantalla
+    ├── render.js           ← BLOQUES 9, 10, 11: render visual y HUD
+    ├── jugador.js          ← BLOQUE 12: movimiento y transición
+    ├── victoria.js         ← BLOQUE 13: condición de victoria
+    ├── input.js            ← BLOQUE 14: listeners de teclado
+    ├── limite.js           ← BLOQUE 18: config de límite de chunks
+    └── main.js             ← BLOQUES 16, 17: arranque y reinicio
+```
+
+**Orden de carga en `index.html` (importante respetar):**
+```
+config → tiles → rng → mundo → estado → items → chunks → render
+→ jugador → victoria → input → limite → main
+```
+
+---
+
+## 🧭 Sistema de estados
+
+Cada decisión de diseño lleva uno de estos marcadores:
+
+| Símbolo | Significado |
+|:---:|-------------|
+| 🧪 | **En test** — Implementado para probar, puede cambiar |
+| 🟢 | **Definido** — Decidido, se mantiene en el proyecto |
+| 🟡 | **Pendiente** — Sabemos que hay que decidirlo, sin respuesta aún |
+| 🔴 | **Sin información** — No se ha pensado todavía |
+| ⏸️ | **Pospuesto** — Se hará en una fase futura |
+
+---
+
+## 🌍 MARCO 1 · Mundo
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| M1 | Direccionalidad del mundo | 🟢 | Infinito E-O, límites N-S | Mundo corredor |
+| M2 | Biomas | 🧪 | Bosque, pradera, costa, ruina | 4 tipos, frontera dura |
+| M3 | Transición entre biomas | 🟢 | Dura (sin mezcla) | Suavizar es fase futura |
+| M4 | Tamaño del chunk | 🟢 | 25×17 (pantalla completa) | Coincide con ventana |
+| M5 | Memoria de cambios del jugador | ⏸️ | Sin memoria | Fase futura |
+| M6 | Evolución temporal del mundo | ⏸️ | No | Fase futura |
+| M7 | Ventana visible | 🟢 | 25×17 tiles | Jugador ve toda la zona |
+| M8 | Comportamiento en bordes | 🟢 | Límite sólido N-S · Cambio de zona E-O | Con pausa de transición |
+| M9 | Fronteras entre chunks | 🟢 | Columna compartida 100% transitable | v0.3 |
+| M10 | Continuidad del jugador al cruzar | 🟢 | Preserva la fila Y | v0.3 |
+| M11 | Caché de chunks | 🟢 | Actual + 2 vecinos | v0.3 |
+| M12 | Límite de chunks | 🟢 | ±5 por defecto, configurable | v0.4 |
+| M13 | Muros sólidos en extremos | 🟢 | Columna de 🧱 en zonas -N y +N | v0.4 |
+
+---
+
+## 🎮 MARCO 2 · Jugabilidad / Core Loop
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| J1 | Objetivo del juego | 🧪 | Encontrar la 🔑 | Test de exploración |
+| J2 | Condición de victoria | 🧪 | Pisar la llave | Pantalla de "¡Ganaste!" |
+| J3 | Condición de derrota | ⏸️ | No hay | Sin HP todavía |
+| J4 | Progresión | ⏸️ | No hay | Fase futura |
+| J5 | Muerte definitiva | ⏸️ | No aplica | Fase futura |
+| J6 | Turnos vs tiempo real | ⏸️ | No aplica | Fase futura |
+| J7 | Sistema de iniciativa | ⏸️ | No aplica | Fase futura |
+| J8 | Pantallas/menús | 🧪 | Solo mapa | Combate y acertijos son fase futura |
+| J9 | Cambio entre pantallas | ⏸️ | No aplica aún | FSM cuando haya más pantallas |
+| J10 | Diálogos con NPCs | ⏸️ | No | Fase futura |
+
+---
+
+## 🧑 MARCO 3 · Personaje / Jugador
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| P1 | Cantidad de personajes | 🟢 | 1 | Sin clases por ahora |
+| P2 | Estadísticas | ⏸️ | Ninguna | HP, ataque, defensa → fase futura |
+| P3 | Controles | 🟢 | WASD + flechas | Estándar |
+| P4 | Inventario | 🧪 | Contador de ítems | v0.4: solo cuenta, sin uso aún |
+| P5 | Tipos de objetos | 🧪 | 🍎 Manzana | v0.4: solo uno de prueba |
+| P6 | Habilidades especiales | ⏸️ | Ninguna | Nadar, trepar, romper → fase futura |
+| P7 | Modificar el mundo | ⏸️ | No | Talar, romper → fase futura |
+| P8 | Necesidades (hambre/sed) | ⏸️ | No | Fase futura |
+
+---
+
+## ⚔️ MARCO 4 · Enemigos y Combate
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| E1 | Tipos de enemigos | 🔴 | — | Empezar con 3-4 |
+| E2 | Movimiento de enemigos | 🔴 | — | Patrulla, persecución, estático |
+| E3 | Detección del jugador | 🔴 | — | Visión, sonido, radio |
+| E4 | Entrada al combate | 🔴 | — | Al chocar / al ser visto |
+| E5 | Tipo de combate | 🔴 | — | RPG por turnos |
+| E6 | Huida del combate | 🔴 | — | ¿Vuelve al mapa? ¿Persigue? |
+| E7 | Loot y XP | 🔴 | — | ¿Suelta objetos? ¿Sube nivel? |
+| E8 | Combate grupal (1vN) | 🔴 | — | Fase avanzada |
+| E9 | Jefes (bosses) | 🔴 | — | Cuando el sistema base esté listo |
+
+---
+
+## 🧩 MARCO 5 · Acertijos
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| A1 | Trigger del acertijo | 🔴 | — | Cofre / tile / NPC |
+| A2 | Tipos de acertijo | 🔴 | — | Adivinanza, código, patrón, memoria |
+| A3 | Generación de acertijos | 🔴 | — | Fijos vs procedurales |
+| A4 | Consecuencia de fallar | 🔴 | — | Daño, bloqueo, muerte |
+| A5 | Recompensa | 🔴 | — | Objeto, llave, info |
+| A6 | Obligatoriedad | 🔴 | — | Opcionales vs forzados |
+| A7 | Sistema de pistas | 🔴 | — | Sin pistas vs con pistas |
+
+---
+
+## 🌱 MARCO 6 · Generación Procedural
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| G1 | Ingreso de semilla | 🟢 | Manual + aleatoria + Enter | v0.4: input + botones |
+| G2 | Compartir semillas | 🟢 | Sí | Texto copiable |
+| G3 | Determinismo | 🟢 | 100% determinista | FNV-1a + Mulberry32 |
+| G4 | Variedad de mundos | 🟢 | Alta | Biomas + posición aleatoria |
+| G5 | Puntos de interés garantizados | 🧪 | Llave en zona +2 | Regla fija para test |
+| G6 | Fallback si falla generación | 🟢 | Reintento con `@retry` (10 intentos) | Semilla derivada |
+| G7 | Velocidad de generación | 🟢 | Instantánea (<50ms) | Por zona |
+| G8 | Versionado del generador | ⏸️ | No | Fase futura |
+| G9 | Validación de transitabilidad | 🟢 | BFS desde borde oeste a borde este | v0.3 |
+| G10 | RNG por capa | 🟡 | Terreno e ítems separados | ítems `@items`, terreno `@zona`. Enemigos tendrán su propio RNG. |
+| G11 | Ítems generados por semilla | 🟢 | 0 a 3 por chunk, solo en celdas transitables | v0.4 |
+
+---
+
+## 🖥️ MARCO 7 · Interfaz / UX
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| U1 | HUD | 🧪 | Pos + Zona + Inventario | v0.4 |
+| U2 | Minimapa | ⏸️ | No | Barra de zonas cumple función parcial |
+| U3 | Log de mensajes | 🧪 | Console.log + overlay | Sistema formal → futuro |
+| U4 | Estilo de menús | ⏸️ | Overlay simple | Combate/acertijos → futuro |
+| U5 | Sonido/música | ⏸️ | No | Fase muy tardía |
+| U6 | Plataforma | 🟢 | Navegador (PC) + Live Server | Móvil → futuro lejano |
+| U7 | Guardado/carga | ⏸️ | No | Fase futura |
+| U8 | Control de semilla en UI | 🟢 | Input + botón Aplicar + botón 🎲 | v0.4 |
+| U9 | Barra de zonas respeta límite | 🟢 | Slots fuera de rango en gris | v0.4 |
+
+---
+
+## 🏗️ MARCO 8 · Arquitectura
+
+| ID | Decisión | Estado | Valor actual | Notas |
+|:--:|----------|:------:|--------------|-------|
+| R1 | Un solo archivo vs múltiples | 🟢 | **Múltiples archivos** | v1.0-beta |
+| R2 | Método de carga | 🟢 | `<script src>` clásicos (sin módulos ES) | v1.0-beta |
+| R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server) | Obligatorio por CORS |
+| R4 | Separación del CSS | 🟢 | `css/estilo.css` | v1.0-beta |
+| R5 | Bloques referenciables | 🟢 | Comentarios `// ═══ BLOQUE N ═══` | v1.0-beta |
+| R6 | Orden de carga | 🟢 | config → tiles → rng → mundo → estado → items → chunks → render → jugador → victoria → input → limite → main | Respetar dependencias |
+| R7 | Versionado del código | 🟢 | Git + GitHub | v1.0-beta |
+
+---
+
+## 🎨 MARCO 9 · Estilo Visual
+
+| Elemento | Estilo | Referencia |
+|----------|--------|------------|
+| Fondo general | Oscuro `#0a0a0a` | Minimalista |
+| Bordes | Redondeados `border-radius: 8px` | Suaves |
+| Tiles | Emojis grandes (26px) | Grid 30×30px |
+| **Glow** | Halos luminosos celestes/rosas | **Muy valorado** |
+| Slot actual (barra) | Borde celeste + `box-shadow` glow | `#6cf` |
+| Slots visitados | Punto celeste inferior | `#6cf` |
+| Slots fuera de rango | Opacidad 0.3, borde tenue | v0.4 |
+| Números de zona | Gris chico arriba del slot | `#666` |
+| Flechas de dirección | Rosa `#f4a` | Cuando la llave está fuera de rango |
+| Transiciones | Overlay negro 85% + fade | 400ms total |
+| Fuente | `monospace` | Consistencia retro |
+| Input de semilla | Fondo oscuro, glow celeste al focus | v0.4 |
+
+**Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
+
+---
+
+## 🧪 MARCO 10 · Sistema de Test (v1.0-beta)
+
+### Lo que hay ahora
+- Mundo E-O acotado (±5 chunks por defecto, configurable)
+- Biomas con frontera dura (4 tipos)
+- Fronteras compartidas entre chunks
+- Caché de chunks con precarga de vecinos
+- Continuidad física al cruzar (misma fila Y)
+- Validación BFS de transitabilidad por chunk
+- Muros sólidos 🧱 en los extremos del mundo
+- Jugador 🧑 que se mueve con WASD + flechas
+- Llave 🔑 escondida en zona +2 al este
+- Ítems 🍎 recolectables (0 a 3 por chunk)
+- Inventario visible en el HUD
+- Control de semilla en UI (input + botones + Enter)
+- Barra de zonas con 5 slots, jugador centrado, límite respetado
+- **Arquitectura modular: 13 archivos `.js` + 1 CSS + index limpio**
+
+### Lo que el test responde
+1. ¿Se siente bien el cambio de zona? → ✅ OK
+2. ¿El tamaño 25×17 es cómodo? → ✅ OK
+3. ¿Caminar al este es entretenido? → ✅ OK
+4. ¿Los biomas cambian lo suficiente? → ✅ OK
+5. ¿La distancia a la llave es adecuada? → ✅ OK
+6. ¿La transición entre chunks es continua? → ✅ OK
+7. ¿Los ítems recolectables funcionan? → ✅ OK
+8. ¿El límite del mundo se siente natural? → ✅ OK
+9. ¿La arquitectura modular es mantenible? → ✅ OK
+
+**Conclusión:** el test superó todas las validaciones. Sistema listo para escalar.
+
+---
+
+## 🎯 MARCO 11 · Alcance / Producción
+
+| ID | Decisión | Estado | Valor actual |
+|:--:|----------|:------:|--------------|
+| X1 | Tiempo de dedicación | 🟢 | Iterativo, sin plazo |
+| X2 | Propósito | 🟢 | Aprender |
+| X3 | Meta | 🟢 | Prototipo → escalable |
+| X4 | Equipo | 🟢 | Solo desarrollador |
+| X5 | Prioridad #1 | 🟢 | Divertido |
+
+---
+
+## 🧩 MARCO 12 · Preguntas Libres
+
+### Lo que NO queremos
+- _(pendiente)_
+
+### Inspiraciones
+- _(pendiente)_
+
+### Otros
+- _(pendiente)_
+
+---
+
+## 🗺️ Roadmap · Próximas iteraciones
+
+### ✅ Completado
+- [x] Motor base de generación con semilla
+- [x] Mundo E-O por zonas
+- [x] Biomas con frontera dura
+- [x] Movimiento del jugador
+- [x] Barra de zonas con jugador centrado
+- [x] Transición entre zonas con overlay
+- [x] Objetivo: encontrar la llave
+- [x] Fronteras compartidas entre chunks
+- [x] Continuidad física al cruzar (misma fila Y)
+- [x] Validación BFS de transitabilidad
+- [x] Límite configurable de chunks con muros sólidos
+- [x] Ítems recolectables (🍎)
+- [x] Inventario en HUD
+- [x] Carga de semilla dinámica desde UI
+- [x] **Refactorización completa a múltiples archivos**
+- [x] **CSS separado en `css/estilo.css`**
+- [x] **Documentación README v1.0-beta**
+
+### 🔥 Próximas tareas (urgentes)
+
+| Prioridad | Tarea | Estado | Notas |
+|:---------:|-------|:------:|-------|
+| 🔥 Alta | Subir el proyecto a GitHub | ⏸️ | Versionado + respaldo en la nube |
+| 🔥 Alta | Activar GitHub Pages para URL pública | ⏸️ | Jugar sin Live Server |
+| 🔥 Alta | Agregar 1 tipo de enemigo simple | ⏸️ | Probar movimiento + colisión |
+| 🔥 Alta | Sistema de HP + daño básico | ⏸️ | Necesario para combate |
+| 🟡 Media | Pantalla de combate (menú RPG por turnos) | ⏸️ | Depende de enemigos + HP |
+| 🟡 Media | Más tipos de ítems (🍎, 🌿, 💎) | ⏸️ | Extender sistema actual |
+| 🟡 Media | Ítems con efecto (comer manzana → +HP) | ⏸️ | Requiere sistema de HP |
+| 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
+| 🟢 Baja | Minimapa completo | ⏸️ | Complementa la barra de zonas |
+
+### 🌟 Ideas para más adelante
+- Múltiples biomas con transición suave
+- Clima (lluvia, nieve) que afecta gameplay
+- NPCs con diálogos
+- Sistema de misiones
+- Guardado/carga de partida
+- Modo "creativo" con editor de mapas
+- Fronteras con obstáculos rompibles
+- Sistema de inventario completo
+- Movimiento N-S con scroll vertical
+- Refactorización a módulos ES (`import`/`export`)
+
+---
+
+## 📝 Changelog
+
+### v1.0-beta · 2026-10-09
+- 🏗️ **Refactorización completa a múltiples archivos**
+- ➕ 13 archivos `.js` (uno por bloque lógico)
+- ➕ `css/estilo.css` con todo el CSS
+- ➕ `index.html` limpio: solo HTML + `<script src>` + `<link>`
+- ➕ Bloques 12-18 movidos a `jugador.js`, `victoria.js`, `input.js`, `limite.js`, `main.js`
+- 📖 README actualizado con estructura completa y ubicación de cada bloque
+
+### v0.5 · 2026-10-09
+- 🏗️ Refactorización parcial (bloques 1-11)
+- ➕ 8 archivos `.js` creados
+- ⚠️ Requiere Live Server
+
+### v0.4 · 2026-10-09
+- ➕ Ítems recolectables (🍎)
+- ➕ Inventario en HUD
+- ➕ Control de semilla en UI
+- ➕ Límite configurable de chunks
+- ➕ Muros sólidos en extremos
+
+### v0.3 · 2026-10-09
+- ➕ Fronteras compartidas entre chunks
+- ➕ Caché de chunks con precarga de vecinos
+- ➕ Continuidad física al cruzar
+- ➕ Validación BFS de transitabilidad
+
+### v0.2 · 2026-10-09
+- ➕ Barra de zonas con 5 slots
+- ➕ Jugador centrado en la barra
+- ➕ Indicadores de zonas visitadas
+- ➕ Flechas direccionales
+- 🎨 Glow en slot actual
+
+### v0.1 · 2026-10-09
+- ➕ Motor inicial de generación con semilla
+- ➕ Mundo E-O por zonas
+- ➕ 4 biomas con frontera dura
+- ➕ Movimiento WASD + flechas
+
+---
+
+## 🏗️ Índice de bloques y su ubicación
+
+| Bloque | Nombre | Ubicación |
+|:------:|--------|-----------|
+| 1 | Configuración global | `js/config.js` |
+| 2 | Tiles y propiedades | `js/tiles.js` |
+| 3 | Hash y PRNG | `js/rng.js` |
+| 4 | Fronteras entre chunks | `js/mundo.js` |
+| 5 | Generador de pantalla | `js/mundo.js` |
+| 6 | Validación de transitabilidad | `js/mundo.js` |
+| 7 | Estado global | `js/estado.js` |
+| 7.5 | Ítems | `js/items.js` |
+| 8 | Carga de pantalla | `js/chunks.js` |
+| 9 | Render del mapa | `js/render.js` |
+| 10 | Render barra de zonas | `js/render.js` |
+| 11 | HUD | `js/render.js` |
+| 12 | Movimiento y transición | `js/jugador.js` |
+| 13 | Victoria | `js/victoria.js` |
+| 14 | Input | `js/input.js` |
+| 15 | Estilos CSS | `css/estilo.css` |
+| 16 | Inicio | `js/main.js` |
+| 17 | Reinicio con nueva semilla | `js/main.js` |
+| 18 | Configuración de límite | `js/limite.js` |
+
+**Cómo referirse a bloques en charlas futuras:**
+> "Cambiá el BLOQUE 5 para que la densidad de árboles sea mayor."
+> "Hay un bug en el BLOQUE 12, revisá `cambiarZona` en `js/jugador.js`."
+
+---
+
+## 🔄 Cómo actualizar este README
+
+**Regla de oro:** el README es la **fuente de verdad** del proyecto.
+
+### Al agregar una feature nueva:
+1. Cambiar el estado en la tabla correspondiente
+2. Agregar entrada al changelog
+3. Marcar la tarea como completada en el roadmap
+
+### Al tomar una decisión de diseño:
+1. Buscar el ID correspondiente
+2. Cambiar de 🟡/🔴 a 🟢
+3. Anotar brevemente en "Notas"
+
+### Al cambiar de versión:
+1. Bump en el encabezado (`v1.0-beta` → `v1.1`)
+2. Agregar entrada en el changelog
+3. Actualizar la fecha
+
+---
+
+## 🏷️ Convenciones de código
+
+| Aspecto | Convención |
+|---------|-----------|
+| Constantes de tiles | `MAYÚSCULAS` (ej: `GRASS = 0`) |
+| Funciones | `camelCase` (ej: `generarPantalla`) |
+| Variables | `camelCase` (ej: `anchoPantalla`) |
+| Constantes de config | `MAYÚSCULAS_CON_GUION_BAJO` (ej: `LIMITE_CHUNKS`) |
+| RNG en generador | Siempre `rng()`, nunca `Math.random()` |
+| Determinismo | Obligatorio en todo el generador |
+| RNG por capa | Cada sistema usa su propio `@sufijo` |
+| Comentarios | Secciones con `// ═══` separadores |
+| Bloques del código | Referenciar por número (`BLOQUE 7.5`) |
+| Archivos `.js` | Un archivo por responsabilidad |
+| Orden de carga | Respetar dependencias |
+
+---
+
+## ⚠️ Notas importantes de arquitectura
+
+- **Live Server obligatorio**: por CORS, no funciona abrir `index.html` con doble clic.
+- **Recarga forzada**: usar **Ctrl+Shift+R** cuando se modifican archivos `.js` o `.css`.
+- **Orden de `<script src>`**: cambiar el orden rompe las dependencias.
+- **RNG separado por capa**: `@zona` para terreno, `@items` para ítems, `@llave` para la llave.
+
+---
+
+## 📞 Notas finales
+
+- Este README se actualiza **cada vez que se agrega o cambia algo relevante**.
+- Las decisiones 🧪 pueden cambiar. Las decisiones 🟢 se mantienen salvo razón fuerte.
+- Los IDs (M1, J1, R1, etc.) **no cambian** aunque se modifiquen las decisiones.
+- Los bloques del código (BLOQUE 1 a 18) son referenciables para modificaciones puntuales.
+
+---
+
+**Fin del README · Última revisión: 2026-10-09**

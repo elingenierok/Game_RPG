@@ -1,0 +1,180 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0a0a;
+  color: #ddd;
+  font-family: monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 10px;
+}
+
+#hud {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #888;
+}
+#hud strong { color: #6cf; }
+
+#barra-zonas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #888;
+  user-select: none;
+}
+#barra-zonas .flecha {
+  font-size: 20px;
+  color: #f4a;
+  min-width: 50px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#barra-zonas .flecha.visible { opacity: 1; }
+#barra-zonas .slots {
+  display: flex;
+  gap: 4px;
+}
+#barra-zonas .slot {
+  width: 42px;
+  height: 42px;
+  background: #181818;
+  border: 1px solid #333;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  position: relative;
+  transition: all 0.15s;
+}
+#barra-zonas .slot.actual {
+  background: #2a2a2a;
+  border-color: #6cf;
+  box-shadow: 0 0 8px rgba(100,200,255,0.4);
+}
+#barra-zonas .slot.fuera {
+  background: transparent;
+  border-color: #1a1a1a;
+  opacity: 0.3;
+}
+#barra-zonas .slot .num {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #666;
+  background: #0a0a0a;
+  padding: 0 4px;
+}
+#barra-zonas .slot.visitada::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: #6cf;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+#pantalla {
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 0 30px rgba(100,200,255,0.1);
+}
+#mapa {
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 2px;
+  display: grid;
+  user-select: none;
+}
+#mapa .tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 100;
+  color: #fff;
+  gap: 15px;
+}
+#overlay.visible { display: flex; }
+#overlay .titulo    { font-size: 42px; }
+#overlay .subtitulo { font-size: 18px; color: #aaa; }
+
+#ayuda {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  line-height: 1.6;
+}
+
+#controles-semilla {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #aaa;
+}
+#controles-semilla label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#controles-semilla input {
+  background: #181818;
+  color: #ddd;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-family: monospace;
+  font-size: 13px;
+}
+#controles-semilla input:focus {
+  outline: none;
+  border-color: #6cf;
+  box-shadow: 0 0 6px rgba(100,200,255,0.4);
+}
+#controles-semilla button {
+  background: #222;
+  color: #ddd;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-family: monospace;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#controles-semilla button:hover {
+  background: #2a2a2a;
+  border-color: #6cf;
+  color: #6cf;
+}
