@@ -11,8 +11,25 @@ function intentarMover(dx, dy) {
   if (nx >= ANCHO_PANTALLA) { cambiarZona(+1); return; }
   if (ny < 0 || ny >= ALTO_PANTALLA) return;
 
-  const tile = estado.pantalla.mapa[ny][nx];
+    const tile = estado.pantalla.mapa[ny][nx];
   if (BLOQUEANTES.has(tile)) return;
+
+  // ¿Hay un mob en la celda destino?
+  const mob = obtenerMobEn(estado.zona, nx, ny);
+  if (mob) {
+    const datos = MOBS[mob.tipo];
+    if (datos.colision.alChocar === "batalla") {
+      iniciarBatalla(mob);
+      return;
+    } else {
+      // "nada": el mob bloquea el paso pero no pasa nada más
+      return;
+    }
+  }
+
+  // Actualizar orientación según dirección horizontal
+  if (dx > 0) estado.jugadorMirandoIzquierda = true;
+  if (dx < 0) estado.jugadorMirandoIzquierda = false;
 
   estado.jugador.x = nx;
   estado.jugador.y = ny;

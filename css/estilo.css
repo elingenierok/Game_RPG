@@ -96,10 +96,11 @@ body {
   padding: 10px;
   box-shadow: 0 0 30px rgba(100,200,255,0.1);
 }
+/* Nota: font-size, width y height se aplican por JS (ver js/render.js)
+   para que se ajusten automáticamente según el tamaño de la grilla
+   definido en js/config.js */
 #mapa {
-  font-size: 26px;
   line-height: 1;
-  letter-spacing: 2px;
   display: grid;
   user-select: none;
 }
@@ -107,8 +108,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
 }
 
 #overlay {

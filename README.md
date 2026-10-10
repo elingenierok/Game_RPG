@@ -1,8 +1,8 @@
 # 🎮 Game_RPG · Proyecto Roguelike Procedural
 
 > Motor de mundo procedural con semilla, exploración acotada E-O por zonas,
-> con fronteras compartidas entre chunks, ítems recolectables, arquitectura
-> modular en múltiples archivos, y base jugable escalable hacia un roguelike completo.
+> fronteras compartidas entre chunks, ítems recolectables, mobs con sistema
+> de datos escalable, y módulo de combate por reflejos en desarrollo paralelo.
 
 ---
 
@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.0 · Arquitectura modular + GitHub Pages |
-| **Última actualización** | 2026-10-09 |
+| **Versión actual** | v1.2 · Mobs (tigre, gallina, cerdo) + batalla simulada |
+| **Última actualización** | 2026-10-10 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -28,8 +28,10 @@
 Probar una **jugabilidad base** que, si resulta entretenida, escala hacia:
 
 - Mapas más grandes y complejos
-- Enemigos y sistema de combate
-- Objetos recolectables e inventario (en progreso)
+- Mobs con IA, actitudes y loot
+- Sistema de combate por reflejos
+- Estructuras estáticas (casas, edificios, ruinas)
+- Objetos recolectables e inventario funcional
 - Misiones y acertijos
 - Múltiples pantallas/menús
 
@@ -45,23 +47,22 @@ Probar una **jugabilidad base** que, si resulta entretenida, escala hacia:
 2. Click derecho en `index.html` → **Open with Live Server**
 3. Editar cualquier archivo y guardar (Ctrl+S) → Live Server recarga solo
 
-**⚠️ Importante:** por la arquitectura de múltiples archivos, **abrir el `index.html` con doble clic ya no funciona** (CORS bloquea la carga de `.js` desde `file://`). **Siempre usar Live Server.**
+**⚠️ Importante:** por la arquitectura de múltiples archivos, **abrir el `index.html` con doble clic no funciona** (CORS bloquea la carga de `.js` desde `file://`). **Siempre usar Live Server.**
 
 ### Opción B · Versión pública (GitHub Pages)
 
-Abrí directamente en el navegador:
-
 **👉 [https://elingenierok.github.io/Game_RPG/](https://elingenierok.github.io/Game_RPG/)**
 
-Se actualiza automáticamente cuando hacés `git push`.
+Se actualiza automáticamente al hacer `git push`.
 
 ### Controles
 
 - **WASD** o **flechas direccionales** para moverte
 - Enter en el input de semilla → aplicar
 - Botón 🎲 → semilla aleatoria
+- Chocar con 🐅 → batalla simulada
 
-**⚠️ Recarga forzada:** al modificar `.js` o `.css`, usar **Ctrl+Shift+R** en el navegador.
+**⚠️ Recarga forzada:** usar **Ctrl+Shift+R** al modificar `.js` o `.css`.
 
 ---
 
@@ -81,10 +82,12 @@ Game_RPG/
     ├── mundo.js            ← BLOQUES 4, 5, 6: generación de chunks
     ├── estado.js           ← BLOQUE 7: estado global
     ├── items.js            ← BLOQUE 7.5: ítems y recolección
+    ├── mobs.js             ← BLOQUE 7.7: plantilla + datos de mobs
+    ├── enemigos.js         ← BLOQUE 7.8: spawn, colisión, derrota
     ├── chunks.js           ← BLOQUE 8: caché y carga de pantalla
     ├── render.js           ← BLOQUES 9, 10, 11: render visual y HUD
     ├── jugador.js          ← BLOQUE 12: movimiento y transición
-    ├── victoria.js         ← BLOQUE 13: condición de victoria
+    ├── victoria.js         ← BLOQUES 13, 13.5: victoria + batalla simulada
     ├── input.js            ← BLOQUE 14: listeners de teclado
     ├── limite.js           ← BLOQUE 18: config de límite de chunks
     └── main.js             ← BLOQUES 16, 17: arranque y reinicio
@@ -92,9 +95,14 @@ Game_RPG/
 
 **Orden de carga en `index.html` (importante respetar):**
 ```
-config → tiles → rng → mundo → estado → items → chunks → render
-→ jugador → victoria → input → limite → main
+config → tiles → rng → mundo → estado → items → mobs → enemigos
+→ chunks → render → jugador → victoria → input → limite → main
 ```
+
+**Dependencias críticas:**
+- `mobs.js` **antes** de `enemigos.js` (los datos son usados por la lógica).
+- `estado.js` **antes** de `items.js`, `mobs.js`, `enemigos.js`.
+- `render.js` **después** de todo lo que produce datos a renderizar.
 
 ---
 
@@ -123,8 +131,6 @@ Después abrir con Live Server en VS Code.
 
 ## 🧭 Sistema de estados
 
-Cada decisión de diseño lleva uno de estos marcadores:
-
 | Símbolo | Significado |
 |:---:|-------------|
 | 🧪 | **En test** — Implementado para probar, puede cambiar |
@@ -142,16 +148,18 @@ Cada decisión de diseño lleva uno de estos marcadores:
 | M1 | Direccionalidad del mundo | 🟢 | Infinito E-O, límites N-S | Mundo corredor |
 | M2 | Biomas | 🧪 | Bosque, pradera, costa, ruina | 4 tipos, frontera dura |
 | M3 | Transición entre biomas | 🟢 | Dura (sin mezcla) | Suavizar es fase futura |
-| M4 | Tamaño del chunk | 🟢 | 25×17 (pantalla completa) | Coincide con ventana |
+| M4 | Tamaño del chunk | 🟢 | 50×34 (pantalla completa) | v1.1 |
 | M5 | Memoria de cambios del jugador | ⏸️ | Sin memoria | Fase futura |
 | M6 | Evolución temporal del mundo | ⏸️ | No | Fase futura |
-| M7 | Ventana visible | 🟢 | 25×17 tiles | Jugador ve toda la zona |
+| M7 | Ventana visible | 🟢 | 50×34 tiles | v1.1 |
 | M8 | Comportamiento en bordes | 🟢 | Límite sólido N-S · Cambio de zona E-O | Con pausa de transición |
 | M9 | Fronteras entre chunks | 🟢 | Columna compartida 100% transitable | v0.3 |
 | M10 | Continuidad del jugador al cruzar | 🟢 | Preserva la fila Y | v0.3 |
 | M11 | Caché de chunks | 🟢 | Actual + 2 vecinos | v0.3 |
 | M12 | Límite de chunks | 🟢 | ±5 por defecto, configurable | v0.4 |
 | M13 | Muros sólidos en extremos | 🟢 | Columna de 🧱 en zonas -N y +N | v0.4 |
+| M14 | Tamaño de celda | 🟢 | 16×16 px | v1.1 |
+| M15 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1: cambiar `ANCHO_PANTALLA` ajusta todo |
 
 ---
 
@@ -166,8 +174,8 @@ Cada decisión de diseño lleva uno de estos marcadores:
 | J5 | Muerte definitiva | ⏸️ | No aplica | Fase futura |
 | J6 | Turnos vs tiempo real | ⏸️ | No aplica | Fase futura |
 | J7 | Sistema de iniciativa | ⏸️ | No aplica | Fase futura |
-| J8 | Pantallas/menús | 🧪 | Solo mapa | Combate y acertijos son fase futura |
-| J9 | Cambio entre pantallas | ⏸️ | No aplica aún | FSM cuando haya más pantallas |
+| J8 | Pantallas/menús | 🧪 | Mapa + overlay de batalla | v1.2 |
+| J9 | Cambio entre pantallas | 🧪 | Overlay simple | FSM cuando crezca |
 | J10 | Diálogos con NPCs | ⏸️ | No | Fase futura |
 
 ---
@@ -179,70 +187,102 @@ Cada decisión de diseño lleva uno de estos marcadores:
 | P1 | Cantidad de personajes | 🟢 | 1 | Sin clases por ahora |
 | P2 | Estadísticas | ⏸️ | Ninguna | HP, ataque, defensa → fase futura |
 | P3 | Controles | 🟢 | WASD + flechas | Estándar |
-| P4 | Inventario | 🧪 | Contador de ítems | v0.4: solo cuenta, sin uso aún |
-| P5 | Tipos de objetos | 🧪 | 🍎 Manzana | v0.4: solo uno de prueba |
+| P4 | Inventario | 🧪 | Contador de ítems | Solo cuenta, sin uso aún |
+| P5 | Tipos de objetos | 🧪 | 🍎 Manzana | Solo uno de prueba |
 | P6 | Habilidades especiales | ⏸️ | Ninguna | Nadar, trepar, romper → fase futura |
 | P7 | Modificar el mundo | ⏸️ | No | Talar, romper → fase futura |
 | P8 | Necesidades (hambre/sed) | ⏸️ | No | Fase futura |
+| P9 | Orientación visual del jugador | 🟢 | Espejado horizontal (`scaleX(-1)`) | v1.1: `dx > 0` → espejado |
 
 ---
 
-## ⚔️ MARCO 4 · Enemigos y Combate
+## ⚔️ MARCO 4 · Mobs y Combate
+
+### Sistema de mobs (v1.2)
+
+Cada mob es un **objeto de datos** con una estructura común. El motor de spawn/render/colisión lee esos datos y actúa. Agregar un mob nuevo = escribir datos, no código.
+
+**Estructura de un mob:**
+```
+{
+  id, nombre, emoji,
+  hp, ataque, defensa, velocidadAtaque,
+  spawn:    { porChunk, porMapa, biomas, tipoAparicion, forzarEnEstructura, nivelMinimoJugador },
+  actitud:  { base, seVuelveAgresivoSi, seVuelveNeutralSi },
+  movilidad:{ tipo, velocidad, rangoPatrulla },
+  deteccion:{ distancia, persecucion, alejamiento, requiereVision, afectadoPorArbustos },
+  colision: { alChocar, requiereInteraccion },
+  eliminacion: { seEliminaSi, reaparece, tiempoRespawn },
+  loot:     { dropea, probabilidad, objetos, xp },
+}
+```
+
+**⚠️ Muchos campos no se usan todavía.** Están definidos para escalar sin reescribir.
+
+### Mobs implementados (v1.2)
+
+| Mob | Emoji | Actitud | Spawn por chunk | Biomas | Al chocar |
+|-----|:-----:|---------|:---------------:|--------|-----------|
+| Tigre | 🐅 | Agresivo | 0-2 | Bosque, Ruina | ⚔️ Batalla |
+| Gallina | 🐓 | Pasivo | 0-2 | Pradera | Nada (bloquea) |
+| Cerdo | 🐖 | Neutral | 0-2 | Pradera, Costa | Nada (bloquea) |
+
+**Todos estáticos por ahora.** IA de movimiento, loot y XP → fase futura.
+
+### Estados usados vs ignorados
+
+| Campo | Estado actual |
+|-------|:-------------:|
+| `emoji`, `spawn.porChunk`, `spawn.biomas`, `colision.alChocar` | ✅ Usado |
+| `hp`, `ataque`, `defensa` | 🧪 Mostrado en overlay de batalla |
+| `actitud`, `movilidad`, `deteccion` | ⏸️ Ignorado |
+| `loot`, `eliminacion` (parcial) | ⏸️ Ignorado |
+
+### Decisiones de diseño
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| E1 | Tipos de enemigos | 🔴 | — | Empezar con 3-4 |
-| E2 | Movimiento de enemigos | 🔴 | — | Patrulla, persecución, estático |
-| E3 | Detección del jugador | 🔴 | — | Visión, sonido, radio |
-| E4 | Entrada al combate | 🔴 | — | Al chocar / al ser visto |
-| E5 | Tipo de combate | 🔴 | — | RPG por turnos |
-| E6 | Huida del combate | 🔴 | — | ¿Vuelve al mapa? ¿Persigue? |
-| E7 | Loot y XP | 🔴 | — | ¿Suelta objetos? ¿Sube nivel? |
-| E8 | Combate grupal (1vN) | 🔴 | — | Fase avanzada |
-| E9 | Jefes (bosses) | 🔴 | — | Cuando el sistema base esté listo |
+| E1 | Tipos de mobs | 🧪 | 3 (🐅 🐓 🐖) | Escalable con nueva plantilla |
+| E2 | Movimiento de mobs | ⏸️ | Fijo | IA → fase futura |
+| E3 | Detección del jugador | ⏸️ | No | Fase futura |
+| E4 | Entrada al combate | 🧪 | Al chocar + mob agresivo | Overlay simulado |
+| E5 | Tipo de combate | 🟢 | Combate por reflejos | Ver MARCO 13 |
+| E6 | Huida del combate | ⏸️ | No | Fase futura |
+| E7 | Loot y XP | ⏸️ | No | Campos definidos en datos |
+| E8 | Combate grupal (1vN) | ⏸️ | No | Fase avanzada |
+| E9 | Jefes (bosses) | ⏸️ | No | Cuando el sistema base esté listo |
+| E10 | Tamaño de enemigos | 🟢 | 1×1 (emoji simple) | v1.1 |
+| E11 | **Separación de semillas** | 🟢 | **`SEMILLA` (mundo) + `SEMILLA_MOBS` (mobs)** | **v1.2: ver MARCO 15** |
 
 ---
 
-## 🧩 MARCO 5 · Acertijos
+## 🌱 MARCO 5 · Generación Procedural
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| A1 | Trigger del acertijo | 🔴 | — | Cofre / tile / NPC |
-| A2 | Tipos de acertijo | 🔴 | — | Adivinanza, código, patrón, memoria |
-| A3 | Generación de acertijos | 🔴 | — | Fijos vs procedurales |
-| A4 | Consecuencia de fallar | 🔴 | — | Daño, bloqueo, muerte |
-| A5 | Recompensa | 🔴 | — | Objeto, llave, info |
-| A6 | Obligatoriedad | 🔴 | — | Opcionales vs forzados |
-| A7 | Sistema de pistas | 🔴 | — | Sin pistas vs con pistas |
-
----
-
-## 🌱 MARCO 6 · Generación Procedural
-
-| ID | Decisión | Estado | Valor actual | Notas |
-|:--:|----------|:------:|--------------|-------|
-| G1 | Ingreso de semilla | 🟢 | Manual + aleatoria + Enter | v0.4: input + botones |
+| G1 | Ingreso de semilla (mundo) | 🟢 | Manual + aleatoria + Enter | v0.4 |
 | G2 | Compartir semillas | 🟢 | Sí | Texto copiable |
-| G3 | Determinismo | 🟢 | 100% determinista | FNV-1a + Mulberry32 |
+| G3 | Determinismo del mundo | 🟢 | 100% determinista | FNV-1a + Mulberry32 |
 | G4 | Variedad de mundos | 🟢 | Alta | Biomas + posición aleatoria |
 | G5 | Puntos de interés garantizados | 🧪 | Llave en zona +2 | Regla fija para test |
 | G6 | Fallback si falla generación | 🟢 | Reintento con `@retry` (10 intentos) | Semilla derivada |
 | G7 | Velocidad de generación | 🟢 | Instantánea (<50ms) | Por zona |
 | G8 | Versionado del generador | ⏸️ | No | Fase futura |
 | G9 | Validación de transitabilidad | 🟢 | BFS desde borde oeste a borde este | v0.3 |
-| G10 | RNG por capa | 🟡 | Terreno e ítems separados | ítems `@items`, terreno `@zona`. Enemigos tendrán su propio RNG. |
+| G10 | RNG por capa | 🟢 | Terreno, ítems, mobs separados | v1.2 |
 | G11 | Ítems generados por semilla | 🟢 | 0 a 3 por chunk, solo en celdas transitables | v0.4 |
+| G12 | Mobs generados por semilla separada | 🟢 | 0-2 por tipo, según bioma | v1.2 |
 
 ---
 
-## 🖥️ MARCO 7 · Interfaz / UX
+## 🖥️ MARCO 6 · Interfaz / UX
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
 | U1 | HUD | 🧪 | Pos + Zona + Inventario | v0.4 |
 | U2 | Minimapa | ⏸️ | No | Barra de zonas cumple función parcial |
 | U3 | Log de mensajes | 🧪 | Console.log + overlay | Sistema formal → futuro |
-| U4 | Estilo de menús | ⏸️ | Overlay simple | Combate/acertijos → futuro |
+| U4 | Estilo de menús | 🧪 | Overlay simple + overlay de batalla | v1.2 |
 | U5 | Sonido/música | ⏸️ | No | Fase muy tardía |
 | U6 | Plataforma | 🟢 | Navegador (PC) · Live Server + GitHub Pages | Móvil → futuro lejano |
 | U7 | Guardado/carga | ⏸️ | No | Fase futura |
@@ -251,28 +291,30 @@ Cada decisión de diseño lleva uno de estos marcadores:
 
 ---
 
-## 🏗️ MARCO 8 · Arquitectura
+## 🏗️ MARCO 7 · Arquitectura
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| R1 | Un solo archivo vs múltiples | 🟢 | **Múltiples archivos** | v1.0 |
+| R1 | Un solo archivo vs múltiples | 🟢 | Múltiples archivos | v1.0 |
 | R2 | Método de carga | 🟢 | `<script src>` clásicos (sin módulos ES) | v1.0 |
 | R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server / GitHub Pages) | Obligatorio por CORS |
 | R4 | Separación del CSS | 🟢 | `css/estilo.css` | v1.0 |
 | R5 | Bloques referenciables | 🟢 | Comentarios `// ═══ BLOQUE N ═══` | v1.0 |
-| R6 | Orden de carga | 🟢 | config → tiles → rng → mundo → estado → items → chunks → render → jugador → victoria → input → limite → main | Respetar dependencias |
+| R6 | Orden de carga | 🟢 | config → tiles → rng → mundo → estado → items → mobs → enemigos → chunks → render → jugador → victoria → input → limite → main | v1.2 |
 | R7 | Versionado del código | 🟢 | Git + GitHub | v1.0 |
-| R8 | **Deploy público** | 🟢 | **GitHub Pages** | **v1.0** |
+| R8 | Deploy público | 🟢 | GitHub Pages | v1.0 |
+| R9 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
+| R10 | RNG separado por sistema | 🟢 | 3 capas: `@zona`, `@items`, `@mobs` | v1.2 |
 
 ---
 
-## 🎨 MARCO 9 · Estilo Visual
+## 🎨 MARCO 8 · Estilo Visual
 
 | Elemento | Estilo | Referencia |
 |----------|--------|------------|
 | Fondo general | Oscuro `#0a0a0a` | Minimalista |
 | Bordes | Redondeados `border-radius: 8px` | Suaves |
-| Tiles | Emojis grandes (26px) | Grid 30×30px |
+| Tiles | Emojis 14px en celdas 16×16 | v1.1 |
 | **Glow** | Halos luminosos celestes/rosas | **Muy valorado** |
 | Slot actual (barra) | Borde celeste + `box-shadow` glow | `#6cf` |
 | Slots visitados | Punto celeste inferior | `#6cf` |
@@ -282,12 +324,14 @@ Cada decisión de diseño lleva uno de estos marcadores:
 | Transiciones | Overlay negro 85% + fade | 400ms total |
 | Fuente | `monospace` | Consistencia retro |
 | Input de semilla | Fondo oscuro, glow celeste al focus | v0.4 |
+| Jugador mirando a la izquierda | `transform: scaleX(-1)` | v1.1 |
+| Overlay de batalla | Mismo overlay, con botón Continuar glow | v1.2 |
 
 **Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
 
 ---
 
-## 🧪 MARCO 10 · Sistema de Test (v1.0)
+## 🧪 MARCO 9 · Sistema de Test (v1.2)
 
 ### Lo que hay ahora
 - Mundo E-O acotado (±5 chunks por defecto, configurable)
@@ -298,17 +342,21 @@ Cada decisión de diseño lleva uno de estos marcadores:
 - Validación BFS de transitabilidad por chunk
 - Muros sólidos 🧱 en los extremos del mundo
 - Jugador 🧑 que se mueve con WASD + flechas
+- **Jugador con orientación visual** (`scaleX(-1)`)
 - Llave 🔑 escondida en zona +2 al este
 - Ítems 🍎 recolectables (0 a 3 por chunk)
 - Inventario visible en el HUD
 - Control de semilla en UI (input + botones + Enter)
 - Barra de zonas con 5 slots, jugador centrado, límite respetado
-- Arquitectura modular: 13 archivos `.js` + 1 CSS + index limpio
-- **Versionado con Git + deploy público en GitHub Pages**
+- **3 mobs (🐅 🐓 🐖) con sistema de datos escalable**
+- **Batalla simulada** al chocar con mobs agresivos
+- Arquitectura modular: 15 archivos `.js` + 1 CSS + index limpio
+- Versionado con Git + deploy público en GitHub Pages
+- **Tamaño de grilla centralizado** en `config.js`
 
 ### Lo que el test responde
 1. ¿Se siente bien el cambio de zona? → ✅ OK
-2. ¿El tamaño 25×17 es cómodo? → ✅ OK
+2. ¿El tamaño de la grilla (50×34) es cómodo? → ✅ OK
 3. ¿Caminar al este es entretenido? → ✅ OK
 4. ¿Los biomas cambian lo suficiente? → ✅ OK
 5. ¿La distancia a la llave es adecuada? → ✅ OK
@@ -316,12 +364,15 @@ Cada decisión de diseño lleva uno de estos marcadores:
 7. ¿Los ítems recolectables funcionan? → ✅ OK
 8. ¿El límite del mundo se siente natural? → ✅ OK
 9. ¿La arquitectura modular es mantenible? → ✅ OK
+10. ¿La orientación del jugador aporta? → ✅ OK
+11. ¿Los mobs en el mapa funcionan? → ✅ OK
+12. ¿La batalla simulada aporta? → ✅ OK
 
-**Conclusión:** el test superó todas las validaciones. Sistema listo para escalar.
+**Conclusión:** el test supera validaciones. Sistema de mobs listo para escalar.
 
 ---
 
-## 🎯 MARCO 11 · Alcance / Producción
+## 🎯 MARCO 10 · Alcance / Producción
 
 | ID | Decisión | Estado | Valor actual |
 |:--:|----------|:------:|--------------|
@@ -330,6 +381,57 @@ Cada decisión de diseño lleva uno de estos marcadores:
 | X3 | Meta | 🟢 | Prototipo → escalable |
 | X4 | Equipo | 🟢 | Solo desarrollador |
 | X5 | Prioridad #1 | 🟢 | Divertido |
+
+---
+
+## ⚔️ MARCO 11 · Módulo de Combate por Reflejos
+
+> **Módulo independiente en desarrollo paralelo.** Se integrará al juego cuando esté listo el Prototipo 3.
+
+### 🎯 Objetivo
+
+Sistema de combate en primera persona basado en **reacción visual y timing**, donde el jugador interactúa con un enemigo mediante **ataque** y **bloqueo** en ventanas de tiempo determinadas.
+
+### 🧩 Concepto central
+
+Interfaz radial (tipo diana de dardos) con **sectores anidados**:
+
+- **Anillo externo:** 6 sectores (3 arriba, 3 abajo) con direcciones de ataque enemigo. El jugador **bloquea** arrastrando el mouse desde el centro hacia el sector correcto.
+- **Área central:** zona donde aparecen puntos débiles del enemigo. El jugador **ataca** haciendo clic/arrastrando hacia ellos.
+
+Cada acción enemiga se comunica con:
+- **TELEGRAPH:** el sector se ilumina con barra de progreso que se vacía. Al llegar al centro, impacta.
+- **VULNERABLE:** sectores que parpadean, indicando dónde atacar.
+
+### ⚙️ Mecánicas
+
+| Acción | Input | Resultado |
+|--------|-------|-----------|
+| **Bloqueo** | Clic sostenido + arrastre del centro al sector, **antes** del impacto y **mantenido** durante él | Bloqueo o daño |
+| **Ataque** | Clic/arrastre hacia sector vulnerable | Daño al enemigo o fallo |
+
+**Reglas:** HP para ambos. Ataques fallidos quitan vida. Dificultad escala con progreso.
+
+### 🧠 Arquitectura
+
+- **Base:** HTML + CSS + JS vanilla, sin frameworks.
+- **Interfaz radial:** SVG con paths matemáticos.
+- **Máquina de estados:** `IDLE` → `TELEGRAPH` → `ATTACK` → `VULNERABLE` → `HIT`.
+- **Input:** `mousedown`, `mousemove`, `mouseup` con cálculo de ángulo/sector.
+- **Extensible a:** sonido (Web Audio API), animaciones, partículas.
+
+### 🧪 Fases
+
+| Fase | Nombre | Estado |
+|:----:|--------|:------:|
+| 1 | Prototipo 1 · Test de reflejos simple | ✅ Completado |
+| 2 | Prototipo 2 · Sectores radiales + arrastre (SVG) | ⏸️ Próximo |
+| 3 | Prototipo 3 · Ciclo completo de combate (HP + estados) | ⏸️ Pendiente |
+| 4 | Fase final · Integración con el juego principal | ⏸️ Pendiente |
+
+**Prototipo 1 (completado):** cuadrado central que parpadea rojo (ataque) o verde (vulnerable). Input por clic derecho/izquierdo dentro de ventana de tiempo. HUD con cartel de resultado.
+
+**Prototipo 2 (próximo):** SVG con 6 sectores. Advertencia visual con barra de progreso. Input por arrastre del centro al sector. Sin enemigo visual aún.
 
 ---
 
@@ -343,6 +445,110 @@ Cada decisión de diseño lleva uno de estos marcadores:
 
 ### Otros
 - _(pendiente)_
+
+---
+
+## 🔮 MARCO 13 · Análisis Futuros (Backlog)
+
+Ideas en evaluación. **No están priorizadas ni implementadas.** Se anotan para no perderlas.
+
+### 🌗 F1 · Ciclo día-noche
+
+**Idea:** visión variable según momento del día.
+
+- **Día:** todas las celdas visibles.
+- **Noche:** visión limitada a ~5 celdas de radio, salvo iluminación artificial (farolas, fogatas, antorchas).
+- **Implementación:** celdas lejanas "apagadas" (opacidad reducida o no renderizadas).
+
+**Preguntas pendientes:**
+- ¿Duración del ciclo? ¿Turnos? ¿Tiempo real? ¿Fijo?
+- ¿Afecta gameplay (enemigos más agresivos de noche, eventos)?
+- Fuentes de luz: ¿ítems portables? ¿estructuras fijas? ¿ambas?
+
+---
+
+### 🚶 F2 · Movimiento amortiguado entre celdas
+
+**Idea:** el jugador se mueve suave entre celdas, no a saltos discretos.
+
+**Pregunta clave:** ¿la arquitectura tile-based actual lo permite o hay que migrar?
+
+**Consideraciones:**
+- Actualmente el movimiento es **discreto** (un tile por pulsación).
+- Requiere interpolar posiciones (x,y como floats) y desacoplar lógica de grilla del render.
+- Es el salto entre "tile-based puro" y "grilla como guía + movimiento libre".
+- Impacta: render, jugador, colisiones, transición de zonas.
+
+---
+
+### 🗂️ F3 · Sistema de capas del mundo
+
+**Idea:** separar el mundo en **capas independientes**, cada una con su responsabilidad.
+
+| Capa | Contenido |
+|:----:|-----------|
+| 1 | Terreno base (pasto, agua, arena, árboles) |
+| 2 | Objetos estáticos (estructuras, cofres, letreros) |
+| 3 | Entidades móviles (jugador, mobs, NPCs) |
+| 4 | Iluminación / visión |
+| 5 | Clima / ambiental (lluvia, nieve, niebla) |
+| 6 | Efectos especiales (visión infrarroja, detección mágica) |
+
+**Ventajas:**
+- Encender/apagar capas sin reescribir código.
+- Cada capa tiene su lógica propia.
+- Ejemplo: capa de luces detecta noche + objeto iluminable → activa luz.
+- Fácil agregar capas nuevas (infrarrojo, rastreo, magia).
+
+**Preguntas pendientes:**
+- ¿Cómo se renderiza? ¿Canvas múltiple? ¿Grilla por capa?
+- ¿Puede una capa leer otra?
+- Impacto en performance con muchas capas activas.
+
+---
+
+### 🎲 F4 · Semillas independientes por sistema
+
+**Idea:** separar la generación en **múltiples semillas**, cada una controlando un aspecto del mundo.
+
+| Sistema | Semilla | ¿Editable? |
+|---------|---------|:----------:|
+| Mundo (terreno, biomas, estructuras) | `SEMILLA` | ✅ Sí, la que ya existe |
+| Mobs | `SEMILLA_MOBS` | ⏸️ Automática por ahora |
+| Objetos | `SEMILLA_OBJETOS` | ⏸️ Automática por ahora |
+
+**Objetivo:** que dos jugadores con la misma `SEMILLA` tengan **el mismo mundo** (terreno, biomas, estructuras) pero **mobs distintos** en cada partida.
+
+**Criterio propuesto para SEMILLA_MOBS:**
+- `Date.now()` → cambia en cada carga.
+- O `SEMILLA + fecha` → cambia por día.
+
+**Criterio propuesto para SEMILLA_OBJETOS:**
+- Por ahora derivada de `SEMILLA`.
+- Preparada para cambiar a `Date.now()` si se necesita.
+
+**Estado:** idea anotada. La separación `SEMILLA` / `SEMILLA_MOBS` es de bajo costo y alto impacto.
+
+---
+
+### 📌 F5 · Spawn forzado por bioma o estructura
+
+**Idea:** permitir forzar la aparición de un mob en un lugar específico.
+
+**Ejemplos:**
+- Un 🐉 dragón que aparece **solo en ruinas** y **solo una vez** por mundo.
+- Un 🐟 pez que aparece **solo en agua** y **solo de noche**.
+- Un 👻 fantasma que aparece **solo dentro de una estructura "castillo"**.
+
+**Campos ya definidos en la plantilla:**
+- `spawn.forzarEnEstructura` → ej: `"cueva"`, `"castillo"`.
+- `spawn.tipoAparicion` → `"diurna"`, `"nocturna"`, `"ambos"`.
+- `spawn.porMapa` → máximo global.
+
+**Falta:**
+- Lógica de detección de estructura.
+- Control de "veces que puede aparecer en el mundo".
+- Condiciones especiales (nivel del jugador, hora, etc.).
 
 ---
 
@@ -363,21 +569,31 @@ Cada decisión de diseño lleva uno de estos marcadores:
 - [x] Ítems recolectables (🍎)
 - [x] Inventario en HUD
 - [x] Carga de semilla dinámica desde UI
-- [x] Refactorización completa a múltiples archivos
+- [x] Refactorización a múltiples archivos
 - [x] CSS separado en `css/estilo.css`
 - [x] Documentación README
-- [x] **Subir el proyecto a GitHub**
-- [x] **Activar GitHub Pages para URL pública**
+- [x] Subir el proyecto a GitHub
+- [x] Activar GitHub Pages para URL pública
+- [x] Prototipo 1 del módulo de combate (test de reflejos)
+- [x] Grilla 50×34 + celdas 16×16
+- [x] Orientación del jugador (`scaleX(-1)`)
+- [x] Centralización de tamaño (`config.js`)
+- [x] **3 mobs con sistema de datos escalable**
+- [x] **Batalla simulada (overlay)**
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | Agregar 1 tipo de enemigo simple | ⏸️ | Probar movimiento + colisión |
-| 🔥 Alta | Sistema de HP + daño básico | ⏸️ | Necesario para combate |
-| 🟡 Media | Pantalla de combate (menú RPG por turnos) | ⏸️ | Depende de enemigos + HP |
-| 🟡 Media | Más tipos de ítems (🍎, 🌿, 💎) | ⏸️ | Extender sistema actual |
+| 🔥 Alta | Separar `SEMILLA_MOBS` de `SEMILLA` | ⏸️ | v1.3 — ver F4 |
+| 🔥 Alta | IA básica de mobs (persecución / huida) | ⏸️ | Probar movimiento |
+| 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
+| 🔥 Alta | Prototipo 2 del módulo de combate (SVG radial) | ⏸️ | En paralelo |
+| 🟡 Media | Integrar módulo de combate al mapa | ⏸️ | Cuando prototipo 3 esté listo |
+| 🟡 Media | Loot y XP de mobs | ⏸️ | Campos ya definidos |
+| 🟡 Media | Más tipos de ítems (🌿, 💎) | ⏸️ | Extender sistema actual |
 | 🟡 Media | Ítems con efecto (comer manzana → +HP) | ⏸️ | Requiere sistema de HP |
+| 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis pintadas |
 | 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
 | 🟢 Baja | Minimapa completo | ⏸️ | Complementa la barra de zonas |
 
@@ -392,30 +608,46 @@ Cada decisión de diseño lleva uno de estos marcadores:
 - Sistema de inventario completo
 - Movimiento N-S con scroll vertical
 - Refactorización a módulos ES (`import`/`export`)
+- Entidades multi-tile (mobs 2×2, NPCs grandes)
+- **Ver MARCO 13 · Análisis Futuros** (F1-F5)
 
 ---
 
 ## 📝 Changelog
 
+### v1.2 · 2026-10-10
+- ➕ **Sistema de mobs escalable** (`js/mobs.js`) — plantilla + 3 mobs
+- ➕ **Spawn de mobs** (`js/enemigos.js`) — por chunk, según bioma
+- ➕ **Batalla simulada** al chocar con mob agresivo (overlay + botón)
+- ➕ 3 mobs iniciales: 🐅 Tigre (agresivo), 🐓 Gallina (pasivo), 🐖 Cerdo (neutral)
+- ➕ RNG separado para mobs (`@mobs`)
+- 🔧 Fix de orientación del jugador (invertido)
+- 📖 README reorganizado: 13 marcos + backlog de análisis futuros
+- 📌 Anotadas 5 ideas futuras: día-noche, movimiento amortiguado, capas, semillas separadas, spawn forzado
+
+### v1.1 · 2026-10-10
+- 🔧 Grilla cambiada a 50×34 (antes 25×17)
+- 🔧 Tamaño de celda reducido a 16×16 px (antes 30×30)
+- ➕ Orientación del jugador con `scaleX(-1)`
+- ➕ **Centralización de tamaño**: todo derivado de `config.js`
+- 📌 Anotadas ideas: día-noche, movimiento amortiguado, capas
+- 📌 Decisión: enemigos 1×1, estructuras grandes (Forma A) → fase futura
+
 ### v1.0 · 2026-10-09
-- ☁️ **Proyecto subido a GitHub**: [github.com/elingenierok/Game_RPG](https://github.com/elingenierok/Game_RPG)
-- 🌐 **GitHub Pages activado**: [elingenierok.github.io/Game_RPG](https://elingenierok.github.io/Game_RPG/)
+- ☁️ Proyecto subido a GitHub
+- 🌐 GitHub Pages activado
 - 📖 README con flujo de trabajo Git documentado
-- 🔧 `.gitignore` creado (ignora `.vscode/`, `node_modules/`, logs, etc.)
-- 📖 Documentado cómo clonar el proyecto en otra PC
-- ✅ Versionado completo con Git
+- 🔧 `.gitignore` creado
+- ➕ Prototipo 1 del módulo de combate
 
 ### v1.0-beta · 2026-10-09
 - 🏗️ Refactorización completa a múltiples archivos
-- ➕ 13 archivos `.js` (uno por bloque lógico)
-- ➕ `css/estilo.css` con todo el CSS
-- ➕ `index.html` limpio: solo HTML + `<script src>` + `<link>`
-- ➕ Bloques 12-18 movidos a `jugador.js`, `victoria.js`, `input.js`, `limite.js`, `main.js`
+- ➕ 13 archivos `.js` + `css/estilo.css`
+- ➕ Bloques 12-18 movidos a archivos individuales
 
 ### v0.5 · 2026-10-09
 - 🏗️ Refactorización parcial (bloques 1-11)
 - ➕ 8 archivos `.js` creados
-- ⚠️ Requiere Live Server
 
 ### v0.4 · 2026-10-09
 - ➕ Ítems recolectables (🍎)
@@ -454,24 +686,24 @@ Cada decisión de diseño lleva uno de estos marcadores:
 | 3 | Hash y PRNG | `js/rng.js` |
 | 4 | Fronteras entre chunks | `js/mundo.js` |
 | 5 | Generador de pantalla | `js/mundo.js` |
+| 5.5 | Estructuras estáticas (Forma A) | ⏸️ pendiente |
 | 6 | Validación de transitabilidad | `js/mundo.js` |
 | 7 | Estado global | `js/estado.js` |
 | 7.5 | Ítems | `js/items.js` |
+| 7.7 | Mobs (plantilla + datos) | `js/mobs.js` |
+| 7.8 | Enemigos (spawn, colisión) | `js/enemigos.js` |
 | 8 | Carga de pantalla | `js/chunks.js` |
 | 9 | Render del mapa | `js/render.js` |
 | 10 | Render barra de zonas | `js/render.js` |
 | 11 | HUD | `js/render.js` |
 | 12 | Movimiento y transición | `js/jugador.js` |
 | 13 | Victoria | `js/victoria.js` |
+| 13.5 | Batalla simulada | `js/victoria.js` |
 | 14 | Input | `js/input.js` |
 | 15 | Estilos CSS | `css/estilo.css` |
 | 16 | Inicio | `js/main.js` |
 | 17 | Reinicio con nueva semilla | `js/main.js` |
 | 18 | Configuración de límite | `js/limite.js` |
-
-**Cómo referirse a bloques en charlas futuras:**
-> "Cambiá el BLOQUE 5 para que la densidad de árboles sea mayor."
-> "Hay un bug en el BLOQUE 12, revisá `cambiarZona` en `js/jugador.js`."
 
 ---
 
@@ -490,7 +722,7 @@ Cada decisión de diseño lleva uno de estos marcadores:
 3. Anotar brevemente en "Notas"
 
 ### Al cambiar de versión:
-1. Bump en el encabezado (`v1.0` → `v1.1`)
+1. Bump en el encabezado (`v1.2` → `v1.3`)
 2. Agregar entrada en el changelog
 3. Actualizar la fecha
 
@@ -519,7 +751,7 @@ Cada decisión de diseño lleva uno de estos marcadores:
 - **Live Server obligatorio**: por CORS, no funciona abrir `index.html` con doble clic.
 - **Recarga forzada**: usar **Ctrl+Shift+R** cuando se modifican archivos `.js` o `.css`.
 - **Orden de `<script src>`**: cambiar el orden rompe las dependencias.
-- **RNG separado por capa**: `@zona` para terreno, `@items` para ítems, `@llave` para la llave.
+- **RNG separado por sistema**: `@zona` (terreno), `@items` (ítems), `@mobs` (mobs), `@llave` (llave).
 - **GitHub Pages tarda ~30-60s** en actualizarse tras un `git push`.
 
 ---
@@ -528,9 +760,9 @@ Cada decisión de diseño lleva uno de estos marcadores:
 
 - Este README se actualiza **cada vez que se agrega o cambia algo relevante**.
 - Las decisiones 🧪 pueden cambiar. Las decisiones 🟢 se mantienen salvo razón fuerte.
-- Los IDs (M1, J1, R1, etc.) **no cambian** aunque se modifiquen las decisiones.
+- Los IDs (M1, J1, R1, S1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
 - Los bloques del código (BLOQUE 1 a 18) son referenciables para modificaciones puntuales.
 
 ---
 
-**Fin del README · Última revisión: 2026-10-09**
+**Fin del README · Última revisión: 2026-10-10**

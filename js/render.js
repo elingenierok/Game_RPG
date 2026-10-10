@@ -1,14 +1,20 @@
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 9 · RENDER DEL MAPA
+// ─────────────────────────────────────────────────────────────────
+//  Los tamaños (grid, celdas, emojis) se derivan de config.js.
+//  Cambiar ANCHO_PANTALLA / ALTO_PANTALLA allí ajusta todo acá.
 // ═══════════════════════════════════════════════════════════════
 const divMapa = document.getElementById("mapa");
-divMapa.style.gridTemplateColumns = `repeat(${ANCHO_PANTALLA}, 30px)`;
+divMapa.style.gridTemplateColumns = `repeat(${ANCHO_PANTALLA}, ${TAMANO_CELDA}px)`;
+divMapa.style.fontSize = FONT_EMOJI + "px";
 
 const celdas = [];
 for (let y = 0; y < ALTO_PANTALLA; y++) {
   for (let x = 0; x < ANCHO_PANTALLA; x++) {
     const c = document.createElement("div");
     c.className = "tile";
+    c.style.width  = TAMANO_CELDA + "px";
+    c.style.height = TAMANO_CELDA + "px";
     divMapa.appendChild(c);
     celdas.push(c);
   }
@@ -26,27 +32,46 @@ function render() {
   for (let y = 0; y < ALTO_PANTALLA; y++) {
     for (let x = 0; x < ANCHO_PANTALLA; x++) {
       const idx = y * ANCHO_PANTALLA + x;
+      const celda = celdas[idx];
 
+      // Resetear transform
+      celda.style.transform = "";
+
+      // 1. Llave
       if (estado.llave.zona === estado.zona &&
           estado.llave.x === x && estado.llave.y === y) {
-        celdas[idx].textContent = ICONOS[LLAGUE];
+        celda.textContent = ICONOS[LLAGUE];
         continue;
       }
 
+      // 2. Jugador (con orientación)
       if (estado.jugador.x === x && estado.jugador.y === y) {
-        celdas[idx].textContent = ICONOS[PLAYER];
+        celda.textContent = ICONOS[PLAYER];
+        if (estado.jugadorMirandoIzquierda) {
+          celda.style.transform = "scaleX(-1)";
+        }
         continue;
       }
 
+            // 3. Ítems
       const claveItem = estado.zona + ":" + x + "," + y;
       if (itemsPorPos.has(x + "," + y) && !estado.itemsRecogidos.has(claveItem)) {
         const it = itemsPorPos.get(x + "," + y);
-        celdas[idx].textContent = iconoDeItem(it.tipo);
+        celda.textContent = iconoDeItem(it.tipo);
         continue;
       }
 
+      // 4. Mobs
+      const mob = obtenerMobEn(estado.zona, x, y);
+      if (mob) {
+        const datos = MOBS[mob.tipo];
+        celda.textContent = datos.emoji;
+        continue;
+      }
+
+      // 5. Terreno base
       const icono = ICONOS[mapa[y][x]];
-      celdas[idx].textContent = icono !== undefined ? icono : ICONOS[GRASS];
+      celda.textContent = icono !== undefined ? icono : ICONOS[GRASS];
     }
   }
 }

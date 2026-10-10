@@ -15,6 +15,7 @@ function reiniciarMundo(nuevaSemilla) {
   estado.pantalla = null;
   estado.jugador = { x: 5, y: 8 };
   estado.jugadorInicializado = false;
+  estado.jugadorMirandoIzquierda = false;
   estado.zonasVisitadas = new Set([0]);
   estado.transicionando = false;
   estado.ganado = false;
@@ -22,7 +23,9 @@ function reiniciarMundo(nuevaSemilla) {
   estado.itemsRecogidos = new Set();
 
   cacheChunks.clear();
-
+  cacheMobs.clear();
+  mobsDerrotados.clear();
+  
   document.getElementById("overlay").classList.remove("visible");
 
   {

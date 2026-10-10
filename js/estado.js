@@ -6,6 +6,7 @@ const estado = {
   pantalla: null,
   jugador: { x: 5, y: 8 },
   jugadorInicializado: false,
+  jugadorMirandoIzquierda: false,
   llave: { zona: 0, x: 0, y: 0 },
   zonasVisitadas: new Set([0]),
   transicionando: false,
