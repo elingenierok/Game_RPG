@@ -2,6 +2,7 @@
 //  BLOQUE 16 · INICIO
 // ═══════════════════════════════════════════════════════════════
 cargarPantalla(0);
+iniciarTicks();
 console.log("Semilla:", SEMILLA);
 console.log("Llave en zona", estado.llave.zona, "posición", estado.llave.x + "," + estado.llave.y);
 
@@ -25,8 +26,8 @@ function reiniciarMundo(nuevaSemilla) {
   estado.itemsRecogidos = new Set();
 
   cacheChunks.clear();
+  detenerTicks();
   cacheMobs.clear();
-  mobsDerrotados.clear();
   
   document.getElementById("overlay").classList.remove("visible");
 
@@ -44,6 +45,7 @@ function reiniciarMundo(nuevaSemilla) {
   }
 
   cargarPantalla(0);
+  iniciarTicks();
 
   console.log("🌱 Nueva semilla:", SEMILLA);
   console.log("🔑 Llave en zona", estado.llave.zona, "posición", estado.llave.x + "," + estado.llave.y);

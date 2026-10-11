@@ -15,14 +15,14 @@ function intentarMover(dx, dy) {
   if (BLOQUEANTES.has(tile)) return;
 
   // ¿Hay un mob en la celda destino?
-  const mob = obtenerMobEn(estado.zona, nx, ny);
+    const mob = obtenerMobEn(estado.zona, nx, ny);
   if (mob) {
     const datos = MOBS[mob.tipo];
     if (datos.colision.alChocar === "batalla") {
+      pausarTicks();
       iniciarBatalla(mob);
       return;
     } else {
-      // "nada": el mob bloquea el paso pero no pasa nada más
       return;
     }
   }

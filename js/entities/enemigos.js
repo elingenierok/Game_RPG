@@ -15,6 +15,12 @@ const mobsDerrotados = new Set();  // "zona:x,y" de mobs eliminados
 function obtenerMobsDeChunk(zona) {
   if (cacheMobs.has(zona)) return cacheMobs.get(zona);
 
+  // Zona inicial sin mobs (lugar seguro de spawn)
+  if (zona === 0) {
+    cacheMobs.set(zona, []);
+    return [];
+  }
+
   const rng = crearRNG(hashString(SEMILLA_MOBS + "@mobs" + zona));
   const chunk = cacheChunks.get(zona) || obtenerChunk(zona);
   if (!chunk) {
@@ -53,7 +59,14 @@ function obtenerMobsDeChunk(zona) {
         // No sobre otro mob
         if (mobs.some(m => m.x === x && m.y === y)) continue;
 
-        mobs.push({ tipo: id, x, y });
+        mobs.push({
+          tipo: id,
+          x, y,
+        // ─── Estado mutable de IA (runtime) ───
+        estado: "DEAMBULANDO",         // DEAMBULANDO | PERSIGUIENDO | HUYENDO | QUIETO
+        tickContador: 0,               // contador para alternar velocidad de deambulación
+        mirandoIzquierda: false,       // orientación visual (espejado)
+                  });
         colocado = true;
         break;
       }
@@ -66,16 +79,18 @@ function obtenerMobsDeChunk(zona) {
 
 // ─── Obtiene el mob en una posición (o null) ───
 function obtenerMobEn(zona, x, y) {
-  const clave = zona + ":" + x + "," + y;
-  if (mobsDerrotados.has(clave)) return null;
-
   const mobs = obtenerMobsDeChunk(zona);
   return mobs.find(m => m.x === x && m.y === y) || null;
 }
 
 // ─── Marca un mob como derrotado ───
 function derrotarMobEn(zona, x, y) {
-  const clave = zona + ":" + x + "," + y;
-  mobsDerrotados.add(clave);
+  const mobs = cacheMobs.get(zona);
+  if (!mobs) return;
+
+  const idx = mobs.findIndex(m => m.x === x && m.y === y);
+  if (idx === -1) return;
+
+  mobs.splice(idx, 1);
   console.log(`⚔️ Mob derrotado en zona ${zona}, posición ${x},${y}`);
 }

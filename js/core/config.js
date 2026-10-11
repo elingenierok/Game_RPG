@@ -29,6 +29,10 @@ const FONT_EMOJI   = TAMANO_CELDA - 2;
 const ZONAS_VISIBLES  = 5;
 const ZONA_LLAVE      = 2;
 
+// ─── Tick de IA (mobs en tiempo real) ───
+const TICK_MS = 400;              // intervalo base del tick (ms)
+const TICK_DEAMBULAR_CADA = 2;    // cada cuántos ticks deambula un mob
+
 // ─── Semilla y límites ───
 // SEMILLA = mundo (terreno, biomas, estructuras). Editable por el jugador.
 let SEMILLA = "test_mundo_01";

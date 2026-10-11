@@ -60,4 +60,5 @@ function cargarPantalla(zona) {
   render();
   renderBarraZonas();
   actualizarHUD();
+  reanudarTicks();     // ← NUEVO
 }

@@ -42,10 +42,11 @@ function iniciarBatalla(mob) {
   setTimeout(() => {
     const btn = document.getElementById("btn-continuar-batalla");
     if (btn) {
-      btn.addEventListener("click", () => {
+            btn.addEventListener("click", () => {
         derrotarMobEn(batallaActiva.zona, batallaActiva.x, batallaActiva.y);
         overlay.classList.remove("visible");
         batallaActiva = null;
+        reanudarTicks();
         render();
       });
     }

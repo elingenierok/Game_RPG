@@ -2,81 +2,73 @@
 //  BLOQUE 7.7 · MOBS · Plantilla base + datos
 // ─────────────────────────────────────────────────────────────────
 //  Cada mob es un objeto con una estructura común. El motor de
-//  spawn/render/colisión lee estos datos y actúa en consecuencia.
+//  spawn/render/colisión/IA lee estos datos y actúa.
 //
 //  ⚠️  MUCHOS CAMPOS NO SE USAN TODAVÍA. Están definidos para que
-//      cuando agreguemos IA, loot, combate, no haya que reescribir.
+//      cuando agreguemos loot, combate, etc., no haya que reescribir.
 //
-//  Estado actual (v1.1):
-//    ✔ Se usa: emoji, spawn.porChunk, spawn.biomas, colision.alChocar
-//    ⏸ Se ignora: hp, ataque, actitud, movilidad, deteccion, loot
+//  Estado actual (v1.5):
+//    ✔ Se usa: emoji, spawn.porChunk, spawn.biomas, colision.alChocar,
+//              actitud.base, movilidad.velocidad, deteccion.distancia
+//    ⏸ Se ignora: hp, ataque, defensa, loot
 // ═══════════════════════════════════════════════════════════════
 
 const MOBS = {
   tigre: {
-    // Identidad
     id: "tigre",
     nombre: "Tigre",
     emoji: "🐅",
 
-    // Stats (ignorados por ahora)
     hp: 12,
     ataque: 5,
     defensa: 2,
     velocidadAtaque: 2,
 
-    // Aparición
     spawn: {
-      porChunk: [0, 2],              // rango min-max por chunk
-      porMapa: null,                 // null = sin límite global (por ahora)
-      biomas: {                      // true = aparece, false = no
+      porChunk: [0, 2],
+      porMapa: null,
+      biomas: {
         bosque:   true,
         pradera:  false,
         costa:    false,
         ruina:    true,
       },
-      tipoAparicion: "ambos",        // "diurna" | "nocturna" | "ambos" (futuro)
-      forzarEnEstructura: null,      // ej: "cueva" (futuro)
+      tipoAparicion: "ambos",
+      forzarEnEstructura: null,
       nivelMinimoJugador: 1,
     },
 
-    // Actitud
     actitud: {
-      base: "agresivo",              // "neutral" | "agresivo" | "pasivo"
+      base: "hostil",                // "neutral" | "hostil" | "pacifico"
       seVuelveAgresivoSi: "nunca",
       seVuelveNeutralSi: "nunca",
     },
 
-    // Movilidad (ignorada por ahora)
     movilidad: {
-      tipo: "fijo",
-      velocidad: 0,
+      tipo: "movil",
+      velocidad: 1,                  // tiles por tick cuando persigue
       rangoPatrulla: 0,
     },
 
-    // Detección (ignorada por ahora)
     deteccion: {
-      distancia: 0,
+      distancia: 6,                  // rango de detección del jugador
       persecucion: 0,
       alejamiento: 0,
       requiereVision: false,
       afectadoPorArbustos: false,
     },
 
-    // Colisión
     colision: {
-      alChocar: "batalla",           // "nada" | "batalla" | "ataca" | "huye"
+      alChocar: "batalla",
       requiereInteraccion: false,
     },
 
-    // Eliminación
     eliminacion: {
       seEliminaSi: "alGanarBatalla",
       reaparece: false,
       tiempoRespawn: 0,
     },
 
-    // Loot (ignorado por ahora)
     loot: {
       dropea: false,
       probabilidad: 0,
@@ -110,19 +102,19 @@ const MOBS = {
     },
 
     actitud: {
-      base: "pasivo",
+      base: "pacifico",              // huye del jugador
       seVuelveAgresivoSi: "nunca",
       seVuelveNeutralSi: "nunca",
     },
 
     movilidad: {
-      tipo: "libre",                 // ⏸ TODO: implementar huida
-      velocidad: 1,
+      tipo: "movil",
+      velocidad: 1,                  // tiles por tick cuando huye
       rangoPatrulla: 0,
     },
 
     deteccion: {
-      distancia: 4,
+      distancia: 4,                  // rango de detección del jugador
       persecucion: 0,
       alejamiento: 0,
       requiereVision: false,
@@ -130,7 +122,7 @@ const MOBS = {
     },
 
     colision: {
-      alChocar: "nada",              // ⏸ no hace nada al chocar
+      alChocar: "nada",              // no hace nada al chocar
       requiereInteraccion: false,
     },
 
@@ -141,7 +133,7 @@ const MOBS = {
     },
 
     loot: {
-      dropea: true,                  // ⏸ pendiente
+      dropea: true,
       probabilidad: 0.8,
       objetos: [{ id: "pluma", prob: 1.0 }],
       xp: 1,
@@ -173,19 +165,19 @@ const MOBS = {
     },
 
     actitud: {
-      base: "neutral",
-      seVuelveAgresivoSi: "loAtacan", // ⏸ pendiente
+      base: "neutral",               // quieto, ataca solo si lo atacan
+      seVuelveAgresivoSi: "loAtacan",
       seVuelveNeutralSi: "nunca",
     },
 
     movilidad: {
-      tipo: "fijo",
+      tipo: "fijo",                  // no se mueve
       velocidad: 0,
       rangoPatrulla: 0,
     },
 
     deteccion: {
-      distancia: 3,
+      distancia: 0,
       persecucion: 0,
       alejamiento: 0,
       requiereVision: false,
@@ -194,7 +186,7 @@ const MOBS = {
 
     colision: {
       alChocar: "nada",
-      requiereInteraccion: true,     // ⏸ requiere acción explícita
+      requiereInteraccion: true,
     },
 
     eliminacion: {

@@ -61,11 +61,15 @@ function render() {
         continue;
       }
 
-      // 4. Mobs
+            // 4. Mobs
       const mob = obtenerMobEn(estado.zona, x, y);
       if (mob) {
         const datos = MOBS[mob.tipo];
         celda.textContent = datos.emoji;
+        // Espejado según dirección del último movimiento
+        if (mob.mirandoIzquierda) {
+          celda.style.transform = "scaleX(-1)";
+        }
         continue;
       }
 
