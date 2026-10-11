@@ -44,6 +44,12 @@ function intentarMover(dx, dy) {
   if (item) {
     console.log("🍎 Recogiste:", tipoItemANombre(item.tipo));
   }
+  
+  // ¿Pisó un equipable? → recogerlo
+  const equipable = recogerEquipableEn(nx, ny);
+  if (equipable) {
+    console.log("🎒 Recogiste:", tipoEquipableANombre(equipable.tipo));
+  }
 
   render();
   renderBarraZonas();

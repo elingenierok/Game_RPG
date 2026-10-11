@@ -58,3 +58,118 @@ function recogerItemEn(x, y) {
   estado.inventario[nombre] = (estado.inventario[nombre] || 0) + 1;
   return item;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+//  BLOQUE 7.5b · OBJETOS EQUIPABLES
+// ─────────────────────────────────────────────────────────────────
+//  Los objetos equipables (🪓 ⛏️ 🕯️) son únicos por mundo:
+//  1 de cada uno, en una zona específica decidida por semilla.
+//
+//  Semilla: SEMILLA_OBJETOS.
+//  Ubicación: determinista por semilla (misma semilla → mismo lugar).
+// ═══════════════════════════════════════════════════════════════
+
+// Configuración: qué objeto va en qué bioma
+const EQUIPABLES = [
+  { tipo: HACHA,    bioma: "bosque"  },
+  { tipo: PICO,     bioma: "ruina"   },
+  { tipo: LINTERNA, bioma: "costa"   },
+];
+
+// Cache: zona → [{ tipo, x, y }]
+const cacheEquipables = new Map();
+
+// Cache: tipo → zona donde va
+const _zonasEquipables = new Map();
+
+// ─── Determina en qué zona va cada equipable (por semilla) ───
+function obtenerZonaDeEquipable(tipo, bioma) {
+  if (_zonasEquipables.has(tipo)) return _zonasEquipables.get(tipo);
+
+  for (let z = 1; z <= LIMITE_CHUNKS; z++) {
+    const chunkPos = cacheChunks.get(z) || obtenerChunk(z);
+    if (chunkPos.bioma === bioma) {
+      _zonasEquipables.set(tipo, z);
+      return z;
+    }
+    const chunkNeg = cacheChunks.get(-z) || obtenerChunk(-z);
+    if (chunkNeg.bioma === bioma) {
+      _zonasEquipables.set(tipo, -z);
+      return -z;
+    }
+  }
+
+  _zonasEquipables.set(tipo, null);
+  return null;
+}
+
+// ─── Devuelve los equipables de un chunk ───
+function obtenerEquipablesDeChunk(zona) {
+  if (cacheEquipables.has(zona)) return cacheEquipables.get(zona);
+
+  const chunk = cacheChunks.get(zona) || obtenerChunk(zona);
+  if (!chunk) {
+    cacheEquipables.set(zona, []);
+    return [];
+  }
+
+  const equipables = [];
+
+  for (const { tipo, bioma } of EQUIPABLES) {
+    const zonaObjeto = obtenerZonaDeEquipable(tipo, bioma);
+    if (zonaObjeto !== zona) continue;
+
+    const rng = crearRNG(hashString(SEMILLA_OBJETOS + "@equipable" + tipo + "@zona" + zona));
+
+    for (let intento = 0; intento < 30; intento++) {
+      const x = randInt(rng, 1, ANCHO_PANTALLA - 2);
+      const y = randInt(rng, 1, ALTO_PANTALLA - 2);
+
+      if (BLOQUEANTES.has(chunk.mapa[y][x])) continue;
+      if (estado.llave.zona === zona &&
+          estado.llave.x === x && estado.llave.y === y) continue;
+      if (equipables.some(e => e.x === x && e.y === y)) continue;
+
+      const items = obtenerItemsDeChunk(zona);
+      if (items.some(it => it.x === x && it.y === y)) continue;
+
+      equipables.push({ tipo, x, y });
+      break;
+    }
+  }
+
+  cacheEquipables.set(zona, equipables);
+  return equipables;
+}
+
+// ─── Obtiene un equipable en una posición (o null) ───
+function obtenerEquipableEn(zona, x, y) {
+  const equipables = obtenerEquipablesDeChunk(zona);
+  return equipables.find(e => e.x === x && e.y === y) || null;
+}
+
+// ─── Marca un equipable como recogido (desaparece) ───
+function recogerEquipableEn(x, y) {
+  const clave = estado.zona + ":" + x + "," + y;
+  if (estado.itemsRecogidos.has(clave)) return null;
+
+  const equipables = obtenerEquipablesDeChunk(estado.zona);
+  const eq = equipables.find(e => e.x === x && e.y === y);
+  if (!eq) return null;
+
+  const nombre = tipoEquipableANombre(eq.tipo);
+  estado.inventario[nombre] = (estado.inventario[nombre] || 0) + 1;
+
+  estado.itemsRecogidos.add(clave);
+
+  return eq;
+}
+
+// ─── Nombre legible de un equipable ───
+function tipoEquipableANombre(tipo) {
+  if (tipo === HACHA)    return "HACHA";
+  if (tipo === PICO)     return "PICO";
+  if (tipo === LINTERNA) return "LINTERNA";
+  return "DESCONOCIDO";
+}

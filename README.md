@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.5.1 · IA de mobs + fixes |
+| **Versión actual** | v1.6-alpha · Objetos equipables (en desarrollo, con bug de biomas) |
 | **Última actualización** | 2026-10-11 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -228,6 +228,58 @@ Después abrir con Live Server en VS Code.
 ---
 
 ## ⚔️ MARCO 4 · Mobs y Combate
+## 🎒 MARCO 4.5 · Objetos equipables (en desarrollo)
+
+### Estado actual (v1.6-alpha)
+
+- **3 objetos:** 🪓 Hacha, ⛏️ Pico, 🕯️ Linterna.
+- **Spawn:** 1 de cada uno por mundo. Determinista por semilla.
+- **Recolección:** al pisarlos, se suman al inventario del HUD.
+- **Efecto:** todavía no hacen nada (solo se ven y se recogen).
+
+### Configuración (por ahora)
+
+| Objeto | Bioma asignado |
+|--------|:--------------:|
+| 🪓 Hacha | bosque |
+| ⛏️ Pico | ruina |
+| 🕯️ Linterna | costa |
+
+### Decisión: forzar 4 biomas por mundo
+
+Para garantizar que los 3 objetos siempre aparezcan, se fuerza que **los 4 biomas existan** en cualquier mundo.
+
+- **Zona 0:** pradera (zona segura).
+- **Zonas ±1..±4:** permutación determinista por semilla de [bosque, pradera, costa, ruina].
+- **Zonas ±5..±8:** repite la permutación.
+
+### 🔴 Bug pendiente (bloquea v1.6)
+
+La permutación **no funciona correctamente**. Con semilla `diagnostico`:
+
+| Zona | Bioma observado | Esperado |
+|:----:|:---------------:|:--------:|
+| 0 | pradera | pradera ✅ |
+| 1 | ruina | ? |
+| 2 | **ruina** | ❌ (repite zona 1) |
+| 3 | bosque | ? |
+| 4 | pradera | ? |
+| 5 | ruina | ⚠️ (repite) |
+
+**Problema:** hay biomas repetidos consecutivos y "costa" no aparece nunca.
+
+**Hipótesis:** el shuffle de `permutacionBiomas()` puede estar devolviendo un array con valores repetidos, o el cálculo del índice `ciclo` está mal.
+
+**Próximo paso:** retomar con `console.log(permutacionBiomas("diagnostico"))` para ver qué devuelve exactamente.
+
+### Fases pendientes
+
+| Fase | Descripción | Estado |
+|:----:|-------------|:------:|
+| 1 | Objetos aparecen en el mundo | 🟡 Bug de biomas |
+| 2 | Interfaz lateral (slots + barra de progreso) | ⏸️ Pendiente |
+| 3 | Interacción con click sostenido | ⏸️ Pendiente |
+| 4 | Barra de rotura (3-5 seg) | ⏸️ Pendiente |
 
 ### Sistema de mobs (v1.5)
 

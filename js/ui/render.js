@@ -53,7 +53,7 @@ function render() {
         continue;
       }
 
-            // 3. Ítems
+                  // 3. Ítems (manzanas)
       const claveItem = estado.zona + ":" + x + "," + y;
       if (itemsPorPos.has(x + "," + y) && !estado.itemsRecogidos.has(claveItem)) {
         const it = itemsPorPos.get(x + "," + y);
@@ -61,7 +61,16 @@ function render() {
         continue;
       }
 
-            // 4. Mobs
+      // 3.5. Equipables (hacha, pico, linterna)
+      const equipables = obtenerEquipablesDeChunk(estado.zona);
+      const claveEquip = estado.zona + ":" + x + "," + y;
+      const equip = equipables.find(e => e.x === x && e.y === y);
+      if (equip && !estado.itemsRecogidos.has(claveEquip)) {
+        celda.textContent = ICONOS[equip.tipo];
+        continue;
+      }
+
+      // 4. Mobs
       const mob = obtenerMobEn(estado.zona, x, y);
       if (mob) {
         const datos = MOBS[mob.tipo];

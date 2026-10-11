@@ -28,6 +28,7 @@ function reiniciarMundo(nuevaSemilla) {
   cacheChunks.clear();
   detenerTicks();
   cacheMobs.clear();
+  cacheEquipables.clear();
   
   document.getElementById("overlay").classList.remove("visible");
 
