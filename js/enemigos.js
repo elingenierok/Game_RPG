@@ -15,7 +15,7 @@ const mobsDerrotados = new Set();  // "zona:x,y" de mobs eliminados
 function obtenerMobsDeChunk(zona) {
   if (cacheMobs.has(zona)) return cacheMobs.get(zona);
 
-  const rng = crearRNG(hashString(SEMILLA + "@mobs" + zona));
+  const rng = crearRNG(hashString(SEMILLA_MOBS + "@mobs" + zona));
   const chunk = cacheChunks.get(zona) || obtenerChunk(zona);
   if (!chunk) {
     cacheMobs.set(zona, []);

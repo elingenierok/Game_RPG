@@ -30,5 +30,16 @@ const ZONAS_VISIBLES  = 5;
 const ZONA_LLAVE      = 2;
 
 // ─── Semilla y límites ───
+// SEMILLA = mundo (terreno, biomas, estructuras). Editable por el jugador.
 let SEMILLA = "test_mundo_01";
+
+// SEMILLA_MOBS = distribución de mobs. Independiente del mundo.
+// Por defecto: cambia en cada carga de página.
+// Los mobs son distintos aunque el mundo sea el mismo.
+let SEMILLA_MOBS = Date.now();
+
+// SEMILLA_OBJETOS = distribución de ítems. Por ahora ligada al mundo.
+// Preparada para separar en el futuro (cambiar a Date.now() si se desea).
+let SEMILLA_OBJETOS = SEMILLA;
+
 let LIMITE_CHUNKS = 5;

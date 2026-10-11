@@ -6,7 +6,7 @@
 //  transitables.
 // ═══════════════════════════════════════════════════════════════
 function obtenerItemsDeChunk(zona) {
-  const clave = SEMILLA + "@items" + zona;
+  const clave = SEMILLA_OBJETOS + "@items" + zona;
   const rng = crearRNG(hashString(clave));
   const items = [];
 

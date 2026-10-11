@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.2 · Mobs (tigre, gallina, cerdo) + batalla simulada |
-| **Última actualización** | 2026-10-10 |
+| **Versión actual** | v1.3 · Semillas separadas (mundo / mobs / objetos) |
+| **Última actualización** | 2026-10-11 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -269,9 +269,10 @@ Cada mob es un **objeto de datos** con una estructura común. El motor de spawn/
 | G7 | Velocidad de generación | 🟢 | Instantánea (<50ms) | Por zona |
 | G8 | Versionado del generador | ⏸️ | No | Fase futura |
 | G9 | Validación de transitabilidad | 🟢 | BFS desde borde oeste a borde este | v0.3 |
-| G10 | RNG por capa | 🟢 | Terreno, ítems, mobs separados | v1.2 |
+| G10 | RNG por sistema | 🟢 | 3 capas: `@zona`, `@items`, `@mobs` | v1.3 |
 | G11 | Ítems generados por semilla | 🟢 | 0 a 3 por chunk, solo en celdas transitables | v0.4 |
 | G12 | Mobs generados por semilla separada | 🟢 | 0-2 por tipo, según bioma | v1.2 |
+| G13 | **Semillas independientes** | 🟢 | **`SEMILLA` (mundo) · `SEMILLA_MOBS` (Date.now) · `SEMILLA_OBJETOS` (=SEMILLA)** | **v1.3** |
 
 ---
 
@@ -305,6 +306,7 @@ Cada mob es un **objeto de datos** con una estructura común. El motor de spawn/
 | R8 | Deploy público | 🟢 | GitHub Pages | v1.0 |
 | R9 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
 | R10 | RNG separado por sistema | 🟢 | 3 capas: `@zona`, `@items`, `@mobs` | v1.2 |
+| R11 | **Semillas independientes en config** | 🟢 | **`SEMILLA`, `SEMILLA_MOBS`, `SEMILLA_OBJETOS` en `config.js`** | **v1.3** |
 
 ---
 
@@ -467,19 +469,55 @@ Ideas en evaluación. **No están priorizadas ni implementadas.** Se anotan para
 
 ---
 
-### 🚶 F2 · Movimiento amortiguado entre celdas
+### 🚶 F2 · Movimiento amortiguado entre celdas (Modelo 2 · Pokémon)
 
-**Idea:** el jugador se mueve suave entre celdas, no a saltos discretos.
+**Idea:** el jugador se mueve **casilla a casilla**, pero con una **animación visual suave** entre una y la siguiente. La lógica de grilla queda intacta.
 
-**Pregunta clave:** ¿la arquitectura tile-based actual lo permite o hay que migrar?
+**Diferencia con Modelo 1 (actual):**
 
-**Consideraciones:**
-- Actualmente el movimiento es **discreto** (un tile por pulsación).
-- Requiere interpolar posiciones (x,y como floats) y desacoplar lógica de grilla del render.
-- Es el salto entre "tile-based puro" y "grilla como guía + movimiento libre".
-- Impacta: render, jugador, colisiones, transición de zonas.
+| Modelo | Comportamiento |
+|--------|----------------|
+| **1 · Actual** | El jugador salta de casilla en casilla **instantáneamente** |
+| **2 · Pokémon** | El jugador se **desliza** de casilla a casilla en ~120-150ms |
+| **3 · Zelda** | El jugador se mueve libremente por píxeles (no viable sin reescribir) |
 
----
+**Concepto clave:** el jugador **nunca está entre casillas lógicamente**. Solo **visualmente** durante la animación. Al terminar la animación, está en la nueva casilla. La lógica, colisión, turnos, todo sigue igual.
+
+**Lo que NO cambia:**
+- Colisión con mobs y terreno.
+- Transición entre zonas (E-O).
+- Recoger ítems.
+- Batalla.
+- IA de mobs.
+- Estado del jugador.
+
+**Lo que SÍ cambia:**
+- El jugador deja de ser una **celda de la grilla** y pasa a ser un **elemento superpuesto** (`position: absolute` + `transform: translate`).
+- Nuevo flag de estado: `animando` (bloquea input durante la animación).
+- Nueva posición visual del jugador en píxeles: `(vx, vy)`.
+
+**Archivos afectados:**
+- `js/jugador.js` — lógica de animación, bloqueo de input.
+- `js/render.js` — superponer jugador con `position: absolute`.
+- `js/input.js` — ignorar teclas si `animando === true`.
+- `css/estilo.css` — estilos del jugador como elemento superpuesto.
+- `index.html` — agregar un `<div>` para el jugador fuera de la grilla.
+
+**Parámetros de diseño propuestos:**
+| Parámetro | Valor propuesto |
+|-----------|-----------------|
+| Duración de la animación | 120-150 ms |
+| Encolar movimientos | No (como Pokémon) |
+| Teclas durante animación | Ignoradas |
+| Velocidad | Lineal (sin aceleración) |
+
+**Aprendizajes del análisis:**
+- Es un **paso intermedio** entre tile-based puro y movimiento libre.
+- No requiere reescribir la lógica de grilla.
+- Mejora mucho la sensación visual.
+- Es compatible con TODO lo que ya tenemos (mobs, ítems, batalla, transiciones).
+
+**Estado:** ⏸️ Anotado con plan detallado. Se implementará **después de** las tareas urgentes actuales (SEMILLA_MOBS, IA básica de mobs, HP real).
 
 ### 🗂️ F3 · Sistema de capas del mundo
 
@@ -507,27 +545,24 @@ Ideas en evaluación. **No están priorizadas ni implementadas.** Se anotan para
 
 ---
 
-### 🎲 F4 · Semillas independientes por sistema
+### 🎲 F4 · Semillas independientes por sistema · ✅ IMPLEMENTADO en v1.3
 
-**Idea:** separar la generación en **múltiples semillas**, cada una controlando un aspecto del mundo.
+**Estado:** implementado. Ver `SEMILLA_MOBS` en `js/config.js`.
 
 | Sistema | Semilla | ¿Editable? |
 |---------|---------|:----------:|
 | Mundo (terreno, biomas, estructuras) | `SEMILLA` | ✅ Sí, la que ya existe |
-| Mobs | `SEMILLA_MOBS` | ⏸️ Automática por ahora |
-| Objetos | `SEMILLA_OBJETOS` | ⏸️ Automática por ahora |
+| Mobs | `SEMILLA_MOBS` | ⏸️ Automática (`Date.now()`) |
+| Objetos | `SEMILLA_OBJETOS` | ⏸️ Ligada a `SEMILLA` por ahora |
 
-**Objetivo:** que dos jugadores con la misma `SEMILLA` tengan **el mismo mundo** (terreno, biomas, estructuras) pero **mobs distintos** en cada partida.
+**Comportamiento actual:**
+- Dos jugadores con la misma `SEMILLA` **comparten el mundo** (terreno, biomas, estructuras, ítems).
+- Cada uno tiene **mobs distintos** en cada partida (porque `SEMILLA_MOBS` usa `Date.now()`).
+- Al cambiar de mundo (input de semilla), `SEMILLA_MOBS` se regenera.
 
-**Criterio propuesto para SEMILLA_MOBS:**
-- `Date.now()` → cambia en cada carga.
-- O `SEMILLA + fecha` → cambia por día.
-
-**Criterio propuesto para SEMILLA_OBJETOS:**
-- Por ahora derivada de `SEMILLA`.
-- Preparada para cambiar a `Date.now()` si se necesita.
-
-**Estado:** idea anotada. La separación `SEMILLA` / `SEMILLA_MOBS` es de bajo costo y alto impacto.
+**Pendiente futuro:**
+- Permitir que `SEMILLA_MOBS` sea editable por el jugador (campo en la UI).
+- Decidir si `SEMILLA_OBJETOS` también pasa a `Date.now()`.
 
 ---
 
@@ -580,12 +615,13 @@ Ideas en evaluación. **No están priorizadas ni implementadas.** Se anotan para
 - [x] Centralización de tamaño (`config.js`)
 - [x] **3 mobs con sistema de datos escalable**
 - [x] **Batalla simulada (overlay)**
+- [x] **Semillas independientes por sistema (SEMILLA_MOBS)**
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | Separar `SEMILLA_MOBS` de `SEMILLA` | ⏸️ | v1.3 — ver F4 |
+| 🔥 Alta | IA básica de mobs (persecución / huida) | ⏸️ | Probar movimiento |
 | 🔥 Alta | IA básica de mobs (persecución / huida) | ⏸️ | Probar movimiento |
 | 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
 | 🔥 Alta | Prototipo 2 del módulo de combate (SVG radial) | ⏸️ | En paralelo |
@@ -614,6 +650,15 @@ Ideas en evaluación. **No están priorizadas ni implementadas.** Se anotan para
 ---
 
 ## 📝 Changelog
+
+### v1.3 · 2026-10-11
+- ➕ **Semillas independientes por sistema** (F4 implementado)
+- ➕ `SEMILLA_MOBS` = `Date.now()` → los mobs cambian en cada carga de página
+- ➕ `SEMILLA_OBJETOS` = `SEMILLA` (preparada para separar en el futuro)
+- 🔧 `js/enemigos.js` ahora usa `SEMILLA_MOBS`
+- 🔧 `js/items.js` ahora usa `SEMILLA_OBJETOS`
+- 🔧 `reiniciarMundo()` regenera `SEMILLA_MOBS` y `SEMILLA_OBJETOS`
+- 📖 Sección F4 del backlog marcada como implementada
 
 ### v1.2 · 2026-10-10
 - ➕ **Sistema de mobs escalable** (`js/mobs.js`) — plantilla + 3 mobs
@@ -691,6 +736,7 @@ Ideas en evaluación. **No están priorizadas ni implementadas.** Se anotan para
 | 7 | Estado global | `js/estado.js` |
 | 7.5 | Ítems | `js/items.js` |
 | 7.7 | Mobs (plantilla + datos) | `js/mobs.js` |
+| 7.7b | **Semillas independientes** | **`js/config.js`** |
 | 7.8 | Enemigos (spawn, colisión) | `js/enemigos.js` |
 | 8 | Carga de pantalla | `js/chunks.js` |
 | 9 | Render del mapa | `js/render.js` |

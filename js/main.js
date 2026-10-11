@@ -10,6 +10,8 @@ console.log("Llave en zona", estado.llave.zona, "posición", estado.llave.x + ",
 // ═══════════════════════════════════════════════════════════════
 function reiniciarMundo(nuevaSemilla) {
   SEMILLA = nuevaSemilla;
+  SEMILLA_MOBS = Date.now();       // mobs nuevos con cada mundo nuevo
+  SEMILLA_OBJETOS = SEMILLA;       // objetos ligados al mundo (por ahora)
 
   estado.zona = 0;
   estado.pantalla = null;
