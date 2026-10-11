@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.3 · Semillas separadas (mundo / mobs / objetos) |
+| **Versión actual** | v1.4 · Arquitectura reorganizada en subcarpetas |
 | **Última actualización** | 2026-10-11 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -70,27 +70,38 @@ Se actualiza automáticamente al hacer `git push`.
 
 ```
 Game_RPG/
-├── index.html              ← Solo HTML (estructura + <script src>)
-├── README.md               ← Este documento
-├── .gitignore              ← Archivos ignorados por Git
+├── index.html                    ← Solo HTML (estructura + <script src>)
+├── README.md                     ← Este documento
+├── .gitignore                    ← Archivos ignorados por Git
 ├── css/
-│   └── estilo.css          ← Todo el CSS del juego
+│   └── estilo.css                ← Todo el CSS del juego
 └── js/
-    ├── config.js           ← BLOQUE 1: constantes globales
-    ├── tiles.js            ← BLOQUE 2: tiles, iconos, bloqueantes
-    ├── rng.js              ← BLOQUE 3: hash, PRNG, randInt
-    ├── mundo.js            ← BLOQUES 4, 5, 6: generación de chunks
-    ├── estado.js           ← BLOQUE 7: estado global
-    ├── items.js            ← BLOQUE 7.5: ítems y recolección
-    ├── mobs.js             ← BLOQUE 7.7: plantilla + datos de mobs
-    ├── enemigos.js         ← BLOQUE 7.8: spawn, colisión, derrota
-    ├── chunks.js           ← BLOQUE 8: caché y carga de pantalla
-    ├── render.js           ← BLOQUES 9, 10, 11: render visual y HUD
-    ├── jugador.js          ← BLOQUE 12: movimiento y transición
-    ├── victoria.js         ← BLOQUES 13, 13.5: victoria + batalla simulada
-    ├── input.js            ← BLOQUE 14: listeners de teclado
-    ├── limite.js           ← BLOQUE 18: config de límite de chunks
-    └── main.js             ← BLOQUES 16, 17: arranque y reinicio
+    ├── main.js                   ← Entry point (arranque + reinicio)
+    │
+    ├── core/                     ← Base del motor
+    │   ├── config.js             ← BLOQUE 1: constantes globales
+    │   ├── rng.js                ← BLOQUE 3: hash, PRNG, randInt
+    │   ├── tiles.js              ← BLOQUE 2: tiles, iconos, bloqueantes
+    │   ├── estado.js             ← BLOQUE 7: estado global
+    │   └── input.js              ← BLOQUE 14: listeners de teclado
+    │
+    ├── world/                    ← Generación y gestión del mundo
+    │   ├── mundo.js              ← BLOQUES 4, 5, 6: generación de chunks
+    │   ├── chunks.js             ← BLOQUE 8: caché y carga de pantalla
+    │   └── limite.js             ← BLOQUE 18: config de límite de chunks
+    │
+    ├── entities/                 ← Todo lo que "vive" en el mundo
+    │   ├── jugador.js            ← BLOQUE 12: movimiento y transición
+    │   ├── mobs.js               ← BLOQUE 7.7: plantilla + datos de mobs
+    │   ├── enemigos.js           ← BLOQUE 7.8: spawn, colisión, derrota
+    │   └── items.js              ← BLOQUE 7.5: ítems y recolección
+    │
+    ├── ui/                       ← Render visual y pantallas
+    │   ├── render.js             ← BLOQUES 9, 10, 11: render y HUD
+    │   └── victoria.js           ← BLOQUES 13, 13.5: victoria + batalla
+    │
+    └── systems/                  ← Sistemas transversales (futuro)
+        └── (vacía)               ← Combate, inventario, guardado, etc.
 ```
 
 **Orden de carga en `index.html` (importante respetar):**
