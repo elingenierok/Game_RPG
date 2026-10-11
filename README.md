@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.5 · IA de mobs en tiempo real |
+| **Versión actual** | v1.5.1 · IA de mobs + fixes |
 | **Última actualización** | 2026-10-11 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -19,7 +19,11 @@
 | **Ejecución pública** | [elingenierok.github.io/Game_RPG](https://elingenierok.github.io/Game_RPG/) |
 | **Repositorio** | [github.com/elingenierok/Game_RPG](https://github.com/elingenierok/Game_RPG) |
 | **Editor** | VS Code |
-| **Carpeta raíz** | `C:\Users\Usuario\Game_RPG` |
+| **Carpeta raíz** | _(depende del PC: `C:\Users\Usuario\Game_RPG` o similar)_ |
+
+📖 **Documentos complementarios:**
+- [CHANGELOG.md](CHANGELOG.md) — Historial completo de versiones
+- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F9)
 
 ---
 
@@ -43,7 +47,7 @@ Probar una **jugabilidad base** que, si resulta entretenida, escala hacia:
 
 ### Opción A · Desarrollo local (Live Server)
 
-1. Abrir VS Code en `C:\Users\Usuario\Game_RPG`
+1. Abrir VS Code en la carpeta raíz del proyecto
 2. Click derecho en `index.html` → **Open with Live Server**
 3. Editar cualquier archivo y guardar (Ctrl+S) → Live Server recarga solo
 
@@ -60,7 +64,7 @@ Se actualiza automáticamente al hacer `git push`.
 - **WASD** o **flechas direccionales** para moverte
 - Enter en el input de semilla → aplicar
 - Botón 🎲 → semilla aleatoria
-- Chocar con 🐅 → batalla simulada
+- Chocar con 🐅 o ser alcanzado → batalla simulada
 
 **⚠️ Recarga forzada:** usar **Ctrl+Shift+R** al modificar `.js` o `.css`.
 
@@ -72,6 +76,8 @@ Se actualiza automáticamente al hacer `git push`.
 Game_RPG/
 ├── index.html                    ← Solo HTML (estructura + <script src>)
 ├── README.md                     ← Este documento
+├── CHANGELOG.md                  ← Historial de versiones
+├── BACKLOG.md                    ← Ideas futuras (F1-F9)
 ├── .gitignore                    ← Archivos ignorados por Git
 ├── css/
 │   └── estilo.css                ← Todo el CSS del juego
@@ -184,6 +190,7 @@ Después abrir con Live Server en VS Code.
 | M13 | Muros sólidos en extremos | 🟢 | Columna de 🧱 en zonas -N y +N | v0.4 |
 | M14 | Tamaño de celda | 🟢 | 16×16 px | v1.1 |
 | M15 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
+| M16 | **Radio de seguridad al cruzar** | 🟢 | **3 tiles — los mobs cercanos son empujados** | **v1.5.1** |
 
 ---
 
@@ -196,7 +203,7 @@ Después abrir con Live Server en VS Code.
 | J3 | Condición de derrota | ⏸️ | No hay | Sin HP todavía |
 | J4 | Progresión | ⏸️ | No hay | Fase futura |
 | J5 | Muerte definitiva | ⏸️ | No aplica | Fase futura |
-| J6 | Turnos vs tiempo real | 🟢 | **Tiempo real para mobs** | v1.5: ticks cada 400ms |
+| J6 | Turnos vs tiempo real | 🟢 | Tiempo real para mobs | v1.5: ticks cada 400ms |
 | J7 | Sistema de iniciativa | ⏸️ | No aplica | Fase futura |
 | J8 | Pantallas/menús | 🧪 | Mapa + overlay de batalla | v1.2 |
 | J9 | Cambio entre pantallas | 🧪 | Overlay simple | FSM cuando crezca |
@@ -272,7 +279,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 **Colisiones de mobs:**
 - Bloqueantes del terreno (árboles, muros, agua, rocas).
 - Otros mobs.
-- El jugador (bloquea, pero el choque se maneja aparte).
+- El jugador (dispara batalla si es hostil).
 - Ítems (🍎 y futuros) — no puede pisarlos.
 - Barrera invisible del chunk (no cruzan entre zonas).
 
@@ -281,7 +288,9 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 - Durante transición de zona → ticks en pausa.
 - Al reiniciar mundo → ticks detenidos y reiniciados.
 
-**Particularidad:** la zona 0 (spawn inicial) **no tiene mobs**. Es una zona segura.
+**Comportamiento particular:**
+- **Zona 0 sin mobs.** Es una zona segura al spawnear.
+- **Radio de seguridad al cruzar (3 tiles).** Si al entrar a una zona hay un mob dentro de ese radio, es empujado hacia afuera repetidamente hasta cumplir la distancia.
 
 ### Estados usados vs ignorados
 
@@ -298,9 +307,9 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
 | E1 | Tipos de mobs | 🧪 | 3 (🐅 🐓 🐖) | Escalable con nueva plantilla |
-| E2 | Movimiento de mobs | 🟢 | **Tiempo real (ticks cada 400ms)** | v1.5 |
-| E3 | Detección del jugador | 🟢 | **Por distancia Manhattan** | v1.5 |
-| E4 | Entrada al combate | 🧪 | Al chocar + mob hostil | Overlay simulado |
+| E2 | Movimiento de mobs | 🟢 | Tiempo real (ticks cada 400ms) | v1.5 |
+| E3 | Detección del jugador | 🟢 | Por distancia Manhattan | v1.5 |
+| E4 | Entrada al combate | 🧪 | Choque jugador↔mob o mob persiguiendo | Overlay simulado |
 | E5 | Tipo de combate | 🟢 | Combate por reflejos | Ver MARCO 11 |
 | E6 | Huida del combate | ⏸️ | No | Fase futura |
 | E7 | Loot y XP | ⏸️ | No | Campos definidos en datos |
@@ -328,7 +337,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | G11 | Ítems generados por semilla | 🟢 | 0 a 3 por chunk, solo en celdas transitables | v0.4 |
 | G12 | Mobs generados por semilla separada | 🟢 | 0-2 por tipo, según bioma | v1.2 |
 | G13 | Semillas independientes | 🟢 | `SEMILLA` · `SEMILLA_MOBS` (Date.now) · `SEMILLA_OBJETOS` (=SEMILLA) | v1.3 |
-| G14 | **Zona 0 sin mobs** | 🟢 | **Chunk inicial libre de mobs (zona segura)** | **v1.5** |
+| G14 | Zona 0 sin mobs | 🟢 | Chunk inicial libre de mobs (zona segura) | v1.5 |
 
 ---
 
@@ -364,8 +373,9 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | R10 | RNG separado por sistema | 🟢 | 3 capas: `@zona`, `@items`, `@mobs` | v1.2 |
 | R11 | Semillas independientes en config | 🟢 | `SEMILLA`, `SEMILLA_MOBS`, `SEMILLA_OBJETOS` | v1.3 |
 | R12 | Organización en subcarpetas | 🟢 | `core/`, `world/`, `entities/`, `ui/`, `systems/` | v1.4 |
-| R13 | **IA en `systems/`** | 🟢 | **`js/systems/ia.js` — tick loop en tiempo real** | **v1.5** |
-| R14 | **Tick de IA configurable** | 🟢 | **`TICK_MS = 400`, `TICK_DEAMBULAR_CADA = 2` en `config.js`** | **v1.5** |
+| R13 | IA en `systems/` | 🟢 | `js/systems/ia.js` — tick loop en tiempo real | v1.5 |
+| R14 | Tick de IA configurable | 🟢 | `TICK_MS = 400`, `TICK_DEAMBULAR_CADA = 2` | v1.5 |
+| R15 | **Documentación modular** | 🟢 | **README + CHANGELOG + BACKLOG** | **v1.5.1** |
 
 ---
 
@@ -392,7 +402,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v1.5)
+## 🧪 MARCO 9 · Sistema de Test (v1.5.1)
 
 ### Lo que hay ahora
 - Mundo E-O acotado (±5 chunks por defecto, configurable)
@@ -403,21 +413,22 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 - Validación BFS de transitabilidad por chunk
 - Muros sólidos 🧱 en los extremos del mundo
 - Jugador 🧑 que se mueve con WASD + flechas
-- **Jugador con orientación visual** (`scaleX(-1)`)
+- Jugador con orientación visual (`scaleX(-1)`)
 - Llave 🔑 escondida en zona +2 al este
 - Ítems 🍎 recolectables (0 a 3 por chunk)
 - Inventario visible en el HUD
 - Control de semilla en UI (input + botones + Enter)
 - Barra de zonas con 5 slots, jugador centrado, límite respetado
-- **3 mobs (🐅 🐓 🐖) con sistema de datos escalable**
-- **Batalla simulada** al chocar con mobs hostiles
-- **IA de mobs en tiempo real**: deambulación, persecución y huida
-- **Mobs con orientación visual** (espejado según dirección)
-- **Zona 0 sin mobs** (zona segura de spawn)
-- **Tick configurable** (400ms base, deambulación cada 2 ticks)
+- 3 mobs (🐅 🐓 🐖) con sistema de datos escalable
+- Batalla simulada al chocar con mobs hostiles
+- IA de mobs en tiempo real: deambulación, persecución y huida
+- Mobs con orientación visual (espejado según dirección)
+- Zona 0 sin mobs (zona segura de spawn)
+- Radio de seguridad al cruzar (3 tiles)
+- Tick configurable (400ms base, deambulación cada 2 ticks)
 - Arquitectura modular: 16 archivos `.js` + 1 CSS + index limpio
 - Versionado con Git + deploy público en GitHub Pages
-- **Tamaño de grilla centralizado** en `config.js`
+- Tamaño de grilla centralizado en `config.js`
 
 ### Lo que el test responde
 1. ¿Se siente bien el cambio de zona? → ✅ OK
@@ -434,8 +445,9 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 12. ¿La batalla simulada aporta? → ✅ OK
 13. ¿La IA de mobs (deambular/perseguir/huir) aporta? → ✅ OK
 14. ¿La velocidad del tick (400ms) es cómoda? → ✅ OK
+15. ¿El radio de seguridad al cruzar evita bugs? → ✅ OK
 
-**Conclusión:** el test supera validaciones. IA de mobs operativa.
+**Conclusión:** el test supera validaciones. IA de mobs operativa y robusta.
 
 ---
 
@@ -517,157 +529,10 @@ Cada acción enemiga se comunica con:
 
 ## 🔮 MARCO 13 · Análisis Futuros (Backlog)
 
-Ideas en evaluación. **No están priorizadas ni implementadas.** Se anotan para no perderlas.
+**Movido a [BACKLOG.md](BACKLOG.md).**
 
-### 🌗 F1 · Ciclo día-noche
-
-**Idea:** visión variable según momento del día.
-
-- **Día:** todas las celdas visibles.
-- **Noche:** visión limitada a ~5 celdas de radio, salvo iluminación artificial (farolas, fogatas, antorchas).
-- **Implementación:** celdas lejanas "apagadas" (opacidad reducida o no renderizadas).
-
-**Preguntas pendientes:**
-- ¿Duración del ciclo? ¿Turnos? ¿Tiempo real? ¿Fijo?
-- ¿Afecta gameplay (enemigos más agresivos de noche, eventos)?
-- Fuentes de luz: ¿ítems portables? ¿estructuras fijas? ¿ambas?
-
----
-
-### 🚶 F2 · Movimiento amortiguado entre celdas (Modelo 2 · Pokémon)
-
-**Idea:** el jugador se mueve **casilla a casilla**, pero con una **animación visual suave** entre una y la siguiente. La lógica de grilla queda intacta.
-
-**Diferencia con Modelo 1 (actual):**
-
-| Modelo | Comportamiento |
-|--------|----------------|
-| **1 · Actual** | El jugador salta de casilla en casilla **instantáneamente** |
-| **2 · Pokémon** | El jugador se **desliza** de casilla a casilla en ~120-150ms |
-| **3 · Zelda** | El jugador se mueve libremente por píxeles (no viable sin reescribir) |
-
-**Concepto clave:** el jugador **nunca está entre casillas lógicamente**. Solo **visualmente** durante la animación. Al terminar la animación, está en la nueva casilla.
-
-**Lo que NO cambia:** colisión, transición de zona, recoger ítems, batalla, IA de mobs, estado del jugador.
-
-**Lo que SÍ cambia:** el jugador deja de ser una celda y pasa a ser un elemento superpuesto (`position: absolute` + `transform: translate`).
-
-**Archivos afectados:** `jugador.js`, `render.js`, `input.js`, `estilo.css`, `index.html`.
-
-**Parámetros propuestos:** duración 120-150ms · sin encolar · teclas durante animación ignoradas · velocidad lineal.
-
-**Estado:** ⏸️ Anotado con plan detallado. Se implementará después de las tareas urgentes actuales.
-
----
-
-### 🗂️ F3 · Sistema de capas del mundo
-
-**Idea:** separar el mundo en **capas independientes**, cada una con su responsabilidad.
-
-| Capa | Contenido |
-|:----:|-----------|
-| 1 | Terreno base (pasto, agua, arena, árboles) |
-| 2 | Objetos estáticos (estructuras, cofres, letreros) |
-| 3 | Entidades móviles (jugador, mobs, NPCs) |
-| 4 | Iluminación / visión |
-| 5 | Clima / ambiental (lluvia, nieve, niebla) |
-| 6 | Efectos especiales (visión infrarroja, detección mágica) |
-
-**Ventajas:** encender/apagar capas sin reescribir código. Cada capa tiene su lógica propia.
-
-**Preguntas pendientes:** ¿cómo se renderiza? ¿canvas múltiple? ¿puede una capa leer otra? ¿impacto en performance?
-
----
-
-### 🎲 F4 · Semillas independientes por sistema · ✅ IMPLEMENTADO en v1.3
-
-**Estado:** implementado. Ver `SEMILLA_MOBS` en `js/core/config.js`.
-
-| Sistema | Semilla | ¿Editable? |
-|---------|---------|:----------:|
-| Mundo (terreno, biomas, estructuras) | `SEMILLA` | ✅ Sí |
-| Mobs | `SEMILLA_MOBS` | ⏸️ Automática (`Date.now()`) |
-| Objetos | `SEMILLA_OBJETOS` | ⏸️ Ligada a `SEMILLA` por ahora |
-
-**Pendiente futuro:** permitir que `SEMILLA_MOBS` sea editable por el jugador.
-
----
-
-### 📌 F5 · Spawn forzado por bioma o estructura
-
-**Idea:** permitir forzar la aparición de un mob en un lugar específico.
-
-**Ejemplos:**
-- Un 🐉 dragón que aparece **solo en ruinas** y **solo una vez** por mundo.
-- Un 🐟 pez que aparece **solo en agua** y **solo de noche**.
-- Un 👻 fantasma que aparece **solo dentro de una estructura "castillo"**.
-
-**Campos ya definidos en la plantilla:** `spawn.forzarEnEstructura`, `spawn.tipoAparicion`, `spawn.porMapa`.
-
-**Falta:** lógica de detección de estructura, control de "veces que puede aparecer", condiciones especiales.
-
----
-
-### 🧭 F6 · Pathfinding con obstáculos (IA avanzada)
-
-**Idea:** los mobs actualmente se mueven en **línea recta**. Si hay un obstáculo en el camino (árbol, otro mob, muro), **se quedan quietos ese tick**.
-
-**Mejora propuesta:** que puedan **rodear** obstáculos para llegar al jugador.
-
-**Consideraciones:**
-- Requiere algoritmo **A*** o similar sobre la grilla.
-- El cálculo es más costoso → hay que optimizarlo (cachear caminos, recalcular cada N ticks).
-- Aplica a: persecución (tigre) y huida (gallina).
-- No aplica a deambulación (el moverse al azar ya funciona bien).
-
-**Estado:** ⏸️ Anotado. Se implementará si el juego lo necesita.
-
----
-
-### 🚶 F7 · Deambulación más realista
-
-**Idea:** actualmente los mobs deambulan de forma **totalmente aleatoria**: cada 2 ticks eligen una dirección al azar entre las 4 posibles.
-
-**Problema:** el movimiento se ve "zigzagueante" e impredecible. No parece que estén "paseando".
-
-**Mejoras propuestas:**
-- **Momentum:** preferir seguir la misma dirección que venían (ej: 70% de mantener, 30% de cambiar).
-- **Puntos de interés:** que el mob tenga 1-3 puntos de interés en el chunk y vaya rotando entre ellos.
-- **Descansos:** pausas aleatorias de 2-4 ticks entre movimientos.
-- **Zonas preferidas:** que cada mob prefiera deambular en un área específica del chunk.
-
-**Estado:** ⏸️ Anotado. Se implementará si la deambulación actual se siente demasiado errática.
-
----
-
-### 🎒 F8 · Objetos equipables y modificar el mundo
-
-**Idea:** permitir al jugador **equipar ítems** (cascos, botas, hachas) y **modificar el mundo** (picar, talar, construir). Los cambios deben **persistir** entre sesiones.
-
-**Modelo de persistencia:** deltas.
-```
-mundo = función(semilla, zona) + deltas
-```
-- Los deltas guardan solo los cambios del jugador (`"zona:x,y" → tile nuevo`).
-- Se combinan con el mundo generado al cargar un chunk.
-- Es el modelo estándar de Minecraft, Terraria, etc.
-
-**Capas del sistema:**
-| Capa | Semilla | Estado |
-|------|---------|:------:|
-| Terreno | `SEMILLA` | ✅ Implementado |
-| Estructuras | `SEMILLA_ESTRUCTURAS` | ⏸️ Pendiente |
-| Mobs | `SEMILLA_MOBS` | ✅ Implementado (v1.3) |
-| Objetos de terreno | `SEMILLA_OBJETOS` | 🧪 Ligado a `SEMILLA` |
-| Loot de contenedores | `SEMILLA_LOOT` | ⏸️ Pendiente |
-
-**Fases propuestas:**
-1. Objetos equipables (slots + stats).
-2. Modificar mundo en memoria (picar/talar).
-3. Persistencia con deltas (localStorage).
-4. Inventario visual completo.
-
-**Estado:** ⏸️ Anotado con plan detallado. Se implementará después de las tareas urgentes actuales.
+El backlog contiene las **ideas futuras anotadas** (F1-F9):
+F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas separadas, ✅ implementado) · F5 (spawn forzado) · F6 (pathfinding) · F7 (deambulación realista) · F8 (objetos equipables) · F9 (interacción con mouse)
 
 ---
 
@@ -701,10 +566,11 @@ mundo = función(semilla, zona) + deltas
 - [x] Batalla simulada (overlay)
 - [x] Semillas independientes por sistema (`SEMILLA_MOBS`)
 - [x] Reorganización en subcarpetas (`core/`, `world/`, `entities/`, `ui/`, `systems/`)
-- [x] **IA de mobs en tiempo real** (deambulación, persecución, huida)
-- [x] **Zona 0 sin mobs** (zona segura de spawn)
-- [x] **Mobs con orientación visual** (espejado)
-- [x] **Mobs no pisan ítems**
+- [x] IA de mobs en tiempo real (deambulación, persecución, huida)
+- [x] Zona 0 sin mobs (zona segura de spawn)
+- [x] Mobs con orientación visual (espejado)
+- [x] Mobs no pisan ítems
+- [x] Radio de seguridad al cruzar entre zonas
 
 ### 🔥 Próximas tareas (urgentes)
 
@@ -732,104 +598,7 @@ mundo = función(semilla, zona) + deltas
 - Movimiento N-S con scroll vertical
 - Refactorización a módulos ES (`import`/`export`)
 - Entidades multi-tile (mobs 2×2, NPCs grandes)
-- **Ver MARCO 13 · Análisis Futuros** (F1-F8)
-
----
-
-## 📝 Changelog
-
-### v1.5 · 2026-10-11
-- ➕ **IA de mobs en tiempo real** (`js/systems/ia.js`)
-- ➕ Sistema de ticks (400ms base, deambulación cada 2 ticks)
-- ➕ Comportamiento hostil / pacífico / neutral
-- ➕ Deambulación aleatoria por el chunk
-- ➕ Persecución (hostil) y huida (pacífico)
-- ➕ Mobs con orientación visual (espejado según dirección)
-- ➕ Colisiones: bloqueantes, mobs, jugador, ítems, barrera de chunk
-- ➕ Pausa de ticks en overlays (batalla, transición)
-- ➕ Zona 0 sin mobs (zona segura de spawn)
-- 🔧 `config.js` agregado: `TICK_MS`, `TICK_DEAMBULAR_CADA`
-- 🔧 `mobs.js` actualizado: `actitud.base` = `hostil`/`pacifico`/`neutral`
-- 🔧 `enemigos.js`: estado mutable de cada mob (posición, IA)
-- 🔧 `jugador.js`, `victoria.js`, `chunks.js`, `main.js`: pausa/reanudación de ticks
-- 📖 Backlog ampliado: F6 (pathfinding), F7 (deambulación realista), F8 (objetos equipables)
-- 🐛 Fix: mobs ya no pisan ítems
-- 🐛 Fix: orientación invertida de mobs
-- 🐛 Fix: mobs no spawnean cerca del jugador
-
-### v1.4 · 2026-10-11
-- 🏗️ Reorganización en subcarpetas (`core/`, `world/`, `entities/`, `ui/`, `systems/`)
-- ➕ 5 carpetas nuevas en `js/`
-- 🔧 15 archivos movidos a sus carpetas correspondientes
-- 🔧 `<script src>` actualizados con las nuevas rutas
-- 📌 `systems/` queda preparada para sistemas futuros
-
-### v1.3 · 2026-10-11
-- ➕ Semillas independientes por sistema (F4 implementado)
-- ➕ `SEMILLA_MOBS` = `Date.now()` → los mobs cambian en cada carga de página
-- ➕ `SEMILLA_OBJETOS` = `SEMILLA` (preparada para separar en el futuro)
-- 🔧 `js/entities/enemigos.js` ahora usa `SEMILLA_MOBS`
-- 🔧 `js/entities/items.js` ahora usa `SEMILLA_OBJETOS`
-
-### v1.2 · 2026-10-10
-- ➕ Sistema de mobs escalable (`js/entities/mobs.js`) — plantilla + 3 mobs
-- ➕ Spawn de mobs (`js/entities/enemigos.js`) — por chunk, según bioma
-- ➕ Batalla simulada al chocar con mob agresivo (overlay + botón)
-- ➕ 3 mobs iniciales: 🐅 Tigre (agresivo), 🐓 Gallina (pasivo), 🐖 Cerdo (neutral)
-- ➕ RNG separado para mobs (`@mobs`)
-- 🔧 Fix de orientación del jugador (invertido)
-- 📖 README reorganizado: 13 marcos + backlog de análisis futuros
-- 📌 Anotadas 5 ideas futuras: día-noche, movimiento amortiguado, capas, semillas separadas, spawn forzado
-
-### v1.1 · 2026-10-10
-- 🔧 Grilla cambiada a 50×34 (antes 25×17)
-- 🔧 Tamaño de celda reducido a 16×16 px (antes 30×30)
-- ➕ Orientación del jugador con `scaleX(-1)`
-- ➕ Centralización de tamaño: todo derivado de `config.js`
-- 📌 Anotadas ideas: día-noche, movimiento amortiguado, capas
-- 📌 Decisión: enemigos 1×1, estructuras grandes (Forma A) → fase futura
-
-### v1.0 · 2026-10-09
-- ☁️ Proyecto subido a GitHub
-- 🌐 GitHub Pages activado
-- 📖 README con flujo de trabajo Git documentado
-- 🔧 `.gitignore` creado
-- ➕ Prototipo 1 del módulo de combate
-
-### v1.0-beta · 2026-10-09
-- 🏗️ Refactorización completa a múltiples archivos
-- ➕ 13 archivos `.js` + `css/estilo.css`
-- ➕ Bloques 12-18 movidos a archivos individuales
-
-### v0.5 · 2026-10-09
-- 🏗️ Refactorización parcial (bloques 1-11)
-- ➕ 8 archivos `.js` creados
-
-### v0.4 · 2026-10-09
-- ➕ Ítems recolectables (🍎)
-- ➕ Inventario en HUD
-- ➕ Control de semilla en UI
-- ➕ Límite configurable de chunks
-- ➕ Muros sólidos en extremos
-
-### v0.3 · 2026-10-09
-- ➕ Fronteras compartidas entre chunks
-- ➕ Caché de chunks con precarga de vecinos
-- ➕ Continuidad física al cruzar
-- ➕ Validación BFS de transitabilidad
-
-### v0.2 · 2026-10-09
-- ➕ Barra de zonas con 5 slots
-- ➕ Jugador centrado en la barra
-- ➕ Indicadores de zonas visitadas
-- ➕ Flechas direccionales
-- 🎨 Glow en slot actual
-
-### v0.1 · 2026-10-09
-- ➕ Motor inicial de generación con semilla
-- ➕ Mundo E-O por zonas
-- ➕ 4 biomas con frontera dura
-- ➕ Movimiento WASD + flechas
+- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F9)
 
 ---
 
@@ -882,7 +651,7 @@ mundo = función(semilla, zona) + deltas
 
 ### Al agregar una feature nueva:
 1. Cambiar el estado en la tabla correspondiente
-2. Agregar entrada al changelog
+2. Agregar entrada al `CHANGELOG.md`
 3. Marcar la tarea como completada en el roadmap
 
 ### Al tomar una decisión de diseño:
@@ -890,9 +659,13 @@ mundo = función(semilla, zona) + deltas
 2. Cambiar de 🟡/🔴 a 🟢
 3. Anotar brevemente en "Notas"
 
+### Al anotar una idea futura:
+1. Agregar un bloque F<N> en `BACKLOG.md`
+2. Actualizar la lista "Contenido actual" al inicio de `BACKLOG.md`
+
 ### Al cambiar de versión:
-1. Bump en el encabezado (`v1.5` → `v1.6`)
-2. Agregar entrada en el changelog
+1. Bump en el encabezado (`v1.5.1` → `v1.6`)
+2. Agregar entrada en `CHANGELOG.md`
 3. Actualizar la fecha
 
 ---
@@ -922,6 +695,7 @@ mundo = función(semilla, zona) + deltas
 - **Orden de `<script src>`**: cambiar el orden rompe las dependencias.
 - **RNG separado por sistema**: `@zona` (terreno), `@items` (ítems), `@mobs` (mobs), `@llave` (llave).
 - **GitHub Pages tarda ~30-60s** en actualizarse tras un `git push`.
+- **Carpeta raíz variable**: cambia según la PC (`C:\Users\Usuario\Game_RPG` o similar). No afecta al proyecto, solo a los comandos de PowerShell.
 
 ---
 
@@ -931,6 +705,8 @@ mundo = función(semilla, zona) + deltas
 - Las decisiones 🧪 pueden cambiar. Las decisiones 🟢 se mantienen salvo razón fuerte.
 - Los IDs (M1, J1, R1, S1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
 - Los bloques del código (BLOQUE 1 a 18) son referenciables para modificaciones puntuales.
+- El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
+- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)**.
 
 ---
 

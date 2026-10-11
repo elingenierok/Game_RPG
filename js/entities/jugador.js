@@ -67,23 +67,25 @@ function cambiarZona(delta) {
   document.getElementById("ovSubtitulo").textContent = `Entrando por el ${direccion}...`;
   overlay.classList.add("visible");
 
-  setTimeout(() => {
-    cargarPantalla(zonaNueva);
-
-    if (delta > 0) {
-      estado.jugador.x = 0;
-    } else {
-      estado.jugador.x = ANCHO_PANTALLA - 1;
-    }
-    estado.jugador.y = yActual;
-
-    render();
-    renderBarraZonas();
-    actualizarHUD();
-
     setTimeout(() => {
-      overlay.classList.remove("visible");
-      estado.transicionando = false;
-    }, 150);
-  }, 250);
+  cargarPantalla(zonaNueva);
+
+  if (delta > 0) {
+    estado.jugador.x = 0;
+  } else {
+    estado.jugador.x = ANCHO_PANTALLA - 1;
+  }
+  estado.jugador.y = yActual;
+
+  alejarMobsDelJugador();  // ← esta línea debe estar acá
+
+  render();
+  renderBarraZonas();
+  actualizarHUD();
+
+  setTimeout(() => {
+    overlay.classList.remove("visible");
+    estado.transicionando = false;
+  }, 150);
+}, 250);
 }

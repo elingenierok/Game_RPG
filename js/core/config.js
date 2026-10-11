@@ -33,6 +33,9 @@ const ZONA_LLAVE      = 2;
 const TICK_MS = 400;              // intervalo base del tick (ms)
 const TICK_DEAMBULAR_CADA = 2;    // cada cuántos ticks deambula un mob
 
+// ─── Radio de seguridad al entrar a una zona (tiles) ───
+const RADIO_SEGURIDAD_SPAWN = 3;
+
 // ─── Semilla y límites ───
 // SEMILLA = mundo (terreno, biomas, estructuras). Editable por el jugador.
 let SEMILLA = "test_mundo_01";

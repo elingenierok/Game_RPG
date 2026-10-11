@@ -205,11 +205,14 @@ function moverMob(mob, dx, dy) {
   const tile = estado.pantalla.mapa[ny][nx];
   if (BLOQUEANTES.has(tile)) return false;
 
-  // ─── ¿Ocupado por el jugador? ───
+    // ─── ¿Va a moverse hacia el jugador? → batalla ───
   if (nx === estado.jugador.x && ny === estado.jugador.y) {
-    // El mob no puede pisar al jugador, pero el choque lo maneja
-    // el movimiento del jugador (cuando él se mueve hacia el mob).
-    return false;
+    const datos = MOBS[mob.tipo];
+    if (datos.colision.alChocar === "batalla") {
+      pausarTicks();
+      iniciarBatalla(mob);
+    }
+    return false;   // el mob no pisa al jugador
   }
 
     // ─── ¿Ocupado por otro mob? ───
@@ -241,4 +244,83 @@ function moverMob(mob, dx, dy) {
 // ═══════════════════════════════════════════════════════════════
 function distancia(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ALEJAR MOBS DEL JUGADOR AL ENTRAR A UNA ZONA
+// ─────────────────────────────────────────────────────────────────
+//  Empuja repetidamente al mob hasta que la distancia al jugador
+//  sea >= RADIO_SEGURIDAD_SPAWN. Si no puede alejarse más
+//  (bloqueantes, borde, otros mobs), se detiene.
+// ═══════════════════════════════════════════════════════════════
+function alejarMobsDelJugador() {
+  const mobs = obtenerMobsDeChunk(estado.zona);
+  if (!mobs || mobs.length === 0) return;
+
+  const jx = estado.jugador.x;
+  const jy = estado.jugador.y;
+  const radio = RADIO_SEGURIDAD_SPAWN;
+  const maxPasos = 10;   // límite por las dudas
+
+  for (const mob of mobs) {
+    let pasos = 0;
+    while (pasos < maxPasos) {
+      const dx = mob.x - jx;
+      const dy = mob.y - jy;
+      const dist = Math.abs(dx) + Math.abs(dy);
+
+      if (dist > radio) break;   // ya está suficientemente lejos
+
+      // Intentar mover 1 paso hacia afuera
+      const intentos = generarDireccionesDeEscape(dx, dy);
+      let movido = false;
+
+      for (const [mx, my] of intentos) {
+        const nx = mob.x + mx;
+        const ny = mob.y + my;
+
+        if (nx < 1 || nx >= ANCHO_PANTALLA - 1) continue;
+        if (ny < 1 || ny >= ALTO_PANTALLA - 1) continue;
+
+        const tile = estado.pantalla.mapa[ny][nx];
+        if (BLOQUEANTES.has(tile)) continue;
+
+        const ocupadoPorMob = mobs.some(o => o !== mob && o.x === nx && o.y === ny);
+        if (ocupadoPorMob) continue;
+
+        if (nx === jx && ny === jy) continue;
+
+        const items = obtenerItemsDeChunk(estado.zona);
+        const claveItem = estado.zona + ":" + nx + "," + ny;
+        if (items.some(it => it.x === nx && it.y === ny) &&
+            !estado.itemsRecogidos.has(claveItem)) continue;
+
+        // Movimiento válido
+        mob.x = nx;
+        mob.y = ny;
+        movido = true;
+        break;
+      }
+
+      if (!movido) break;   // no puede moverse más, se detiene
+      pasos++;
+    }
+  }
+}
+
+function generarDireccionesDeEscape(dx, dy) {
+  const dirs = [
+    [-1,-1], [ 0,-1], [ 1,-1],
+    [-1, 0],          [ 1, 0],
+    [-1, 1], [ 0, 1], [ 1, 1],
+  ];
+
+  const signoX = Math.sign(dx) || 0;
+  const signoY = Math.sign(dy) || 0;
+
+  return dirs.sort((a, b) => {
+    const distA = Math.abs(a[0] - signoX) + Math.abs(a[1] - signoY);
+    const distB = Math.abs(b[0] - signoX) + Math.abs(b[1] - signoY);
+    return distA - distB;
+  });
 }
