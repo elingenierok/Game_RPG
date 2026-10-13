@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.6.1 · Interfaz lateral + botones de movimiento |
+| **Versión actual** | v1.7 · Sistema de rotura (romper árboles, piedras, etc.) |
 | **Última actualización** | 2026-10-13 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -108,12 +108,13 @@ Game_RPG/
     │   └── victoria.js           ← BLOQUES 13, 13.5: victoria + batalla
     │
     └── systems/                  ← Sistemas transversales
-        └── ia.js                 ← BLOQUE 7.9: IA de mobs en tiempo real
+        ├── ia.js                 ← BLOQUE 7.9: IA de mobs en tiempo real
+        └── rotura.js             ← BLOQUE 7.10: sistema de rotura (click sostenido)
 ```
 
 **Orden de carga en `index.html` (importante respetar):**
 config → tiles → rng → biomas → mundo → estado → items → mobs → enemigos
-→ chunks → render → ia → jugador → victoria → input → limite → main
+→ chunks → render → ia → jugador → victoria → input → rotura → limite → main
 ```
 
 **Nota:** `ia.js` va **después de `render.js`** y **antes de `jugador.js`** (porque `jugador.js` usa `pausarTicks()`).
@@ -253,25 +254,45 @@ Después abrir con Live Server en VS Code.
 |:----:|-------------|:------:|
 | 1 | Objetos aparecen en el mundo y se recogen | ✅ Completado (v1.6) |
 | 2 | Interfaz lateral (slots + barra + HUD + botones) | ✅ Completado (v1.6.1) |
-| 3 | Click sostenido para romper árboles/piedras | ⏸️ Próxima sesión |
-| 4 | Barra de rotura (stamina) | ⏸️ Próxima sesión |
+| 3 | Click sostenido para romper árboles/piedras | ✅ Completado (v1.7) |
+| 4 | Barra de rotura (stamina) | ✅ Completado (v1.7) |
 
-### Fase 3-4 · Diseño confirmado (para próxima sesión)
+### Sistema de rotura (v1.7)
 
-**Sistema de rotura:**
-- **Condición 1:** el click debe ser **exactamente sobre** la celda del árbol/piedra.
-- **Condición 2:** el jugador debe estar **adyacente** (4 direcciones, sin diagonales).
-- **Condición 3:** debe tener el objeto correcto equipado (🪓 para árbol, ⛏️ para piedra).
-- **Si falta objeto:** cartel "Necesitás un hacha/pico".
+**Condiciones para romper un tile:**
+1. El click debe ser **exactamente sobre** la celda del tile.
+2. El jugador debe estar **adyacente** (4 direcciones, sin diagonales).
+3. Debe tener el objeto correcto equipado.
+4. Si falta objeto: cartel "Necesitás un hacha/pico".
+
+**Cancelación:**
+- Al soltar el click.
+- Al moverse el jugador.
+- Al cambiar de zona.
+- Al perder el objeto equipado.
+- Al reiniciar el mundo.
 
 **Barra de stamina:**
-- Arriba del mapa, ancho completo, pegada al mismo.
+- Arriba del mapa, ancho completo, pegada.
 - Va de 100% a 0%.
-- Si se suelta el click: vuelve al 100% (cancela).
-- Si el jugador se mueve: se cancela.
-- Al llegar a 0%: el tile se convierte en el **tile base del bioma**.
+- Solo visible mientras hay rotura activa (usa `visibility` para no mover el layout).
+
+**Tiles rompibles actuales:**
+
+| Tile | Objeto | Duración |
+|------|:------:|:--------:|
+| 🌳 TREE | 🪓 HACHA | 3.0 s |
+| 🌲 PINE | 🪓 HACHA | 3.0 s |
+| 🌵 CACTUS | 🪓 HACHA | 2.5 s |
+| ⛰️ ROCK | ⛏️ PICO | 3.0 s |
+| 🧱 WALL | ⛏️ PICO | 4.0 s |
+| 🧊 ICE | ⛏️ PICO | 2.5 s |
+
+**Agregar nuevos tiles rompibles:** solo hay que agregar una línea en `ROTURA_POR_TILE` (en `tiles.js`).
 
 **Tile base por bioma:**
+
+Cuando un tile se rompe, se convierte en el **tile base del bioma**:
 
 | Bioma | Tile base |
 |-------|-----------|
@@ -473,9 +494,12 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v1.6.1)
+## 🧪 MARCO 9 · Sistema de Test (v1.7)
 
 ### Lo que hay ahora
+- **Sistema de rotura**: romper árboles, piedras, muros, cactus, hielo
+- **Barra de stamina** arriba del mapa (visible solo durante rotura)
+- **Cartel "Necesitás un hacha/pico"** al intentar romper sin objeto
 - **Layout 3 columnas**: flechas (20%) + mapa (60%) + panel (20%)
 - **Botones de movimiento** con click sostenido (200ms)
 - **Slots de equipados** arriba del mapa (3 siempre visibles)
@@ -660,6 +684,8 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 - [x] **Slots de equipados arriba del mapa**
 - [x] **Barra de objetivos con múltiples objetivos**
 - [x] **HUD con íconos correctos por objeto**
+- [x] **Sistema de rotura (click sostenido + barra de stamina)**
+- [x] **Objetos equipables completos (F11 fases 1-4)**
 
 ### 🔥 Próximas tareas (urgentes)
 

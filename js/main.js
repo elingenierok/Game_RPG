@@ -11,9 +11,16 @@ console.log("Llave en zona", estado.llave.zona, "posición", estado.llave.x + ",
 // ═══════════════════════════════════════════════════════════════
 function reiniciarMundo(nuevaSemilla) {
   SEMILLA = nuevaSemilla;
-  SEMILLA_MOBS = Date.now();       // mobs nuevos con cada mundo nuevo
-  SEMILLA_OBJETOS = SEMILLA;       // objetos ligados al mundo (por ahora)
+  SEMILLA_MOBS = Date.now();
+  SEMILLA_OBJETOS = SEMILLA;
   limpiarCacheBiomas();
+  cacheEquipables.clear();
+  _zonasEquipables.clear();
+  limpiarCacheUbicaciones();
+
+  if (typeof cancelarRoturaSiActiva === "function") {
+    cancelarRoturaSiActiva();
+  }
 
   estado.zona = 0;
   estado.pantalla = null;
@@ -29,9 +36,7 @@ function reiniciarMundo(nuevaSemilla) {
   cacheChunks.clear();
   detenerTicks();
   cacheMobs.clear();
-  cacheEquipables.clear();
-  _zonasEquipables.clear();
-  
+
   document.getElementById("overlay").classList.remove("visible");
 
   {

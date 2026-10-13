@@ -15,13 +15,12 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F8 · Objetos equipables y modificar el mundo
 - F9 · Sistema de mouse / interacción con click
 - F10 · Bioma "playa" como bioma separado
-- F11 · Fases pendientes de objetos equipables
+- F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
 - F12 · Objetos equipables de mejor nivel
 - F13 · Drops alternativos de objetos
-- F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
+- F14 · Rediseño del sistema de biomas con JSON
 - F15 · Biomas forzados + chunks de transición
-- F16 · Rediseño del bioma "costa"
-- F17 · Sistema de "biomas con forma"
+
 ---
 
 ## 🌗 F1 · Ciclo día-noche
@@ -227,51 +226,35 @@ mundo = función(semilla, zona) + deltas
 
 ---
 
-## 🎒 F11 · Fases de objetos equipables
+## 🎒 F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
 
-**Contexto:** la Iteración 1 (objetos en el mundo) está en desarrollo.
+**Estado:** completo. Los objetos equipables se recogen, se muestran en slots, y permiten romper tiles del mundo.
 
-### ✅ Fase 1 · Objetos en el mundo (completada en v1.6)
-- Los 3 objetos aparecen en sus biomas.
-- Se recogen al pisarlos.
+**Lo que quedó fuera (futuro):**
+- **F12:** objetos de mejor nivel (hacha de diamante, etc.).
+- **F13:** drops alternativos.
 
-### ✅ Fase 2 · Interfaz lateral (completada en v1.6.1)
-- Layout 3 columnas (flechas + mapa + panel derecho).
-- 3 slots de equipados arriba del mapa (siempre visibles).
-- Barra de objetivos abajo del mapa (jugador + llave + equipables).
-- HUD con íconos correctos.
-- Botones de movimiento con click sostenido.
+**Referencia:**
+- `ROTURA_POR_TILE` en `tiles.js` — define qué se rompe con qué.
+- `tileBase` en `biomas.js` — a qué tile se convierte el objeto roto.
 
-### ⏸️ Fase 3 · Click sostenido (próxima sesión)
+### Fase 2 · Interfaz lateral
+- Mover los 5 slots actuales al panel lateral derecho.
+- Rediseñar: 3 slots de equipados + barra de progreso de zonas + HUD.
+- Expandir la pantalla horizontalmente.
 
-**Condiciones para romper:**
-1. El click debe ser **exactamente sobre** la celda del árbol/piedra.
-2. El jugador debe estar **adyacente** (4 direcciones).
-3. Debe tener el objeto correcto equipado (🪓 para árbol, ⛏️ para piedra).
-4. Si falta objeto: cartel "Necesitás un hacha/pico".
+### Fase 3 · Interacción con click sostenido
+- Detectar click sostenido sobre un árbol o piedra.
+- Verificar que el jugador esté **al lado** de la celda.
+- Verificar que tenga el objeto correcto equipado.
+- Mostrar cartel "Necesitás un hacha" si no lo tiene.
 
-### ⏸️ Fase 4 · Barra de stamina (próxima sesión)
+### Fase 4 · Barra de rotura
+- Barra lineal arriba del objeto.
+- 3-5 segundos hasta romper.
+- Al terminar → el tile se reemplaza por pasto 🟩.
 
-**Diseño:**
-- Barra arriba del mapa, ancho completo, pegada.
-- Va de 100% a 0%.
-- Si se suelta el click: vuelve al 100%.
-- Si el jugador se mueve: se cancela.
-- Al llegar a 0%: el tile se convierte en el **tile base del bioma**.
-
-**Tile base por bioma:**
-
-| Bioma | Tile base |
-|-------|-----------|
-| pradera | 🟩 GRASS |
-| bosque | 🟩 GRASS |
-| costa | 🟨 SAND |
-| ruina | 🟩 GRASS |
-| oceano | 🌊 WATER |
-| desierto | 🏜️ DESERT_SAND |
-| nieve | ❄️ SNOW |
-
-**Estado:** Fases 1-2 completadas. Fases 3-4 pendientes.
+**Estado:** ⏸️ Pendiente. Se retomará después de resolver el bug de biomas.
 
 ---
 
@@ -302,7 +285,6 @@ mundo = función(semilla, zona) + deltas
 
 **Estado:** ⏸️ Anotado. Futuro medio.
 
----
 ---
 
 ## 🗺️ F14 · Rediseño del sistema de biomas con JSON
@@ -349,11 +331,11 @@ Esto resuelve el "realismo": un océano no aparece al lado de una ciudad. Siempr
 Biomas a implementar (7 totales)
 Bioma	Estado	Tiles principales
 bosque	✅ Existe	🌳 🌿 🌾 🟩
-pradera	✅ Existe	🟩 🌳 🌾 ⛰️
+pradera	✅ Existe	🟩 🌳 🌾 🪨
 costa	✅ Existe	🌊 🟨 🟩 🌿
-ruina	✅ Existe	🟩 🧱 ⛰️ 🌾
-oceano	🆕 Nuevo	🌊 (90-95%) + ⛰️ (5-10%)
-desierto	🆕 Nuevo	🏜️ 🌵 ⛰️
+ruina	✅ Existe	🟩 🧱 🪨 🌾
+oceano	🆕 Nuevo	🌊 (90-95%) + 🪨 (5-10%)
+desierto	🆕 Nuevo	🏜️ 🌵 🪨
 nieve	🆕 Nuevo	❄️ 🧊 🌲
 Tiles nuevos necesarios
 🏜️ arena del desierto (distinta de 🟨 playa)
@@ -439,60 +421,5 @@ Si los biomas forzados afectan a sus vecinos.
 Si son transitables o pueden bloquear.
 
 Estado: ⏸️ Planificado. Se implementará después de F14.
----
-
-## 🏖️ F16 · Rediseño del bioma "costa" (distribución del agua)
-
-**Problema actual:** el bioma "costa" pinta los tiles con **probabilidad uniforme por celda** (WATER 30%, SAND 50%, etc.). El resultado visual son "charcos" de agua salpicados por el chunk, en lugar de una franja costera coherente.
-
-**Lo que debería ser:** la costa debería ser una **franja de arena** en un lado del chunk (o varios), con agua pegada al lado del océano.
-
-**Ejemplo visual deseado:**
-[Océano] [Costa] [Pradera]
-
-En el chunk de costa:
-Lado izquierdo (pegado al océano): agua
-Centro: arena (playa)
-Lado derecho (pegado a pradera): pasto con arbustos
-
-**Reglas propuestas:**
-- La costa debe saber si tiene un **océano a su izquierda o derecha**.
-- El agua se concentra en el **lado pegado al océano**.
-- La arena ocupa una franja intermedia.
-- El otro lado tiene pasto y arbustos (transición a pradera).
-
-**Consideraciones:**
-- El sistema de tiles uniformes por celda **no sirve** para este bioma. Necesita "forma".
-- Podría resolverse con un campo extra en la definición del bioma, algo como:
-  ```json
-  "forma": "franja",
-  "direccion": "sigueBiomaVecino"
-O podría resolverse con un motor de formas más complejo (futuro).
-
-Estado: ⏸️ Anotado. Se trabajará cuando implementemos el sistema de "biomas con forma" (necesario también para el océano, montañas, ríos, etc.).
-🌊 F17 · Sistema de "biomas con forma"
-Idea: algunos biomas no se generan con probabilidad uniforme por celda. Tienen forma (franja, lago, río, isla, etc.).
-
-Ejemplos:
-
-Costa: franja de arena entre agua y tierra.
-
-Océano: grandes masas de agua sin salpicaduras.
-
-Río: franja de agua que atraviesa un chunk.
-
-Lago: masa circular de agua en el centro de un chunk.
-
-Montaña: elevación con forma de cordillera.
-
-Posible solución:
-
-Definir en la tabla de biomas un campo forma con valores como: "uniforme" (default), "franja", "lago", "río", "isla".
-
-Cada forma tiene su propio algoritmo de generación.
-
-La forma puede depender del bioma vecino (ej: costa sabe si el océano está a la izquierda o derecha).
-
-Estado: ⏸️ Anotado. Se implementará después de definir la mecánica de "modificar el mundo" (F8).
 
 **Fin del BACKLOG**

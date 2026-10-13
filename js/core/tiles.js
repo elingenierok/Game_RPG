@@ -67,3 +67,18 @@ const NOMBRE_A_TILE = {
   ICE:         ICE,
   PINE:        PINE,
 };
+
+// ═══════════════════════════════════════════════════════════════
+//  PROPIEDADES DE ROTURA
+// ─────────────────────────────────────────────────────────────────
+//  Define qué tiles se pueden romper y con qué objeto.
+//  Formato: { [tileID]: { objeto, duracionMs } }
+// ═══════════════════════════════════════════════════════════════
+const ROTURA_POR_TILE = {
+  [TREE]:   { objeto: "HACHA", duracionMs: 3000 },
+  [PINE]:   { objeto: "HACHA", duracionMs: 3000 },  // pino se corta con hacha
+  [CACTUS]: { objeto: "HACHA", duracionMs: 2500 },  // cactus se corta con hacha
+  [ROCK]:   { objeto: "PICO",  duracionMs: 3000 },
+  [WALL]:   { objeto: "PICO",  duracionMs: 4000 },  // muro se pica con pico (más lento)
+  [ICE]:    { objeto: "PICO",  duracionMs: 2500 },
+};

@@ -3,82 +3,53 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
-## v1.6.1 · 2026-10-13 (interfaz lateral + botones)
+### 📐 Rediseño planificado (no implementado)
+
+- **Decisión:** el sistema de `permutacionBiomas()` se reemplazará por una **tabla JSON externa** (`biomas.json`).
+- **Motivo:** el sistema actual es rígido, difícil de escalar y tiene bugs.
+- **Nuevo sistema:** biomas definidos como datos (vecinos permitidos + pesos + tiles con probabilidad).
+- **Nuevos biomas:** oceano, desierto, nieve (total: 7 biomas naturales).
+- **Fase 2 (futuro):** biomas forzados (ciudades, puertos, islas) + chunks de transición.
+- **Ver:** BACKLOG · F14 y F15.
+
+## v1.7 · 2026-10-13 (sistema de rotura)
 
 ### ➕ Nuevo
-- **Layout 3 columnas**: flechas (20%) + mapa (60%) + panel derecho (20%)
-- **Botones de movimiento** en rombo (↑ arriba, ← ↓ → abajo) con click sostenido
-- **Slots de equipados** arriba del mapa (3 slots, siempre visibles)
-- **Barra de objetivos** abajo del mapa con múltiples objetivos (jugador + llave + equipables)
-- **HUD rediseñado** con íconos correctos por tipo de objeto
+- **Sistema de rotura** (`js/systems/rotura.js`)
+- Click sostenido sobre un tile rompible (árbol, piedra, etc.)
+- Barra de stamina arriba del mapa (100% → 0%)
+- Cartel "Necesitás un hacha/pico" al intentar romper sin objeto
+- Al terminar la rotura: el tile se convierte al `tileBase` del bioma
 
 ### 🔧 Cambios
-- `index.html` reestructurado con nuevo layout
-- `css/estilo.css` reescrito para el nuevo layout
-- `js/ui/render.js`:
-  - `actualizarHUD()` ahora muestra el ícono correcto por objeto
-  - Nueva función `actualizarSlotsEquipados()`
-  - `renderBarraZonas()` muestra múltiples objetivos con prioridad
-  - Nuevo `ICONO_POR_NOMBRE` (mapa nombre → ícono)
-- `js/core/input.js`:
-  - Nuevo sistema de botones con click sostenido (200ms)
-  - Soporte de touch (móvil)
-  - Detención automática al salir de la ventana
+- `js/core/tiles.js`: nuevo mapa `ROTURA_POR_TILE` (qué se rompe con qué)
+- `js/world/biomas.js`: cada bioma ahora tiene un campo `tileBase`
+- `js/core/config.js`: `DURACION_ROTURA_MS` (3000) y `INTERVALO_ROTURA_MS` (50)
+- `js/main.js`: `reiniciarMundo()` cancela rotura activa
 
 ### 🎨 Diseño
-- Botones en rombo estilo teclas con glow celeste al apretar
-- Slots de equipados con glow cuando tienen un objeto
-- Barra de objetivos con flechas laterales cuando hay objetivos fuera del rango
+- Barra de stamina con `visibility` (no mueve el layout al aparecer)
+- Botón de cartel temporal (aparece y desaparece)
+
+### ✅ Condiciones para romper
+1. Click exacto sobre el tile
+2. Jugador adyacente (4 direcciones)
+3. Objeto correcto equipado
+
+### ✅ Cancelaciones
+- Al soltar el click
+- Al moverse el jugador
+- Al cambiar de zona
+- Al perder el objeto
+- Al reiniciar el mundo
 
 ### 📖 Documentación
-- README: MARCO 4.5 actualizado con fases y diseño del sistema de rotura
-- BACKLOG: F11 actualizado
+- README: MARCO 4.5 actualizado con sistema de rotura completo
+- BACKLOG: F11 marcado como completado
 
-### ⏸️ Pendiente (próxima sesión)
-- **F11 Fase 3:** click sostenido sobre árboles/piedras
-- **F11 Fase 4:** barra de stamina de rotura (3-5 segundos)
-
----
-
-## v1.6 · 2026-10-13 (sistema de biomas por tabla JSON)
-
-### ➕ Nuevo
-- **Sistema de biomas por tabla JSON** (`js/world/biomas.js`)
-- 7 biomas: pradera, bosque, costa, ruina, oceano, desierto, nieve
-- Cada bioma define **vecinos permitidos con pesos** + **tiles con probabilidad**
-- **5 tiles nuevos**: 🏜️ DESERT_SAND, 🌵 CACTUS, ❄️ SNOW, 🧊 ICE, 🌲 PINE
-- Nuevas funciones en `mundo.js`:
-  - `obtenerBiomaDeZona(semillaBase, zona)` — asigna bioma por cadena
-  - `elegirPorPeso(lista, ...)` — elige según pesos
-  - `limpiarCacheBiomas()` — limpia el cache
-- Nuevo mapa en `tiles.js`: `NOMBRE_A_TILE` (string → ID)
-- **Auditor de semillas** funcionando como módulo independiente (3 archivos HTML/CSS/JS, lee del madre sin modificarlo)
-
-### 🔧 Cambios
-- `generarPantalla()` reescrita: ahora usa `obtenerBiomaDeZona()` + tabla `BIOMAS`
-- `LIMITE_CHUNKS` subido a 20 temporalmente (para testear biomas nuevos)
-- ROCK ahora usa ⛰️ (antes 🪨)
-- PLAYER ahora usa 🏃‍♂️ (antes 🧑)
-- `BLOQUEANTES` ahora incluye CACTUS, ICE, PINE
-- Pesos de vecinos ajustados para más variedad
-
-### 🐛 Fixes
-- **Bug de `permutacionBiomas()` resuelto**: se reemplazó todo el sistema por el motor nuevo
-- Bosque ya no bloquea el paso (densidad de árboles bajada de 40% a 15%)
-- Ruina, costa, desierto y nieve ajustados para no bloquear el paso
-
-### 📖 Documentación
-- BACKLOG actualizado con F14 (rediseño de biomas, ✅ implementado) y F15 (biomas forzados)
-- BACKLOG agregó F16 (rediseño de costa) y F17 (biomas con forma)
-- README: nuevos M17, M18, G15, G16, G17
-
-### ⚠️ Notas
-- La distribución de agua en el bioma "costa" todavía es imperfecta (charcos en lugar de franjas). Ver **F16**.
-- El límite de chunks (`LIMITE_CHUNKS = 20`) es temporal. Volver a 5 cuando se terminen los tests.
-
-### 📌 Objetos equipables (v1.6-alpha)
-- Siguen implementados (fase 1).
-- Pendientes las fases 2, 3 y 4 (ver **F11**).
+### ⏸️ Pendiente futuro
+- Objetos de mejor nivel (hacha de diamante, etc.) — ver F12
+- Más tiles rompibles — agregar a `ROTURA_POR_TILE`
 
 ---
 

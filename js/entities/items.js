@@ -60,11 +60,13 @@ function recogerItemEn(x, y) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════
 //  BLOQUE 7.5b · OBJETOS EQUIPABLES
 // ─────────────────────────────────────────────────────────────────
 //  Los objetos equipables (🪓 ⛏️ 🕯️) son únicos por mundo:
-//  1 de cada uno, en una zona específica decidida por semilla.
+//  1 de cada uno, en una zona específica elegida AL AZAR entre
+//  todas las zonas del mundo que tengan el bioma correspondiente.
+//
+//  La elección depende de SEMILLA_OBJETOS → cambia con cada semilla.
 //
 //  Semilla: SEMILLA_OBJETOS.
 //  Ubicación: determinista por semilla (misma semilla → mismo lugar).
@@ -83,25 +85,39 @@ const cacheEquipables = new Map();
 // Cache: tipo → zona donde va
 const _zonasEquipables = new Map();
 
-// ─── Determina en qué zona va cada equipable (por semilla) ───
+// ─── Determina en qué zona va cada equipable ───
+//  Busca TODAS las zonas del mundo con el bioma correspondiente
+//  y elige una AL AZAR según SEMILLA_OBJETOS.
+//  Si no hay ninguna, devuelve null (el objeto no aparece).
 function obtenerZonaDeEquipable(tipo, bioma) {
   if (_zonasEquipables.has(tipo)) return _zonasEquipables.get(tipo);
 
-  for (let z = 1; z <= LIMITE_CHUNKS; z++) {
-    const chunkPos = cacheChunks.get(z) || obtenerChunk(z);
-    if (chunkPos.bioma === bioma) {
-      _zonasEquipables.set(tipo, z);
-      return z;
-    }
-    const chunkNeg = cacheChunks.get(-z) || obtenerChunk(-z);
-    if (chunkNeg.bioma === bioma) {
-      _zonasEquipables.set(tipo, -z);
-      return -z;
+  // Recorrer todas las zonas del mundo (positivas y negativas)
+  // y recolectar las que tengan el bioma buscado.
+  const candidatas = [];
+
+  for (let z = -LIMITE_CHUNKS; z <= LIMITE_CHUNKS; z++) {
+    if (z === 0) continue;   // zona 0 no tiene objetos
+    const chunk = cacheChunks.get(z) || obtenerChunk(z);
+    if (chunk && chunk.bioma === bioma) {
+      candidatas.push(z);
     }
   }
 
-  _zonasEquipables.set(tipo, null);
-  return null;
+  // Si no hay candidatas, el objeto no aparece en este mundo
+  if (candidatas.length === 0) {
+    _zonasEquipables.set(tipo, null);
+    return null;
+  }
+
+  // Elegir una candidata al azar según SEMILLA_OBJETOS
+  const clave = SEMILLA_OBJETOS + "@equipable_zona@" + tipo;
+  const rng = crearRNG(hashString(clave));
+  const indiceElegido = Math.floor(rng() * candidatas.length);
+  const zonaElegida = candidatas[indiceElegido];
+
+  _zonasEquipables.set(tipo, zonaElegida);
+  return zonaElegida;
 }
 
 // ─── Devuelve los equipables de un chunk ───

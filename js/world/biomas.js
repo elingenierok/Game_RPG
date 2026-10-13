@@ -4,10 +4,11 @@
 //  Tabla de biomas. Cada bioma es un objeto de datos.
 //
 //  Estructura:
-//    nombre  → nombre legible
-//    emoji   → representación visual para resúmenes
-//    vecinos → [{ id, peso }] — qué biomas pueden estar al lado
-//    tiles   → [{ tile, peso }] — qué tiles componen el bioma
+//    nombre   → nombre legible
+//    emoji    → representación visual para resúmenes
+//    tileBase → tile que queda cuando se rompe un objeto del mundo
+//    vecinos  → [{ id, peso }] — qué biomas pueden estar al lado
+//    tiles    → [{ tile, peso }] — qué tiles componen el bioma
 //
 //  Los "pesos" son números relativos. No tienen que sumar 100.
 //  El motor los normaliza automáticamente.
@@ -21,6 +22,7 @@ const BIOMAS = {
   pradera: {
     nombre: "Pradera",
     emoji: "🌿",
+    tileBase: "GRASS",
     vecinos: [
       { id: "bosque",   peso: 35 },
       { id: "pradera",  peso: 20 },
@@ -40,6 +42,7 @@ const BIOMAS = {
   bosque: {
     nombre: "Bosque",
     emoji: "🌳",
+    tileBase: "GRASS",
     vecinos: [
       { id: "bosque",   peso: 30 },
       { id: "pradera",  peso: 35 },
@@ -58,6 +61,7 @@ const BIOMAS = {
   costa: {
     nombre: "Costa",
     emoji: "🏖️",
+    tileBase: "SAND",
     vecinos: [
       { id: "oceano",  peso: 40 },
       { id: "costa",   peso: 20 },
@@ -75,6 +79,7 @@ const BIOMAS = {
   ruina: {
     nombre: "Ruina",
     emoji: "🧱",
+    tileBase: "GRASS",
     vecinos: [
       { id: "ruina",    peso: 25 },
       { id: "bosque",   peso: 30 },
@@ -93,6 +98,7 @@ const BIOMAS = {
   oceano: {
     nombre: "Océano",
     emoji: "🌊",
+    tileBase: "WATER",
     vecinos: [
       { id: "oceano", peso: 45 },
       { id: "costa",  peso: 55 },
@@ -107,6 +113,7 @@ const BIOMAS = {
   desierto: {
     nombre: "Desierto",
     emoji: "🏜️",
+    tileBase: "DESERT_SAND",
     vecinos: [
       { id: "desierto", peso: 35 },
       { id: "pradera",  peso: 35 },
@@ -125,6 +132,7 @@ const BIOMAS = {
   nieve: {
     nombre: "Nieve",
     emoji: "❄️",
+    tileBase: "SNOW",
     vecinos: [
       { id: "nieve",   peso: 35 },
       { id: "bosque",  peso: 40 },

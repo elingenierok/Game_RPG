@@ -33,6 +33,10 @@ const ZONA_LLAVE      = 2;
 const TICK_MS = 400;              // intervalo base del tick (ms)
 const TICK_DEAMBULAR_CADA = 2;    // cada cuántos ticks deambula un mob
 
+// ─── Sistema de rotura (romper árboles, piedras, etc.) ───
+const DURACION_ROTURA_MS = 3000;   // 3 segundos por defecto
+const INTERVALO_ROTURA_MS = 50;    // cada cuánto se actualiza la barra
+
 // ─── Radio de seguridad al entrar a una zona (tiles) ───
 const RADIO_SEGURIDAD_SPAWN = 3;
 
