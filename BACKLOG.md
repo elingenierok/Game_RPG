@@ -18,7 +18,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F11 · Fases pendientes de objetos equipables
 - F12 · Objetos equipables de mejor nivel
 - F13 · Drops alternativos de objetos
-- F14 · Rediseño del sistema de biomas con JSON
+- F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 - F15 · Biomas forzados + chunks de transición
 - F16 · Rediseño del bioma "costa"
 - F17 · Sistema de "biomas con forma"
