@@ -3,6 +3,43 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v1.6.1 · 2026-10-13 (interfaz lateral + botones)
+
+### ➕ Nuevo
+- **Layout 3 columnas**: flechas (20%) + mapa (60%) + panel derecho (20%)
+- **Botones de movimiento** en rombo (↑ arriba, ← ↓ → abajo) con click sostenido
+- **Slots de equipados** arriba del mapa (3 slots, siempre visibles)
+- **Barra de objetivos** abajo del mapa con múltiples objetivos (jugador + llave + equipables)
+- **HUD rediseñado** con íconos correctos por tipo de objeto
+
+### 🔧 Cambios
+- `index.html` reestructurado con nuevo layout
+- `css/estilo.css` reescrito para el nuevo layout
+- `js/ui/render.js`:
+  - `actualizarHUD()` ahora muestra el ícono correcto por objeto
+  - Nueva función `actualizarSlotsEquipados()`
+  - `renderBarraZonas()` muestra múltiples objetivos con prioridad
+  - Nuevo `ICONO_POR_NOMBRE` (mapa nombre → ícono)
+- `js/core/input.js`:
+  - Nuevo sistema de botones con click sostenido (200ms)
+  - Soporte de touch (móvil)
+  - Detención automática al salir de la ventana
+
+### 🎨 Diseño
+- Botones en rombo estilo teclas con glow celeste al apretar
+- Slots de equipados con glow cuando tienen un objeto
+- Barra de objetivos con flechas laterales cuando hay objetivos fuera del rango
+
+### 📖 Documentación
+- README: MARCO 4.5 actualizado con fases y diseño del sistema de rotura
+- BACKLOG: F11 actualizado
+
+### ⏸️ Pendiente (próxima sesión)
+- **F11 Fase 3:** click sostenido sobre árboles/piedras
+- **F11 Fase 4:** barra de stamina de rotura (3-5 segundos)
+
+---
+
 ## v1.6 · 2026-10-13 (sistema de biomas por tabla JSON)
 
 ### ➕ Nuevo

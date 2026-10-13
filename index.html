@@ -2,39 +2,85 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Roguelike · Test v0.3</title>
+<title>Roguelike · Test v0.4</title>
 <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
 
-<div id="controles-semilla">
-  <label>🌱 Semilla:
-    <input id="input-semilla" type="text" value="test_mundo_01" size="24">
-  </label>
-  <button id="btn-aplicar">Aplicar</button>
-  <button id="btn-random">🎲</button>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  LAYOUT PRINCIPAL: 3 columnas (20% / 60% / 20%)             -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="layout">
+
+  <!-- ─── Columna izquierda: botones de movimiento ─── -->
+  <div id="col-izquierda">
+    <div id="botones-movimiento">
+      <div class="fila">
+        <button class="btn-mover" data-dir="arriba">↑</button>
+      </div>
+      <div class="fila">
+        <button class="btn-mover" data-dir="izquierda">←</button>
+        <button class="btn-mover" data-dir="abajo">↓</button>
+        <button class="btn-mover" data-dir="derecha">→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Columna centro: objetos arriba, mapa, barra abajo ─── -->
+  <div id="col-centro">
+
+    <!-- Slots de objetos equipados (arriba del mapa) -->
+    <div id="slots-equipados">
+      <div class="slot-equipado" id="slot-hacha">—</div>
+      <div class="slot-equipado" id="slot-pico">—</div>
+      <div class="slot-equipado" id="slot-linterna">—</div>
+    </div>
+
+    <!-- Mapa -->
+    <div id="pantalla">
+      <div id="mapa"></div>
+    </div>
+
+    <!-- Barra de objetivos (abajo del mapa) -->
+    <div id="barra-objetivos">
+      <div class="flecha" id="flechaIzq">←</div>
+      <div class="slots" id="slots"></div>
+      <div class="flecha" id="flechaDer">→</div>
+    </div>
+
+  </div>
+
+  <!-- ─── Columna derecha: semilla + HUD ─── -->
+  <div id="col-derecha">
+
+    <!-- Semilla -->
+    <div id="controles-semilla">
+      <label>🌱 Semilla:</label>
+      <input id="input-semilla" type="text" value="test_mundo_01" size="18">
+      <div class="botones-semilla">
+        <button id="btn-aplicar">Aplicar</button>
+        <button id="btn-random">🎲</button>
+      </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div>🏃‍♂️ Pos: <strong id="pos">0,0</strong></div>
+      <div>🗺️ Zona: <strong id="zona">0</strong></div>
+      <div>🎒 <strong id="inventario">—</strong></div>
+    </div>
+
+    <!-- Ayuda -->
+    <div id="ayuda">
+      WASD, flechas o botones<br>
+      Buscá la 🔑 para ganar
+    </div>
+
+  </div>
+
 </div>
 
-<div id="hud">
-  <span>🏃‍♂️ Pos: <strong id="pos">0,0</strong></span>
-  <span>🗺️ Zona: <strong id="zona">0</strong></span>
-  <span>🎒 Inventario: <strong id="inventario">—</strong></span>
-</div>
-
-<div id="barra-zonas">
-  <div class="flecha" id="flechaIzq">← 🔑</div>
-  <div class="slots" id="slots"></div>
-  <div class="flecha" id="flechaDer">🔑 →</div>
-</div>
-
-<div id="pantalla">
-  <div id="mapa"></div>
-</div>
-
-<div id="ayuda">
-  WASD o flechas para moverte · Buscá la 🔑 para ganar
-</div>
-
+<!-- Overlay -->
 <div id="overlay">
   <div class="titulo" id="ovTitulo"></div>
   <div class="subtitulo" id="ovSubtitulo"></div>

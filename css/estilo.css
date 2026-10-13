@@ -1,49 +1,178 @@
+/* ═══════════════════════════════════════════════════════════════
+   ESTILOS · Game_RPG
+   ═══════════════════════════════════════════════════════════════ */
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   background: #0a0a0a;
   color: #ddd;
   font-family: monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
   padding: 10px;
 }
 
-#hud {
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT PRINCIPAL (3 columnas: 20% / 60% / 20%)
+   ═══════════════════════════════════════════════════════════════ */
+#layout {
   display: flex;
-  gap: 30px;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #888;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: calc(100vh - 20px);
 }
-#hud strong { color: #6cf; }
 
-#barra-zonas {
+#col-izquierda {
+  width: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 40px;
+}
+
+#col-centro {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+#col-derecha {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 40px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOTONES DE MOVIMIENTO (rombo: ↑ arriba, ← ↓ → abajo)
+   ═══════════════════════════════════════════════════════════════ */
+#botones-movimiento {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+#botones-movimiento .fila {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-mover {
+  width: 64px;
+  height: 64px;
+  background: #181818;
+  color: #ddd;
+  border: 2px solid #333;
+  border-radius: 8px;
+  font-size: 28px;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.1s;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-mover:hover {
+  background: #2a2a2a;
+  border-color: #6cf;
+}
+
+.btn-mover:active,
+.btn-mover.activo {
+  background: #2a2a2a;
+  border-color: #6cf;
+  color: #6cf;
+  box-shadow: 0 0 12px rgba(100,200,255,0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SLOTS DE EQUIPADOS (arriba del mapa)
+   ═══════════════════════════════════════════════════════════════ */
+#slots-equipados {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.slot-equipado {
+  width: 52px;
+  height: 52px;
+  background: #181818;
+  border: 2px solid #333;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: #444;
+  transition: all 0.15s;
+}
+
+.slot-equipado.tiene {
+  border-color: #6cf;
+  box-shadow: 0 0 8px rgba(100,200,255,0.4);
+  color: #ddd;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANTALLA DEL MAPA
+   ═══════════════════════════════════════════════════════════════ */
+#pantalla {
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 0 30px rgba(100,200,255,0.1);
+}
+
+#mapa {
+  line-height: 1;
+  display: grid;
+  user-select: none;
+}
+
+#mapa .tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BARRA DE OBJETIVOS (abajo del mapa)
+   ═══════════════════════════════════════════════════════════════ */
+#barra-objetivos {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
   font-size: 14px;
   color: #888;
   user-select: none;
 }
-#barra-zonas .flecha {
+
+#barra-objetivos .flecha {
   font-size: 20px;
   color: #f4a;
-  min-width: 50px;
+  min-width: 30px;
   text-align: center;
   opacity: 0;
   transition: opacity 0.2s;
 }
-#barra-zonas .flecha.visible { opacity: 1; }
-#barra-zonas .slots {
+
+#barra-objetivos .flecha.visible { opacity: 1; }
+
+#barra-objetivos .slots {
   display: flex;
   gap: 4px;
 }
-#barra-zonas .slot {
+
+#barra-objetivos .slot {
   width: 42px;
   height: 42px;
   background: #181818;
@@ -56,17 +185,20 @@ body {
   position: relative;
   transition: all 0.15s;
 }
-#barra-zonas .slot.actual {
+
+#barra-objetivos .slot.actual {
   background: #2a2a2a;
   border-color: #6cf;
   box-shadow: 0 0 8px rgba(100,200,255,0.4);
 }
-#barra-zonas .slot.fuera {
+
+#barra-objetivos .slot.fuera {
   background: transparent;
   border-color: #1a1a1a;
   opacity: 0.3;
 }
-#barra-zonas .slot .num {
+
+#barra-objetivos .slot .num {
   position: absolute;
   top: -8px;
   left: 50%;
@@ -76,7 +208,8 @@ body {
   background: #0a0a0a;
   padding: 0 4px;
 }
-#barra-zonas .slot.visitada::after {
+
+#barra-objetivos .slot.visitada::after {
   content: "";
   position: absolute;
   bottom: 3px;
@@ -89,27 +222,101 @@ body {
   opacity: 0.6;
 }
 
-#pantalla {
-  background: #111;
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 0 30px rgba(100,200,255,0.1);
-}
-/* Nota: font-size, width y height se aplican por JS (ver js/render.js)
-   para que se ajusten automáticamente según el tamaño de la grilla
-   definido en js/config.js */
-#mapa {
-  line-height: 1;
-  display: grid;
-  user-select: none;
-}
-#mapa .tile {
+/* ═══════════════════════════════════════════════════════════════
+   CONTROLES DE SEMILLA (panel derecho)
+   ═══════════════════════════════════════════════════════════════ */
+#controles-semilla {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #181818;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #aaa;
 }
 
+#controles-semilla label {
+  font-weight: bold;
+  color: #6cf;
+}
+
+#controles-semilla input {
+  background: #0a0a0a;
+  color: #ddd;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-family: monospace;
+  font-size: 13px;
+  width: 100%;
+}
+
+#controles-semilla input:focus {
+  outline: none;
+  border-color: #6cf;
+  box-shadow: 0 0 6px rgba(100,200,255,0.4);
+}
+
+#controles-semilla .botones-semilla {
+  display: flex;
+  gap: 6px;
+}
+
+#controles-semilla button {
+  flex: 1;
+  background: #222;
+  color: #ddd;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-family: monospace;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#controles-semilla button:hover {
+  background: #2a2a2a;
+  border-color: #6cf;
+  color: #6cf;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HUD (panel derecho)
+   ═══════════════════════════════════════════════════════════════ */
+#hud {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #181818;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #888;
+}
+
+#hud strong { color: #6cf; }
+
+/* ═══════════════════════════════════════════════════════════════
+   AYUDA (panel derecho)
+   ═══════════════════════════════════════════════════════════════ */
+#ayuda {
+  padding: 10px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   OVERLAY (transiciones, victoria, batalla)
+   ═══════════════════════════════════════════════════════════════ */
 #overlay {
   position: fixed;
   inset: 0;
@@ -122,58 +329,7 @@ body {
   color: #fff;
   gap: 15px;
 }
+
 #overlay.visible { display: flex; }
 #overlay .titulo    { font-size: 42px; }
 #overlay .subtitulo { font-size: 18px; color: #aaa; }
-
-#ayuda {
-  margin-top: 12px;
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-  line-height: 1.6;
-}
-
-#controles-semilla {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: #aaa;
-}
-#controles-semilla label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-#controles-semilla input {
-  background: #181818;
-  color: #ddd;
-  border: 1px solid #333;
-  border-radius: 5px;
-  padding: 6px 10px;
-  font-family: monospace;
-  font-size: 13px;
-}
-#controles-semilla input:focus {
-  outline: none;
-  border-color: #6cf;
-  box-shadow: 0 0 6px rgba(100,200,255,0.4);
-}
-#controles-semilla button {
-  background: #222;
-  color: #ddd;
-  border: 1px solid #333;
-  border-radius: 5px;
-  padding: 6px 12px;
-  font-family: monospace;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-#controles-semilla button:hover {
-  background: #2a2a2a;
-  border-color: #6cf;
-  color: #6cf;
-}

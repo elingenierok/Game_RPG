@@ -227,27 +227,51 @@ mundo = función(semilla, zona) + deltas
 
 ---
 
-## 🎒 F11 · Fases pendientes de objetos equipables
+## 🎒 F11 · Fases de objetos equipables
 
-**Contexto:** la Iteración 1 (objetos en el mundo) está en desarrollo. Faltan 3 fases.
+**Contexto:** la Iteración 1 (objetos en el mundo) está en desarrollo.
 
-### Fase 2 · Interfaz lateral
-- Mover los 5 slots actuales al panel lateral derecho.
-- Rediseñar: 3 slots de equipados + barra de progreso de zonas + HUD.
-- Expandir la pantalla horizontalmente.
+### ✅ Fase 1 · Objetos en el mundo (completada en v1.6)
+- Los 3 objetos aparecen en sus biomas.
+- Se recogen al pisarlos.
 
-### Fase 3 · Interacción con click sostenido
-- Detectar click sostenido sobre un árbol o piedra.
-- Verificar que el jugador esté **al lado** de la celda.
-- Verificar que tenga el objeto correcto equipado.
-- Mostrar cartel "Necesitás un hacha" si no lo tiene.
+### ✅ Fase 2 · Interfaz lateral (completada en v1.6.1)
+- Layout 3 columnas (flechas + mapa + panel derecho).
+- 3 slots de equipados arriba del mapa (siempre visibles).
+- Barra de objetivos abajo del mapa (jugador + llave + equipables).
+- HUD con íconos correctos.
+- Botones de movimiento con click sostenido.
 
-### Fase 4 · Barra de rotura
-- Barra lineal arriba del objeto.
-- 3-5 segundos hasta romper.
-- Al terminar → el tile se reemplaza por pasto 🟩.
+### ⏸️ Fase 3 · Click sostenido (próxima sesión)
 
-**Estado:** ⏸️ Pendiente. Se retomará después de resolver el bug de biomas.
+**Condiciones para romper:**
+1. El click debe ser **exactamente sobre** la celda del árbol/piedra.
+2. El jugador debe estar **adyacente** (4 direcciones).
+3. Debe tener el objeto correcto equipado (🪓 para árbol, ⛏️ para piedra).
+4. Si falta objeto: cartel "Necesitás un hacha/pico".
+
+### ⏸️ Fase 4 · Barra de stamina (próxima sesión)
+
+**Diseño:**
+- Barra arriba del mapa, ancho completo, pegada.
+- Va de 100% a 0%.
+- Si se suelta el click: vuelve al 100%.
+- Si el jugador se mueve: se cancela.
+- Al llegar a 0%: el tile se convierte en el **tile base del bioma**.
+
+**Tile base por bioma:**
+
+| Bioma | Tile base |
+|-------|-----------|
+| pradera | 🟩 GRASS |
+| bosque | 🟩 GRASS |
+| costa | 🟨 SAND |
+| ruina | 🟩 GRASS |
+| oceano | 🌊 WATER |
+| desierto | 🏜️ DESERT_SAND |
+| nieve | ❄️ SNOW |
+
+**Estado:** Fases 1-2 completadas. Fases 3-4 pendientes.
 
 ---
 

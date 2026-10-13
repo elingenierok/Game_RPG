@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.6 · Sistema de biomas por tabla JSON |
+| **Versión actual** | v1.6.1 · Interfaz lateral + botones de movimiento |
 | **Última actualización** | 2026-10-13 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -229,13 +229,14 @@ Después abrir con Live Server en VS Code.
 ---
 
 ## ⚔️ MARCO 4 · Mobs y Combate
-## 🎒 MARCO 4.5 · Objetos equipables (en desarrollo)
+## 🎒 MARCO 4.5 · Objetos equipables
 
-### Estado actual (v1.6-alpha)
+### Estado actual (v1.6.1)
 
 - **3 objetos:** 🪓 Hacha, ⛏️ Pico, 🕯️ Linterna.
 - **Spawn:** 1 de cada uno por mundo. Determinista por semilla.
 - **Recolección:** al pisarlos, se suman al inventario del HUD.
+- **Slots de equipados:** arriba del mapa, 3 slots siempre visibles.
 - **Efecto:** todavía no hacen nada (solo se ven y se recogen).
 
 ### Configuración (por ahora)
@@ -246,43 +247,53 @@ Después abrir con Live Server en VS Code.
 | ⛏️ Pico | ruina |
 | 🕯️ Linterna | costa |
 
-### Decisión: forzar 4 biomas por mundo
-
-Para garantizar que los 3 objetos siempre aparezcan, se fuerza que **los 4 biomas existan** en cualquier mundo.
-
-- **Zona 0:** pradera (zona segura).
-- **Zonas ±1..±4:** permutación determinista por semilla de [bosque, pradera, costa, ruina].
-- **Zonas ±5..±8:** repite la permutación.
-
-### 🔴 Bug pendiente (bloquea v1.6)
-
-**Decisión:** en lugar de arreglar `permutacionBiomas()`, se va a **rediseñar todo el sistema de biomas** desde cero usando una **tabla JSON externa**. Ver **BACKLOG · F14**.
-
-La permutación **no funciona correctamente**. Con semilla `diagnostico`:
-
-| Zona | Bioma observado | Esperado |
-|:----:|:---------------:|:--------:|
-| 0 | pradera | pradera ✅ |
-| 1 | ruina | ? |
-| 2 | **ruina** | ❌ (repite zona 1) |
-| 3 | bosque | ? |
-| 4 | pradera | ? |
-| 5 | ruina | ⚠️ (repite) |
-
-**Problema:** hay biomas repetidos consecutivos y "costa" no aparece nunca.
-
-**Hipótesis:** el shuffle de `permutacionBiomas()` puede estar devolviendo un array con valores repetidos, o el cálculo del índice `ciclo` está mal.
-
-**Próximo paso:** retomar con `console.log(permutacionBiomas("diagnostico"))` para ver qué devuelve exactamente.
-
-### Fases pendientes
+### Fases
 
 | Fase | Descripción | Estado |
 |:----:|-------------|:------:|
-| 1 | Objetos aparecen en el mundo | 🟡 Bug de biomas |
-| 2 | Interfaz lateral (slots + barra de progreso) | ⏸️ Pendiente |
-| 3 | Interacción con click sostenido | ⏸️ Pendiente |
-| 4 | Barra de rotura (3-5 seg) | ⏸️ Pendiente |
+| 1 | Objetos aparecen en el mundo y se recogen | ✅ Completado (v1.6) |
+| 2 | Interfaz lateral (slots + barra + HUD + botones) | ✅ Completado (v1.6.1) |
+| 3 | Click sostenido para romper árboles/piedras | ⏸️ Próxima sesión |
+| 4 | Barra de rotura (stamina) | ⏸️ Próxima sesión |
+
+### Fase 3-4 · Diseño confirmado (para próxima sesión)
+
+**Sistema de rotura:**
+- **Condición 1:** el click debe ser **exactamente sobre** la celda del árbol/piedra.
+- **Condición 2:** el jugador debe estar **adyacente** (4 direcciones, sin diagonales).
+- **Condición 3:** debe tener el objeto correcto equipado (🪓 para árbol, ⛏️ para piedra).
+- **Si falta objeto:** cartel "Necesitás un hacha/pico".
+
+**Barra de stamina:**
+- Arriba del mapa, ancho completo, pegada al mismo.
+- Va de 100% a 0%.
+- Si se suelta el click: vuelve al 100% (cancela).
+- Si el jugador se mueve: se cancela.
+- Al llegar a 0%: el tile se convierte en el **tile base del bioma**.
+
+**Tile base por bioma:**
+
+| Bioma | Tile base |
+|-------|-----------|
+| pradera | 🟩 GRASS |
+| bosque | 🟩 GRASS |
+| costa | 🟨 SAND |
+| ruina | 🟩 GRASS |
+| oceano | 🌊 WATER |
+| desierto | 🏜️ DESERT_SAND |
+| nieve | ❄️ SNOW |
+
+### Slots de equipados
+
+- **Ubicación:** arriba del mapa.
+- **Siempre visibles** (3 slots, vacíos si no tenés el objeto).
+- **Actualización:** al recoger un objeto, aparece en su slot con glow celeste.
+
+### Barra de objetivos (abajo del mapa)
+
+- Muestra jugador + llave + equipables pendientes.
+- Prioridad: 🔍 (jugador + llave) > 🏃 (jugador) > 🔑 (llave) > ícono del equipable.
+- Flechas laterales si alguno está fuera del rango visible.
 
 ### Sistema de mobs (v1.5)
 
@@ -402,7 +413,10 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| U1 | HUD | 🧪 | Pos + Zona + Inventario | v0.4 |
+| U1 | HUD | 🟢 | Pos + Zona + Inventario (con íconos correctos) | v1.6.1 |
+| U10 | **Botones de movimiento** | 🟢 | **4 botones en rombo, click sostenido (200ms)** | **v1.6.1** |
+| U11 | **Slots de equipados** | 🟢 | **3 slots arriba del mapa, siempre visibles** | **v1.6.1** |
+| U12 | **Layout 3 columnas** | 🟢 | **20% flechas · 60% mapa · 20% panel** | **v1.6.1** |
 | U2 | Minimapa | ⏸️ | No | Barra de zonas cumple función parcial |
 | U3 | Log de mensajes | 🧪 | Console.log + overlay | Sistema formal → futuro |
 | U4 | Estilo de menús | 🧪 | Overlay simple + overlay de batalla | v1.2 |
@@ -459,9 +473,14 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v1.6)
+## 🧪 MARCO 9 · Sistema de Test (v1.6.1)
 
 ### Lo que hay ahora
+- **Layout 3 columnas**: flechas (20%) + mapa (60%) + panel (20%)
+- **Botones de movimiento** con click sostenido (200ms)
+- **Slots de equipados** arriba del mapa (3 siempre visibles)
+- **Barra de objetivos** abajo del mapa (jugador + llave + equipables)
+- **HUD con íconos correctos** por tipo de objeto
 - Mundo E-O acotado (±5 chunks por defecto, configurable)
 - Biomas con frontera dura (4 tipos)
 - Fronteras compartidas entre chunks
@@ -636,6 +655,11 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 - [x] **7 biomas con vecinos + pesos**
 - [x] **5 tiles nuevos (desierto, nieve)**
 - [x] **Auditor de semillas**
+- [x] **Interfaz lateral completa (F11 Fase 2)**
+- [x] **Botones de movimiento con click sostenido**
+- [x] **Slots de equipados arriba del mapa**
+- [x] **Barra de objetivos con múltiples objetivos**
+- [x] **HUD con íconos correctos por objeto**
 
 ### 🔥 Próximas tareas (urgentes)
 

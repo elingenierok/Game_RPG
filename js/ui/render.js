@@ -53,7 +53,7 @@ function render() {
         continue;
       }
 
-                  // 3. Ítems (manzanas)
+      // 3. Ítems (manzanas)
       const claveItem = estado.zona + ":" + x + "," + y;
       if (itemsPorPos.has(x + "," + y) && !estado.itemsRecogidos.has(claveItem)) {
         const it = itemsPorPos.get(x + "," + y);
@@ -90,7 +90,10 @@ function render() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 10 · RENDER DE BARRA DE ZONAS
+//  BLOQUE 10 · RENDER DE BARRA DE OBJETIVOS
+// ─────────────────────────────────────────────────────────────────
+//  La barra muestra múltiples objetivos (jugador, llave, objetos equipables).
+//  Cada slot puede tener un ícono distinto según lo que esté en esa zona.
 // ═══════════════════════════════════════════════════════════════
 const divSlots    = document.getElementById("slots");
 const flechaIzq   = document.getElementById("flechaIzq");
@@ -103,6 +106,24 @@ for (let i = 0; i < ZONAS_VISIBLES; i++) {
   s.innerHTML = `<span class="num"></span><span class="icono"></span>`;
   divSlots.appendChild(s);
   slots.push(s);
+}
+
+// ─── Cache de ubicaciones de equipables por zona ───
+// Ayuda a no recalcular en cada render
+const _ubicacionesEquipablesPorZona = new Map();
+
+function obtenerUbicacionEquipables(zona) {
+  if (_ubicacionesEquipablesPorZona.has(zona)) {
+    return _ubicacionesEquipablesPorZona.get(zona);
+  }
+  const equipables = obtenerEquipablesDeChunk(zona);
+  _ubicacionesEquipablesPorZona.set(zona, equipables);
+  return equipables;
+}
+
+// ─── Limpia el cache de ubicaciones (al cambiar semilla) ───
+function limpiarCacheUbicaciones() {
+  _ubicacionesEquipablesPorZona.clear();
 }
 
 function renderBarraZonas() {
@@ -133,16 +154,39 @@ function renderBarraZonas() {
     if (zonaSlot === estado.zona) slot.classList.add("actual");
     if (estado.zonasVisitadas.has(zonaSlot)) slot.classList.add("visitada");
 
+    // ─── Decidir qué mostrar en este slot ───
     const esJugador = (zonaSlot === estado.zona);
     const esLlave   = (zonaSlot === estado.llave.zona);
 
-    if (esJugador && esLlave) icono.textContent = ICONOS[LUPA];
-    else if (esJugador)       icono.textContent = ICONOS[PLAYER];
-    else if (esLlave)         icono.textContent = ICONOS[LLAGUE];
+    // Objetos equipables en esta zona (puede haber 0 o 1)
+    const equipablesEnZona = obtenerUbicacionEquipables(zonaSlot);
+    // Filtrar los que ya fueron recogidos
+    const equipablesPendientes = equipablesEnZona.filter(eq => {
+      const clave = zonaSlot + ":" + eq.x + "," + eq.y;
+      return !estado.itemsRecogidos.has(clave);
+    });
+
+    // Prioridad de visualización:
+    // 1. Jugador + llave → 🔍
+    // 2. Jugador solo → 🏃‍♂️
+    // 3. Llave → 🔑
+    // 4. Equipables pendientes → su ícono
+    if (esJugador && esLlave) {
+      icono.textContent = ICONOS[LUPA];
+    } else if (esJugador) {
+      icono.textContent = ICONOS[PLAYER];
+    } else if (esLlave) {
+      icono.textContent = ICONOS[LLAGUE];
+    } else if (equipablesPendientes.length > 0) {
+      icono.textContent = ICONOS[equipablesPendientes[0].tipo];
+    }
   }
 
+  // ─── Flechas si la llave o algún equipable está fuera del rango ───
   const zonaMinVisible = zonaInicio;
   const zonaMaxVisible = zonaInicio + ZONAS_VISIBLES - 1;
+
+  // Llave
   const dz = estado.llave.zona - estado.zona;
 
   if (estado.llave.zona < zonaMinVisible) {
@@ -161,8 +205,21 @@ function renderBarraZonas() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 11 · HUD
+//  BLOQUE 11 · HUD Y SLOTS DE EQUIPADOS
 // ═══════════════════════════════════════════════════════════════
+
+// Mapeo de nombres de objetos a íconos
+const ICONO_POR_NOMBRE = {
+  MANZANA:  "🍎",
+  HACHA:    "🪓",
+  PICO:     "⛏️",
+  LINTERNA: "🕯️",
+};
+
+function iconoPorNombre(nombre) {
+  return ICONO_POR_NOMBRE[nombre] || "❓";
+}
+
 function actualizarHUD() {
   document.getElementById("pos").textContent = `${estado.jugador.x},${estado.jugador.y}`;
   document.getElementById("zona").textContent = estado.zona;
@@ -172,6 +229,45 @@ function actualizarHUD() {
     document.getElementById("inventario").textContent = "—";
   } else {
     document.getElementById("inventario").textContent =
-      entradas.map(([nombre, cant]) => `🍎 x${cant}`).join(" · ");
+      entradas.map(([nombre, cant]) => `${iconoPorNombre(nombre)} x${cant}`).join(" · ");
+  }
+
+  // ─── Slots de equipados (arriba del mapa) ───
+  actualizarSlotsEquipados();
+}
+
+function actualizarSlotsEquipados() {
+  const slotHacha    = document.getElementById("slot-hacha");
+  const slotPico     = document.getElementById("slot-pico");
+  const slotLinterna = document.getElementById("slot-linterna");
+
+  // ¿Qué equipables tiene el jugador?
+  const tieneHacha    = (estado.inventario.HACHA    || 0) > 0;
+  const tienePico     = (estado.inventario.PICO     || 0) > 0;
+  const tieneLinterna = (estado.inventario.LINTERNA || 0) > 0;
+
+  // Actualizar cada slot
+  if (tieneHacha) {
+    slotHacha.textContent = "🪓";
+    slotHacha.classList.add("tiene");
+  } else {
+    slotHacha.textContent = "—";
+    slotHacha.classList.remove("tiene");
+  }
+
+  if (tienePico) {
+    slotPico.textContent = "⛏️";
+    slotPico.classList.add("tiene");
+  } else {
+    slotPico.textContent = "—";
+    slotPico.classList.remove("tiene");
+  }
+
+  if (tieneLinterna) {
+    slotLinterna.textContent = "🕯️";
+    slotLinterna.classList.add("tiene");
+  } else {
+    slotLinterna.textContent = "—";
+    slotLinterna.classList.remove("tiene");
   }
 }
