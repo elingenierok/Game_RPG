@@ -3,6 +3,32 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v1.6-alpha · 2026-10-11 (objetos equipables · EN DESARROLLO)
+
+### ➕ Nuevo
+- 3 objetos equipables: 🪓 Hacha, ⛏️ Pico, 🕯️ Linterna
+- Spawn único por mundo (1 de cada uno), determinista por semilla
+- Recolección al pisarlos (se suman al inventario del HUD)
+- Sistema de forzar los 4 biomas por mundo (permutación por semilla)
+- Nuevas funciones en `items.js`: `obtenerZonaDeEquipable`, `obtenerEquipablesDeChunk`, `obtenerEquipableEn`, `recogerEquipableEn`
+- Nueva función en `mundo.js`: `permutacionBiomas`
+
+### 🐛 Bug pendiente (bloquea v1.6)
+- **Permutación de biomas no funciona correctamente.**
+  - Con semilla `diagnostico`, la zona 2 repite el bioma de la zona 1.
+  - El bioma "costa" no aparece nunca.
+  - Los objetos 🕯️ Linterna no se generan.
+- **Próximo paso:** diagnosticar `permutacionBiomas()` con `console.log`.
+
+### 📖 Documentación
+- README: nuevo MARCO 4.5 · Objetos equipables
+- CHANGELOG: esta entrada
+
+### ⚠️ Estado
+- **v1.6-alpha no es estable.** El juego funciona, pero los objetos pueden no aparecer correctamente.
+- La próxima sesión debe empezar retomando el bug de `permutacionBiomas`.
+
+---
 
 ## v1.5.1 · 2026-10-11 (fixes de IA)
 

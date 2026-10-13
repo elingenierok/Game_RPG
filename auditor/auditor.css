@@ -1,0 +1,171 @@
+/* ═══ BASE ═══ */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 16px;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  font-family: monospace;
+}
+h1 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  color: #6cf;
+  text-shadow: 0 0 8px rgba(102, 204, 255, 0.4);
+}
+
+/* ═══ CONTROLES ═══ */
+.controles {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+}
+.controles label {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  color: #888;
+  gap: 4px;
+}
+.controles input,
+.controles select {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  color: #e0e0e0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  outline: none;
+}
+.controles select { cursor: pointer; }
+.controles input:focus,
+.controles select:focus {
+  border-color: #6cf;
+  box-shadow: 0 0 8px rgba(102, 204, 255, 0.5);
+}
+.controles button {
+  align-self: flex-end;
+  background: #1a1a1a;
+  border: 1px solid #6cf;
+  color: #6cf;
+  padding: 7px 16px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.controles button:hover {
+  background: #6cf;
+  color: #0a0a0a;
+  box-shadow: 0 0 12px rgba(102, 204, 255, 0.6);
+}
+
+/* ═══ FRANJA DE CHUNKS ═══ */
+.franja {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  min-height: 90px;
+}
+.chunk {
+  flex: 0 0 auto;
+  width: 64px;
+  padding: 6px 4px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chunk:hover { border-color: #6cf; transform: translateY(-2px); }
+.chunk.seleccionado {
+  border-color: #f4a;
+  box-shadow: 0 0 10px rgba(255, 68, 170, 0.5);
+}
+.chunk .emoji { font-size: 26px; line-height: 1; }
+.chunk .zona { font-size: 11px; color: #6cf; margin-top: 3px; }
+.chunk .meta {
+  font-size: 8px;
+  color: #666;
+  margin-top: 2px;
+  word-break: break-all;
+  line-height: 1.15;
+}
+
+/* ═══ PANEL DE GRILLA ═══ */
+.panel-grilla {
+  padding: 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  overflow: auto;
+}
+.panel-grilla h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #6cf;
+}
+.panel-grilla .vacio {
+  color: #555;
+  text-align: center;
+  margin: 24px 0;
+  font-size: 13px;
+}
+
+/* ═══ FILA DE GRILLAS PEGADAS ═══ */
+.fila-grillas {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  width: max-content;
+}
+.columna-union {
+  flex: 0 0 auto;
+  width: 2px;
+  align-self: stretch;
+  background: #f4a;
+  box-shadow: 0 0 6px rgba(255, 68, 170, 0.7);
+}
+.grilla-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.grilla-wrapper .etiqueta {
+  font-size: 10px;
+  color: #6cf;
+  text-align: center;
+  padding: 2px 0 4px;
+  white-space: nowrap;
+}
+.grilla-wrapper .etiqueta.actual {
+  color: #f4a;
+  font-weight: bold;
+}
+.grilla {
+  display: grid;
+  gap: 0;
+  width: max-content;
+}
+.grilla .celda {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tam-celda);
+  height: var(--tam-celda);
+  font-size: var(--font-emoji);
+  line-height: 1;
+}

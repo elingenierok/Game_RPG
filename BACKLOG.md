@@ -14,6 +14,12 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F7 · Deambulación más realista
 - F8 · Objetos equipables y modificar el mundo
 - F9 · Sistema de mouse / interacción con click
+- F10 · Bioma "playa" como bioma separado
+- F11 · Fases pendientes de objetos equipables
+- F12 · Objetos equipables de mejor nivel
+- F13 · Drops alternativos de objetos
+- F14 · Rediseño del sistema de biomas con JSON
+- F15 · Biomas forzados + chunks de transición
 
 ---
 
@@ -204,5 +210,209 @@ mundo = función(semilla, zona) + deltas
 **Estado:** ⏸️ Anotado. Se implementará cuando haya objetos/NPCs interactuables.
 
 ---
+
+## 🏖️ F10 · Bioma "playa" como bioma separado
+
+**Idea:** actualmente "playa" NO es un bioma. Es un conjunto de tiles (arena 🟨) dentro del bioma "costa".
+
+**Consecuencia:** no se puede hacer un objeto equipable específico para "playa", ni un mob de playa, ni transiciones suaves.
+
+**Propuesta:** separar "playa" como un bioma propio en el futuro:
+- `bosque`, `pradera`, `costa`, `ruina`, `playa`.
+- Rediseñar el sistema de permutación de biomas para soportar N biomas.
+- Reasignar objetos equipables si aplica.
+
+**Estado:** ⏸️ Anotado. Se trabajará cuando se agreguen más biomas.
+
+---
+
+## 🎒 F11 · Fases pendientes de objetos equipables
+
+**Contexto:** la Iteración 1 (objetos en el mundo) está en desarrollo. Faltan 3 fases.
+
+### Fase 2 · Interfaz lateral
+- Mover los 5 slots actuales al panel lateral derecho.
+- Rediseñar: 3 slots de equipados + barra de progreso de zonas + HUD.
+- Expandir la pantalla horizontalmente.
+
+### Fase 3 · Interacción con click sostenido
+- Detectar click sostenido sobre un árbol o piedra.
+- Verificar que el jugador esté **al lado** de la celda.
+- Verificar que tenga el objeto correcto equipado.
+- Mostrar cartel "Necesitás un hacha" si no lo tiene.
+
+### Fase 4 · Barra de rotura
+- Barra lineal arriba del objeto.
+- 3-5 segundos hasta romper.
+- Al terminar → el tile se reemplaza por pasto 🟩.
+
+**Estado:** ⏸️ Pendiente. Se retomará después de resolver el bug de biomas.
+
+---
+
+## ⚙️ F12 · Sistema de objetos equipables de mejor nivel
+
+**Idea:** a futuro, poder tener versiones de mejor nivel de cada objeto.
+
+**Ejemplos:**
+- Hacha de madera (5 seg), hacha de hierro (3 seg), hacha de diamante (1 seg).
+- Pico similar.
+- Linterna con más radio de luz.
+
+**Sistema propuesto:** cada objeto tiene un `nivel` y `velocidad` que modifican el tiempo de rotura.
+
+**Estado:** ⏸️ Anotado. Futuro lejano.
+
+---
+
+## 📦 F13 · Drops alternativos de objetos
+
+**Idea:** los objetos equipables pueden obtenerse de formas alternativas además del spawn en el mundo.
+
+**Fuentes propuestas:**
+- Al matar ciertos mobs.
+- Al romper vehículos/piedras específicas.
+- Al abrir cofres.
+- Al completar misiones.
+
+**Estado:** ⏸️ Anotado. Futuro medio.
+
+---
+---
+
+## 🗺️ F14 · Rediseño del sistema de biomas con JSON
+
+**Motivo:** el sistema actual (`permutacionBiomas()`) es rígido, difícil de escalar y tiene bugs. Se reemplaza por una **tabla JSON externa**.
+
+**Concepto:** los biomas se definen como datos (no como código). El motor lee el JSON y genera el mundo según lo que dice.
+
+### Estructura del JSON
+
+Cada bioma es un objeto con esta forma:
+
+```json
+{
+  "biomas": {
+    "bosque": {
+      "nombre": "Bosque",
+      "emoji": "🌳",
+      "vecinos": [
+        { "id": "bosque",  "peso": 50 },
+        { "id": "pradera", "peso": 30 },
+        { "id": "ruina",   "peso": 20 }
+      ],
+      "tiles": [
+        { "tile": "TREE",      "peso": 40 },
+        { "tile": "BUSH",      "peso": 15 },
+        { "tile": "TALLGRASS", "peso": 10 },
+        { "tile": "GRASS",     "peso": 35 }
+      ]
+    }
+  }
+}
+Conceptos clave
+Vecinos con peso: cada bioma define qué otros biomas pueden estar a su lado y con qué probabilidad. Ej:
+
+bosque → bosque (50%), bosque → pradera (30%), bosque → ruina (20%).
+
+Un bioma que "se mantiene" tiene peso alto hacia sí mismo (ej: oceano 70% hacia sí mismo).
+
+Un bioma de transición tiene pesos repartidos (ej: costa → oceano 30%, costa 40%, pradera 30%).
+
+Esto resuelve el "realismo": un océano no aparece al lado de una ciudad. Siempre hay una costa como puente.
+
+Biomas a implementar (7 totales)
+Bioma	Estado	Tiles principales
+bosque	✅ Existe	🌳 🌿 🌾 🟩
+pradera	✅ Existe	🟩 🌳 🌾 🪨
+costa	✅ Existe	🌊 🟨 🟩 🌿
+ruina	✅ Existe	🟩 🧱 🪨 🌾
+oceano	🆕 Nuevo	🌊 (90-95%) + 🪨 (5-10%)
+desierto	🆕 Nuevo	🏜️ 🌵 🪨
+nieve	🆕 Nuevo	❄️ 🧊 🌲
+Tiles nuevos necesarios
+🏜️ arena del desierto (distinta de 🟨 playa)
+
+🌵 cactus
+
+❄️ nieve
+
+🧊 hielo
+
+🌲 pino
+
+Reglas
+Zona 0: siempre pradera (zona segura).
+
+Resto de zonas: elegir entre vecinos del bioma anterior con sus pesos.
+
+Determinista por semilla.
+
+Pendiente de definir
+Formato exacto del JSON.
+
+Cómo cargarlo (¿fetch? ¿import? ¿dentro de un .js?).
+
+Cómo se cachea la permutación de biomas.
+
+Cómo se valida que no haya biomas aislados.
+
+Estado: ⏸️ Planificado. Se implementará en sesión dedicada.
+
+🏙️ F15 · Biomas forzados + chunks de transición
+Idea: después de generar el mundo natural, una segunda pasada inserta biomas forzados (ciudades, puertos, islas, ruinas temáticas) que reemplazan zonas existentes.
+
+Reglas confirmadas
+Aspecto	Decisión
+Aparición	Regla por zona (ej: "cada 10 zonas insertar un bioma forzado")
+Tamaño	Zona entera (50×34)
+Transición	Chunks de transición automáticos alrededor
+Detección	El jugador los descubre al llegar
+Continuidad	Puede bloquear el paso. No se garantiza transitable
+Reemplazo	Los tiles nuevos pisan los viejos
+Tipos de biomas forzados (ejemplos)
+🏙️ Ciudad — reemplaza pradera o bosque.
+
+⚓ Puerto — reemplaza costa, requiere oceano cerca.
+
+🏝️ Isla — aparece dentro de océano.
+
+🏰 Castillo — reemplaza ruina.
+
+Chunks de transición
+Concepto:
+
+text
+Sin transición:    [pradera] [ciudad] [pradera]
+Con transición:    [pradera] [trans] [ciudad] [trans] [pradera]
+El chunk de transición mezcla automáticamente los tiles de ambos biomas adyacentes. Ej:
+
+Transición pradera↔ciudad: mitad izquierda más pradera, mitad derecha más ciudad.
+
+El motor genera la mezcla sin necesidad de definirla en el JSON.
+
+Condiciones de aparición
+Cada bioma forzado tendrá condiciones en el JSON:
+
+json
+"puerto": {
+  "tipo": "forzado",
+  "condiciones": {
+    "reemplaza": ["costa"],
+    "vecinosRequeridos": ["oceano"]
+  }
+}
+Pendiente de definir
+Regla exacta de aparición (¿cada cuántas zonas?).
+
+Definición completa de cada bioma forzado.
+
+Algoritmo de mezcla para chunks de transición.
+
+Si los biomas forzados afectan a sus vecinos.
+
+Si son transitables o pueden bloquear.
+
+Estado: ⏸️ Planificado. Se implementará después de F14.
 
 **Fin del BACKLOG**

@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.6-alpha · Objetos equipables (en desarrollo, con bug de biomas) |
-| **Última actualización** | 2026-10-11 |
+| **Versión actual** | v1.6-alpha · Objetos equipables (bug de biomas → será rediseñado) |
+| **Última actualización** | 2026-10-12 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -255,6 +255,8 @@ Para garantizar que los 3 objetos siempre aparezcan, se fuerza que **los 4 bioma
 
 ### 🔴 Bug pendiente (bloquea v1.6)
 
+**Decisión:** en lugar de arreglar `permutacionBiomas()`, se va a **rediseñar todo el sistema de biomas** desde cero usando una **tabla JSON externa**. Ver **BACKLOG · F14**.
+
 La permutación **no funciona correctamente**. Con semilla `diagnostico`:
 
 | Zona | Bioma observado | Esperado |
@@ -390,7 +392,9 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | G12 | Mobs generados por semilla separada | 🟢 | 0-2 por tipo, según bioma | v1.2 |
 | G13 | Semillas independientes | 🟢 | `SEMILLA` · `SEMILLA_MOBS` (Date.now) · `SEMILLA_OBJETOS` (=SEMILLA) | v1.3 |
 | G14 | Zona 0 sin mobs | 🟢 | Chunk inicial libre de mobs (zona segura) | v1.5 |
-
+| G15 | **Rediseño del sistema de biomas** | 🟡 | **Tabla JSON externa con vecinos + pesos** | **Planificado · ver F14** |
+| G16 | **Biomas forzados (Pasada 2)** | 🟡 | **Ciudades, puertos, islas sobre el mundo natural** | **Planificado · ver F15** |
+| G17 | **Chunks de transición** | 🟡 | **Mezcla automática entre biomas adyacentes** | **Planificado · ver F15** |
 ---
 
 ## 🖥️ MARCO 6 · Interfaz / UX
@@ -628,6 +632,8 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
+| 🔥 Alta | **Rediseño del sistema de biomas (JSON)** | ⏸️ | Ver BACKLOG · F14 |
+| 🔥 Alta | **Agregar 3 biomas nuevos** (oceano, desierto, nieve) | ⏸️ | Con tiles nuevos |
 | 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
 | 🔥 Alta | Prototipo 2 del módulo de combate (SVG radial) | ⏸️ | En paralelo |
 | 🟡 Media | Integrar módulo de combate al mapa | ⏸️ | Cuando prototipo 3 esté listo |
