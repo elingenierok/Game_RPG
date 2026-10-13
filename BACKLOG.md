@@ -20,7 +20,8 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F13 · Drops alternativos de objetos
 - F14 · Rediseño del sistema de biomas con JSON
 - F15 · Biomas forzados + chunks de transición
-
+- F16 · Rediseño del bioma "costa"
+- F17 · Sistema de "biomas con forma"
 ---
 
 ## 🌗 F1 · Ciclo día-noche
@@ -324,11 +325,11 @@ Esto resuelve el "realismo": un océano no aparece al lado de una ciudad. Siempr
 Biomas a implementar (7 totales)
 Bioma	Estado	Tiles principales
 bosque	✅ Existe	🌳 🌿 🌾 🟩
-pradera	✅ Existe	🟩 🌳 🌾 🪨
+pradera	✅ Existe	🟩 🌳 🌾 ⛰️
 costa	✅ Existe	🌊 🟨 🟩 🌿
-ruina	✅ Existe	🟩 🧱 🪨 🌾
-oceano	🆕 Nuevo	🌊 (90-95%) + 🪨 (5-10%)
-desierto	🆕 Nuevo	🏜️ 🌵 🪨
+ruina	✅ Existe	🟩 🧱 ⛰️ 🌾
+oceano	🆕 Nuevo	🌊 (90-95%) + ⛰️ (5-10%)
+desierto	🆕 Nuevo	🏜️ 🌵 ⛰️
 nieve	🆕 Nuevo	❄️ 🧊 🌲
 Tiles nuevos necesarios
 🏜️ arena del desierto (distinta de 🟨 playa)
@@ -414,5 +415,60 @@ Si los biomas forzados afectan a sus vecinos.
 Si son transitables o pueden bloquear.
 
 Estado: ⏸️ Planificado. Se implementará después de F14.
+---
+
+## 🏖️ F16 · Rediseño del bioma "costa" (distribución del agua)
+
+**Problema actual:** el bioma "costa" pinta los tiles con **probabilidad uniforme por celda** (WATER 30%, SAND 50%, etc.). El resultado visual son "charcos" de agua salpicados por el chunk, en lugar de una franja costera coherente.
+
+**Lo que debería ser:** la costa debería ser una **franja de arena** en un lado del chunk (o varios), con agua pegada al lado del océano.
+
+**Ejemplo visual deseado:**
+[Océano] [Costa] [Pradera]
+
+En el chunk de costa:
+Lado izquierdo (pegado al océano): agua
+Centro: arena (playa)
+Lado derecho (pegado a pradera): pasto con arbustos
+
+**Reglas propuestas:**
+- La costa debe saber si tiene un **océano a su izquierda o derecha**.
+- El agua se concentra en el **lado pegado al océano**.
+- La arena ocupa una franja intermedia.
+- El otro lado tiene pasto y arbustos (transición a pradera).
+
+**Consideraciones:**
+- El sistema de tiles uniformes por celda **no sirve** para este bioma. Necesita "forma".
+- Podría resolverse con un campo extra en la definición del bioma, algo como:
+  ```json
+  "forma": "franja",
+  "direccion": "sigueBiomaVecino"
+O podría resolverse con un motor de formas más complejo (futuro).
+
+Estado: ⏸️ Anotado. Se trabajará cuando implementemos el sistema de "biomas con forma" (necesario también para el océano, montañas, ríos, etc.).
+🌊 F17 · Sistema de "biomas con forma"
+Idea: algunos biomas no se generan con probabilidad uniforme por celda. Tienen forma (franja, lago, río, isla, etc.).
+
+Ejemplos:
+
+Costa: franja de arena entre agua y tierra.
+
+Océano: grandes masas de agua sin salpicaduras.
+
+Río: franja de agua que atraviesa un chunk.
+
+Lago: masa circular de agua en el centro de un chunk.
+
+Montaña: elevación con forma de cordillera.
+
+Posible solución:
+
+Definir en la tabla de biomas un campo forma con valores como: "uniforme" (default), "franja", "lago", "río", "isla".
+
+Cada forma tiene su propio algoritmo de generación.
+
+La forma puede depender del bioma vecino (ej: costa sabe si el océano está a la izquierda o derecha).
+
+Estado: ⏸️ Anotado. Se implementará después de definir la mecánica de "modificar el mundo" (F8).
 
 **Fin del BACKLOG**

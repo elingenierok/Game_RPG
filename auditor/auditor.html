@@ -16,12 +16,12 @@
         <input type="number" id="input-oeste" value="0" min="0" max="20">
       </label>
       <label>Chunks al este
-        <input type="number" id="input-este" value="10" min="0" max="50">
+        <input type="number" id="input-este" value="10" min="1" max="50">
       </label>
       <label>Chunks a mostrar
         <select id="select-pegados">
-          <option value="1">1 (solo el seleccionado)</option>
-          <option value="3" selected>3 (uno a cada lado)</option>
+          <option value="1" selected>1 (solo el seleccionado)</option>
+          <option value="3">3 (uno a cada lado)</option>
           <option value="5">5</option>
           <option value="7">7</option>
           <option value="9">9</option>
@@ -40,6 +40,7 @@
   <script src="../js/core/config.js"></script>
   <script src="../js/core/tiles.js"></script>
   <script src="../js/core/rng.js"></script>
+  <script src="../js/world/biomas.js"></script>
   <script src="../js/world/mundo.js"></script>
   <script src="auditor.js"></script>
 </body>

@@ -13,6 +13,7 @@ function reiniciarMundo(nuevaSemilla) {
   SEMILLA = nuevaSemilla;
   SEMILLA_MOBS = Date.now();       // mobs nuevos con cada mundo nuevo
   SEMILLA_OBJETOS = SEMILLA;       // objetos ligados al mundo (por ahora)
+  limpiarCacheBiomas();
 
   estado.zona = 0;
   estado.pantalla = null;

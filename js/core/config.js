@@ -49,4 +49,4 @@ let SEMILLA_MOBS = Date.now();
 // Preparada para separar en el futuro (cambiar a Date.now() si se desea).
 let SEMILLA_OBJETOS = SEMILLA;
 
-let LIMITE_CHUNKS = 5;
+let LIMITE_CHUNKS = 20;

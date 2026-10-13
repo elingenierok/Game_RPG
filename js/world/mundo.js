@@ -32,41 +32,81 @@ function generarFrontera(semillaBase, zonaIzq, zonaDer) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  PERMUTACIÓN DE BIOMAS POR SEMILLA
+//  MOTOR DE ASIGNACIÓN DE BIOMAS
 // ─────────────────────────────────────────────────────────────────
-//  Genera un orden determinista de los 4 biomas para una semilla.
-//  Ejemplo:
-//    semilla "abc" → ["bosque", "ruina", "costa", "pradera"]
-//    semilla "xyz" → ["costa", "pradera", "bosque", "ruina"]
-//  Se cachea por semilla para no recalcular en cada chunk.
+//  Cada zona (chunk) tiene un bioma.
+//  El bioma se decide con la siguiente lógica:
+//
+//  1. Zona 0        → BIOMA_INICIAL (pradera)
+//  2. Zona +N       → entre los vecinos de la zona +N-1, según pesos
+//  3. Zona -N       → entre los vecinos de la zona -N+1, según pesos
+//                     (independiente del este)
+//
+//  Determinista por semilla. Sin orden fijo.
+//  Cachea los resultados para no recalcular.
 // ═══════════════════════════════════════════════════════════════
-const _cachePermutaciones = new Map();
 
-function permutacionBiomas(semillaBase) {
-  if (_cachePermutaciones.has(semillaBase)) {
-    return _cachePermutaciones.get(semillaBase);
+// Cache: "zona" → "idBioma"
+const _cacheBiomasPorZona = new Map();
+
+function obtenerBiomaDeZona(semillaBase, zona) {
+  const clave = zona.toString();
+  if (_cacheBiomasPorZona.has(clave)) {
+    return _cacheBiomasPorZona.get(clave);
   }
 
-  const biomasBase = ["bosque", "pradera", "costa", "ruina"];
-  const rng = crearRNG(hashString(semillaBase + "@permutacion_biomas"));
-
-  // Shuffle estilo Fisher-Yates
-  const biomas = [...biomasBase];
-  for (let i = biomas.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [biomas[i], biomas[j]] = [biomas[j], biomas[i]];
+  // ─── Zona 0: siempre BIOMA_INICIAL ───
+  if (zona === 0) {
+    _cacheBiomasPorZona.set(clave, BIOMA_INICIAL);
+    return BIOMA_INICIAL;
   }
 
-  _cachePermutaciones.set(semillaBase, biomas);
-  return biomas;
+  // ─── Zona N: se genera en cadena desde la zona anterior ───
+  const direccion = zona > 0 ? "este" : "oeste";
+  const anterior = zona > 0 ? zona - 1 : zona + 1;
+
+  // Obtener el bioma de la zona anterior (recursivo)
+  const biomaAnterior = obtenerBiomaDeZona(semillaBase, anterior);
+
+  // Elegir un vecino del bioma anterior
+  const vecinos = BIOMAS[biomaAnterior].vecinos;
+  const elegido = elegirPorPeso(vecinos, semillaBase, zona, direccion);
+
+  _cacheBiomasPorZona.set(clave, elegido);
+  return elegido;
+}
+
+// ─── Elige un elemento de una lista según sus pesos ───
+// Cada elemento debe tener una propiedad `peso`.
+function elegirPorPeso(lista, semillaBase, zona, direccion) {
+  const clave = semillaBase + "@bioma@" + direccion + "@zona" + zona;
+  const rng = crearRNG(hashString(clave));
+
+  const sumaPesos = lista.reduce((acc, el) => acc + el.peso, 0);
+  const tiro = rng() * sumaPesos;
+
+  let acumulado = 0;
+  for (const el of lista) {
+    acumulado += el.peso;
+    if (tiro <= acumulado) {
+      return el.id;
+    }
+  }
+
+  return lista[lista.length - 1].id;
+}
+
+// ─── Limpia el cache (al cambiar de semilla) ───
+function limpiarCacheBiomas() {
+  _cacheBiomasPorZona.clear();
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 5 · GENERADOR DE PANTALLA
 // ─────────────────────────────────────────────────────────────────
-//  Genera un chunk completo. NO usa filas de paso: los bordes
-//  este/oeste se "pisan" después con la frontera compartida
-//  (eso lo hace el BLOQUE 8 al cargar).
+//  Genera un chunk completo.
+//  El bioma se elige con `obtenerBiomaDeZona()`.
+//  Los tiles se eligen según la tabla `BIOMAS[bioma].tiles`.
 // ═══════════════════════════════════════════════════════════════
 function generarPantalla(semillaBase, zona) {
   const rng = crearRNG(hashString(semillaBase + "@zona" + zona));
@@ -75,65 +115,42 @@ function generarPantalla(semillaBase, zona) {
     mapa.push(new Array(ANCHO_PANTALLA).fill(GRASS));
   }
 
+  // ─── Bordes N-S: muros ───
   for (let x = 0; x < ANCHO_PANTALLA; x++) {
     mapa[0][x] = WALL;
     mapa[ALTO_PANTALLA - 1][x] = WALL;
   }
 
-  // ─── Asignación de bioma ───
-  // Zona 0: siempre pradera (zona segura).
-  // Zonas ±1..±4: permutación determinista por semilla.
-  // Zonas ±5..±8: se repite la permutación.
-  // etc.
-  let bioma;
-  if (zona === 0) {
-    bioma = "pradera";
-  } else {
-    const ciclo = ((Math.abs(zona) - 1) % 4);
-    bioma = permutacionBiomas(semillaBase)[ciclo];
-  }
+  // ─── Elegir bioma de la zona ───
+  const bioma = obtenerBiomaDeZona(semillaBase, zona);
+  const datosBioma = BIOMAS[bioma];
 
+  // ─── Pintar el interior según los tiles del bioma ───
   const yMin = 1, yMax = ALTO_PANTALLA - 2;
 
-  if (bioma === "bosque") {
-    for (let y = yMin; y <= yMax; y++)
-      for (let x = 0; x < ANCHO_PANTALLA; x++) {
-        const r = rng();
-        if (r < 0.20)      mapa[y][x] = TREE;
-        else if (r < 0.28) mapa[y][x] = BUSH;
-        else if (r < 0.35) mapa[y][x] = TALLGRASS;
-      }
-  } else if (bioma === "pradera") {
-    for (let y = yMin; y <= yMax; y++)
-      for (let x = 0; x < ANCHO_PANTALLA; x++) {
-        const r = rng();
-        if (r < 0.06)      mapa[y][x] = TREE;
-        else if (r < 0.12) mapa[y][x] = TALLGRASS;
-        else if (r < 0.15) mapa[y][x] = ROCK;
-      }
-  } else if (bioma === "costa") {
-    const lado = rng() < 0.5 ? "izq" : "der";
-    const anchoAgua = randInt(rng, 5, 9);
-    for (let y = yMin; y <= yMax; y++) {
-      for (let x = 0; x < ANCHO_PANTALLA; x++) {
-        const dist = lado === "izq" ? x : (ANCHO_PANTALLA - 1 - x);
-        if (dist < anchoAgua) {
-          const prof = dist / anchoAgua;
-          if (prof < 0.4) mapa[y][x] = SAND;
-          else            mapa[y][x] = WATER;
-        } else if (rng() < 0.08) {
-          mapa[y][x] = BUSH;
+  // Precalcular suma total de pesos
+  const sumaPesos = datosBioma.tiles.reduce((acc, t) => acc + t.peso, 0);
+
+  for (let y = yMin; y <= yMax; y++) {
+    for (let x = 0; x < ANCHO_PANTALLA; x++) {
+      // Elegir tile según pesos
+      const tiro = rng() * sumaPesos;
+      let acumulado = 0;
+      let elegido = "GRASS";
+      for (const t of datosBioma.tiles) {
+        acumulado += t.peso;
+        if (tiro <= acumulado) {
+          elegido = t.tile;
+          break;
         }
       }
-    }
-  } else {
-    for (let y = yMin; y <= yMax; y++)
-      for (let x = 0; x < ANCHO_PANTALLA; x++) {
-        const r = rng();
-        if (r < 0.10)      mapa[y][x] = WALL;
-        else if (r < 0.20) mapa[y][x] = ROCK;
-        else if (r < 0.25) mapa[y][x] = TALLGRASS;
+
+      // Aplicar el tile (buscar el ID por nombre)
+      const tileID = NOMBRE_A_TILE[elegido];
+      if (tileID !== undefined) {
+        mapa[y][x] = tileID;
       }
+    }
   }
 
   return { mapa, bioma };

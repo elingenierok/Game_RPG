@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.6-alpha · Objetos equipables (bug de biomas → será rediseñado) |
-| **Última actualización** | 2026-10-12 |
+| **Versión actual** | v1.6 · Sistema de biomas por tabla JSON |
+| **Última actualización** | 2026-10-13 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -92,6 +92,7 @@ Game_RPG/
     │   └── input.js              ← BLOQUE 14: listeners de teclado
     │
     ├── world/                    ← Generación y gestión del mundo
+    │   ├── biomas.js             ← BLOQUE 5.1: tabla de biomas (datos)
     │   ├── mundo.js              ← BLOQUES 4, 5, 6: generación de chunks
     │   ├── chunks.js             ← BLOQUE 8: caché y carga de pantalla
     │   └── limite.js             ← BLOQUE 18: config de límite de chunks
@@ -111,8 +112,7 @@ Game_RPG/
 ```
 
 **Orden de carga en `index.html` (importante respetar):**
-```
-config → tiles → rng → mundo → estado → items → mobs → enemigos
+config → tiles → rng → biomas → mundo → estado → items → mobs → enemigos
 → chunks → render → ia → jugador → victoria → input → limite → main
 ```
 
@@ -191,7 +191,8 @@ Después abrir con Live Server en VS Code.
 | M14 | Tamaño de celda | 🟢 | 16×16 px | v1.1 |
 | M15 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
 | M16 | **Radio de seguridad al cruzar** | 🟢 | **3 tiles — los mobs cercanos son empujados** | **v1.5.1** |
-
+| M17 | **Sistema de biomas por tabla** | 🟢 | **7 biomas con vecinos + pesos en JSON/JS** | **v1.6** |
+| M18 | **Bioma inicial** | 🟢 | **pradera (fijo por ahora)** | **v1.6** |
 ---
 
 ## 🎮 MARCO 2 · Jugabilidad / Core Loop
@@ -211,7 +212,7 @@ Después abrir con Live Server en VS Code.
 
 ---
 
-## 🧑 MARCO 3 · Personaje / Jugador
+## 🏃‍♂️ MARCO 3 · Personaje / Jugador
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
@@ -392,9 +393,9 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | G12 | Mobs generados por semilla separada | 🟢 | 0-2 por tipo, según bioma | v1.2 |
 | G13 | Semillas independientes | 🟢 | `SEMILLA` · `SEMILLA_MOBS` (Date.now) · `SEMILLA_OBJETOS` (=SEMILLA) | v1.3 |
 | G14 | Zona 0 sin mobs | 🟢 | Chunk inicial libre de mobs (zona segura) | v1.5 |
-| G15 | **Rediseño del sistema de biomas** | 🟡 | **Tabla JSON externa con vecinos + pesos** | **Planificado · ver F14** |
-| G16 | **Biomas forzados (Pasada 2)** | 🟡 | **Ciudades, puertos, islas sobre el mundo natural** | **Planificado · ver F15** |
-| G17 | **Chunks de transición** | 🟡 | **Mezcla automática entre biomas adyacentes** | **Planificado · ver F15** |
+| G15 | **Sistema de biomas por JSON** | 🟢 | **7 biomas con vecinos permitidos y pesos** | **v1.6** |
+| G16 | **Tiles nuevos** | 🟢 | **🏜️ 🌵 ❄️ 🧊 🌲 (desierto y nieve)** | **v1.6** |
+| G17 | **Biomas forzados (Pasada 2)** | 🟡 | **Ciudades, puertos, islas** | **Planificado · ver F15** |
 ---
 
 ## 🖥️ MARCO 6 · Interfaz / UX
@@ -458,7 +459,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v1.5.1)
+## 🧪 MARCO 9 · Sistema de Test (v1.6)
 
 ### Lo que hay ahora
 - Mundo E-O acotado (±5 chunks por defecto, configurable)
@@ -468,7 +469,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 - Continuidad física al cruzar (misma fila Y)
 - Validación BFS de transitabilidad por chunk
 - Muros sólidos 🧱 en los extremos del mundo
-- Jugador 🧑 que se mueve con WASD + flechas
+- Jugador 🏃‍♂️ que se mueve con WASD + flechas
 - Jugador con orientación visual (`scaleX(-1)`)
 - Llave 🔑 escondida en zona +2 al este
 - Ítems 🍎 recolectables (0 a 3 por chunk)
@@ -482,6 +483,10 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 - Zona 0 sin mobs (zona segura de spawn)
 - Radio de seguridad al cruzar (3 tiles)
 - Tick configurable (400ms base, deambulación cada 2 ticks)
+- **7 biomas**: pradera, bosque, costa, ruina, oceano, desierto, nieve
+- **Motor de asignación por vecinos + pesos** (reemplaza la vieja permutación fija)
+- **5 tiles nuevos**: 🏜️ desierto, 🌵 cactus, ❄️ nieve, 🧊 hielo, 🌲 pino
+- **Auditor de semillas** funcionando (módulo independiente)
 - Arquitectura modular: 16 archivos `.js` + 1 CSS + index limpio
 - Versionado con Git + deploy público en GitHub Pages
 - Tamaño de grilla centralizado en `config.js`
@@ -627,6 +632,10 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 - [x] Mobs con orientación visual (espejado)
 - [x] Mobs no pisan ítems
 - [x] Radio de seguridad al cruzar entre zonas
+- [x] **Rediseño del sistema de biomas con JSON (F14)**
+- [x] **7 biomas con vecinos + pesos**
+- [x] **5 tiles nuevos (desierto, nieve)**
+- [x] **Auditor de semillas**
 
 ### 🔥 Próximas tareas (urgentes)
 

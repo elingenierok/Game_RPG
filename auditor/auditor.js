@@ -4,14 +4,7 @@ const auditor = {
   semilla: "test_mundo_01",
   chunks: [],
   seleccionado: null,
-  pegados: 3
-};
-
-const EMOJI_BIOMA = {
-  bosque:  "🌳",
-  pradera: "🌿",
-  costa:   "🌊",
-  ruina:   "🧱"
+  pegados: 1
 };
 
 // ═══ 1 · GENERAR CHUNKS ═══
@@ -37,8 +30,9 @@ function renderFranja() {
   for (const c of auditor.chunks) {
     const div = document.createElement("div");
     div.className = "chunk" + (c.zona === auditor.seleccionado ? " seleccionado" : "");
+    const emoji = (BIOMAS[c.bioma] && BIOMAS[c.bioma].emoji) || "❓";
     div.innerHTML = `
-      <div class="emoji">${EMOJI_BIOMA[c.bioma] || "❓"}</div>
+      <div class="emoji">${emoji}</div>
       <div class="zona">zona ${c.zona}</div>
       <div class="meta">${c.bioma}</div>
       <div class="meta">${c.intentos === 0 ? "✓ directo" : "↻ " + c.intentos + " retry"}</div>
@@ -67,56 +61,53 @@ function renderGrilla() {
 
   const mitad = Math.floor(auditor.pegados / 2);
 
-// Correr ventana: si el seleccionado está cerca de un borde
-// de lo generado, desplazamos el rango para mostrar siempre
-// `pegados` chunks válidos.
-const zonas = auditor.chunks.map(x => x.zona).sort((a, b) => a - b);
-const min = zonas[0];
-const max = zonas[zonas.length - 1];
-const total = zonas.length;
+  const zonas = auditor.chunks.map(x => x.zona).sort((a, b) => a - b);
+  const min = zonas[0];
+  const max = zonas[zonas.length - 1];
+  const total = zonas.length;
 
-let inicio;
-if (total <= auditor.pegados) {
-  inicio = min;
-} else {
-  inicio = c.zona - mitad;
-  if (inicio < min) inicio = min;
-  if (inicio + auditor.pegados - 1 > max) inicio = max - auditor.pegados + 1;
-}
-
-let html = `<h2>Zona ${c.zona} · Bioma: ${c.bioma}`;
-html += ` · ${c.mapa[0].length}×${c.mapa.length}`;
-html += ` · ${c.intentos === 0 ? "sin reintentos" : c.intentos + " reintentos"}`;
-html += `</h2>`;
-
-html += `<div class="fila-grillas">`;
-
-for (let i = 0; i < auditor.pegados; i++) {
-  const zona = inicio + i;
-  if (i > 0) html += `<div class="columna-union"></div>`;
-
-  const chunk = auditor.chunks.find(x => x.zona === zona);
-  if (!chunk) continue;
-
-  const esActual = (zona === c.zona);
-  html += `<div class="grilla-wrapper">`;
-  html += `<div class="etiqueta ${esActual ? "actual" : ""}">zona ${zona} · ${chunk.bioma}</div>`;
-  html += `<div class="grilla" style="
-    --tam-celda: ${TAMANO_CELDA / 2}px;
-    --font-emoji: ${FONT_EMOJI / 2}px;
-    grid-template-columns: repeat(${chunk.mapa[0].length}, ${TAMANO_CELDA / 2}px);
-  ">`;
-  for (let y = 0; y < chunk.mapa.length; y++) {
-    for (let x = 0; x < chunk.mapa[y].length; x++) {
-      const emoji = ICONOS[chunk.mapa[y][x]] || "?";
-      html += `<div class="celda">${emoji}</div>`;
-    }
+  let inicio;
+  if (total <= auditor.pegados) {
+    inicio = min;
+  } else {
+    inicio = c.zona - mitad;
+    if (inicio < min) inicio = min;
+    if (inicio + auditor.pegados - 1 > max) inicio = max - auditor.pegados + 1;
   }
-  html += `</div></div>`;
-}
 
-html += `</div>`;
-panel.innerHTML = html;
+  let html = `<h2>Zona ${c.zona} · Bioma: ${c.bioma}`;
+  html += ` · ${c.mapa[0].length}×${c.mapa.length}`;
+  html += ` · ${c.intentos === 0 ? "sin reintentos" : c.intentos + " reintentos"}`;
+  html += `</h2>`;
+
+  html += `<div class="fila-grillas">`;
+
+  for (let i = 0; i < auditor.pegados; i++) {
+    const zona = inicio + i;
+    if (i > 0) html += `<div class="columna-union"></div>`;
+
+    const chunk = auditor.chunks.find(x => x.zona === zona);
+    if (!chunk) continue;
+
+    const esActual = (zona === c.zona);
+    html += `<div class="grilla-wrapper">`;
+    html += `<div class="etiqueta ${esActual ? "actual" : ""}">zona ${zona} · ${chunk.bioma}</div>`;
+    html += `<div class="grilla" style="
+      --tam-celda: ${TAMANO_CELDA / 2}px;
+      --font-emoji: ${FONT_EMOJI / 2}px;
+      grid-template-columns: repeat(${chunk.mapa[0].length}, ${TAMANO_CELDA / 2}px);
+    ">`;
+    for (let y = 0; y < chunk.mapa.length; y++) {
+      for (let x = 0; x < chunk.mapa[y].length; x++) {
+        const emoji = ICONOS[chunk.mapa[y][x]] || "?";
+        html += `<div class="celda">${emoji}</div>`;
+      }
+    }
+    html += `</div></div>`;
+  }
+
+  html += `</div>`;
+  panel.innerHTML = html;
 }
 
 // ═══ 4 · EVENTOS ═══
@@ -124,7 +115,10 @@ function generarDesdeInputs() {
   const semilla = document.getElementById("input-semilla").value.trim() || "test_mundo_01";
   const oeste = Math.max(0, parseInt(document.getElementById("input-oeste").value) || 0);
   const este = Math.max(1, parseInt(document.getElementById("input-este").value) || 10);
-  const pegados = parseInt(document.getElementById("select-pegados").value) || 3;
+  const pegados = parseInt(document.getElementById("select-pegados").value) || 1;
+
+  // Limpiar cache del madre antes de generar con nueva semilla
+  if (typeof limpiarCacheBiomas === "function") limpiarCacheBiomas();
 
   auditor.semilla = semilla;
   auditor.pegados = pegados;
@@ -141,7 +135,7 @@ function init() {
     if (e.key === "Enter") generarDesdeInputs();
   });
   document.getElementById("select-pegados").addEventListener("change", (e) => {
-    auditor.pegados = parseInt(e.target.value) || 3;
+    auditor.pegados = parseInt(e.target.value) || 1;
     renderGrilla();
   });
   generarDesdeInputs();

@@ -3,6 +3,48 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v1.6 · 2026-10-13 (sistema de biomas por tabla JSON)
+
+### ➕ Nuevo
+- **Sistema de biomas por tabla JSON** (`js/world/biomas.js`)
+- 7 biomas: pradera, bosque, costa, ruina, oceano, desierto, nieve
+- Cada bioma define **vecinos permitidos con pesos** + **tiles con probabilidad**
+- **5 tiles nuevos**: 🏜️ DESERT_SAND, 🌵 CACTUS, ❄️ SNOW, 🧊 ICE, 🌲 PINE
+- Nuevas funciones en `mundo.js`:
+  - `obtenerBiomaDeZona(semillaBase, zona)` — asigna bioma por cadena
+  - `elegirPorPeso(lista, ...)` — elige según pesos
+  - `limpiarCacheBiomas()` — limpia el cache
+- Nuevo mapa en `tiles.js`: `NOMBRE_A_TILE` (string → ID)
+- **Auditor de semillas** funcionando como módulo independiente (3 archivos HTML/CSS/JS, lee del madre sin modificarlo)
+
+### 🔧 Cambios
+- `generarPantalla()` reescrita: ahora usa `obtenerBiomaDeZona()` + tabla `BIOMAS`
+- `LIMITE_CHUNKS` subido a 20 temporalmente (para testear biomas nuevos)
+- ROCK ahora usa ⛰️ (antes 🪨)
+- PLAYER ahora usa 🏃‍♂️ (antes 🧑)
+- `BLOQUEANTES` ahora incluye CACTUS, ICE, PINE
+- Pesos de vecinos ajustados para más variedad
+
+### 🐛 Fixes
+- **Bug de `permutacionBiomas()` resuelto**: se reemplazó todo el sistema por el motor nuevo
+- Bosque ya no bloquea el paso (densidad de árboles bajada de 40% a 15%)
+- Ruina, costa, desierto y nieve ajustados para no bloquear el paso
+
+### 📖 Documentación
+- BACKLOG actualizado con F14 (rediseño de biomas, ✅ implementado) y F15 (biomas forzados)
+- BACKLOG agregó F16 (rediseño de costa) y F17 (biomas con forma)
+- README: nuevos M17, M18, G15, G16, G17
+
+### ⚠️ Notas
+- La distribución de agua en el bioma "costa" todavía es imperfecta (charcos en lugar de franjas). Ver **F16**.
+- El límite de chunks (`LIMITE_CHUNKS = 20`) es temporal. Volver a 5 cuando se terminen los tests.
+
+### 📌 Objetos equipables (v1.6-alpha)
+- Siguen implementados (fase 1).
+- Pendientes las fases 2, 3 y 4 (ver **F11**).
+
+---
+
 ## v1.6-alpha · 2026-10-11 (objetos equipables · EN DESARROLLO)
 
 ### ➕ Nuevo
