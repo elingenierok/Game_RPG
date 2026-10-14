@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.7 · Sistema de rotura (romper árboles, piedras, etc.) |
+| **Versión actual** | v1.8 · Sistema de rotura + fix costa + idea tema espacio |
 | **Última actualización** | 2026-10-13 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -194,6 +194,7 @@ Después abrir con Live Server en VS Code.
 | M16 | **Radio de seguridad al cruzar** | 🟢 | **3 tiles — los mobs cercanos son empujados** | **v1.5.1** |
 | M17 | **Sistema de biomas por tabla** | 🟢 | **7 biomas con vecinos + pesos en JSON/JS** | **v1.6** |
 | M18 | **Bioma inicial** | 🟢 | **pradera (fijo por ahora)** | **v1.6** |
+| M19 | **Costa con forma de franja** | 🟢 | **Agua + arena + pasto con bordes irregulares** | **v1.7.1** |
 ---
 
 ## 🎮 MARCO 2 · Jugabilidad / Core Loop
@@ -301,7 +302,7 @@ Cuando un tile se rompe, se convierte en el **tile base del bioma**:
 | costa | 🟨 SAND |
 | ruina | 🟩 GRASS |
 | oceano | 🌊 WATER |
-| desierto | 🏜️ DESERT_SAND |
+| desierto | 🟧 DESERT_SAND |
 | nieve | ❄️ SNOW |
 
 ### Slots de equipados
@@ -426,8 +427,9 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | G13 | Semillas independientes | 🟢 | `SEMILLA` · `SEMILLA_MOBS` (Date.now) · `SEMILLA_OBJETOS` (=SEMILLA) | v1.3 |
 | G14 | Zona 0 sin mobs | 🟢 | Chunk inicial libre de mobs (zona segura) | v1.5 |
 | G15 | **Sistema de biomas por JSON** | 🟢 | **7 biomas con vecinos permitidos y pesos** | **v1.6** |
-| G16 | **Tiles nuevos** | 🟢 | **🏜️ 🌵 ❄️ 🧊 🌲 (desierto y nieve)** | **v1.6** |
+| G16 | **Tiles nuevos** | 🟢 | **🟧 🌵 ❄️ 🧊 🌲 (desierto y nieve)** | **v1.6** |
 | G17 | **Biomas forzados (Pasada 2)** | 🟡 | **Ciudades, puertos, islas** | **Planificado · ver F15** |
+| G18 | **Forma de biomas** | 🟢 | **Costa usa `forma: "franja"`** | **v1.7.1** |
 ---
 
 ## 🖥️ MARCO 6 · Interfaz / UX
@@ -468,6 +470,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | R13 | IA en `systems/` | 🟢 | `js/systems/ia.js` — tick loop en tiempo real | v1.5 |
 | R14 | Tick de IA configurable | 🟢 | `TICK_MS = 400`, `TICK_DEAMBULAR_CADA = 2` | v1.5 |
 | R15 | **Documentación modular** | 🟢 | **README + CHANGELOG + BACKLOG** | **v1.5.1** |
+| R16 | **Sistema de "forma" para biomas** | 🟢 | **`forma: "franja"` en `biomas.js`** | **v1.7.1** |
 
 ---
 
@@ -494,7 +497,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v1.7)
+## 🧪 MARCO 9 · Sistema de Test (v1.8)
 
 ### Lo que hay ahora
 - **Sistema de rotura**: romper árboles, piedras, muros, cactus, hielo
@@ -528,7 +531,7 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 - Tick configurable (400ms base, deambulación cada 2 ticks)
 - **7 biomas**: pradera, bosque, costa, ruina, oceano, desierto, nieve
 - **Motor de asignación por vecinos + pesos** (reemplaza la vieja permutación fija)
-- **5 tiles nuevos**: 🏜️ desierto, 🌵 cactus, ❄️ nieve, 🧊 hielo, 🌲 pino
+- **5 tiles nuevos**: 🟧 desierto, 🌵 cactus, ❄️ nieve, 🧊 hielo, 🌲 pino
 - **Auditor de semillas** funcionando (módulo independiente)
 - Arquitectura modular: 16 archivos `.js` + 1 CSS + index limpio
 - Versionado con Git + deploy público en GitHub Pages
@@ -686,19 +689,20 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 - [x] **HUD con íconos correctos por objeto**
 - [x] **Sistema de rotura (click sostenido + barra de stamina)**
 - [x] **Objetos equipables completos (F11 fases 1-4)**
+- [x] **Rediseño del bioma "costa" con forma de franja (F16)**
+- [x] **Tile desierto cambiado a 🟧 (naranja)**
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | **Rediseño del sistema de biomas (JSON)** | ⏸️ | Ver BACKLOG · F14 |
-| 🔥 Alta | **Agregar 3 biomas nuevos** (oceano, desierto, nieve) | ⏸️ | Con tiles nuevos |
 | 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
 | 🔥 Alta | Prototipo 2 del módulo de combate (SVG radial) | ⏸️ | En paralelo |
 | 🟡 Media | Integrar módulo de combate al mapa | ⏸️ | Cuando prototipo 3 esté listo |
 | 🟡 Media | Loot y XP de mobs | ⏸️ | Campos ya definidos |
 | 🟡 Media | Más tipos de ítems (🌿, 💎) | ⏸️ | Extender sistema actual |
 | 🟡 Media | Ítems con efecto (comer manzana → +HP) | ⏸️ | Requiere sistema de HP |
+| 🟡 Media | **Barco (F18)** | ⏸️ | Requiere sistema de rotura (✅) |
 | 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis pintadas |
 | 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
 | 🟢 Baja | Minimapa completo | ⏸️ | Complementa la barra de zonas |
@@ -736,6 +740,7 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 | 7.7b | Semillas independientes | `js/core/config.js` |
 | 7.8 | Enemigos (spawn, colisión) | `js/entities/enemigos.js` |
 | 7.9 | IA de mobs (tiempo real) | `js/systems/ia.js` |
+| 7.10 | Sistema de rotura (click sostenido) | `js/systems/rotura.js` |
 | 8 | Carga de pantalla | `js/world/chunks.js` |
 | 9 | Render del mapa | `js/ui/render.js` |
 | 10 | Render barra de zonas | `js/ui/render.js` |

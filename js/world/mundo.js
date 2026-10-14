@@ -125,30 +125,30 @@ function generarPantalla(semillaBase, zona) {
   const bioma = obtenerBiomaDeZona(semillaBase, zona);
   const datosBioma = BIOMAS[bioma];
 
-  // ─── Pintar el interior según los tiles del bioma ───
-  const yMin = 1, yMax = ALTO_PANTALLA - 2;
+    // ─── Pintar el interior según la forma del bioma ───
+  if (datosBioma.forma === "franja") {
+    pintarCosta(mapa, semillaBase, zona);
+  } else {
+    // Lógica de tiles uniformes (la de siempre)
+    const yMin = 1, yMax = ALTO_PANTALLA - 2;
+    const sumaPesos = datosBioma.tiles.reduce((acc, t) => acc + t.peso, 0);
 
-  // Precalcular suma total de pesos
-  const sumaPesos = datosBioma.tiles.reduce((acc, t) => acc + t.peso, 0);
-
-  for (let y = yMin; y <= yMax; y++) {
-    for (let x = 0; x < ANCHO_PANTALLA; x++) {
-      // Elegir tile según pesos
-      const tiro = rng() * sumaPesos;
-      let acumulado = 0;
-      let elegido = "GRASS";
-      for (const t of datosBioma.tiles) {
-        acumulado += t.peso;
-        if (tiro <= acumulado) {
-          elegido = t.tile;
-          break;
+    for (let y = yMin; y <= yMax; y++) {
+      for (let x = 0; x < ANCHO_PANTALLA; x++) {
+        const tiro = rng() * sumaPesos;
+        let acumulado = 0;
+        let elegido = "GRASS";
+        for (const t of datosBioma.tiles) {
+          acumulado += t.peso;
+          if (tiro <= acumulado) {
+            elegido = t.tile;
+            break;
+          }
         }
-      }
-
-      // Aplicar el tile (buscar el ID por nombre)
-      const tileID = NOMBRE_A_TILE[elegido];
-      if (tileID !== undefined) {
-        mapa[y][x] = tileID;
+        const tileID = NOMBRE_A_TILE[elegido];
+        if (tileID !== undefined) {
+          mapa[y][x] = tileID;
+        }
       }
     }
   }
@@ -183,6 +183,94 @@ function esTransitable(mapa) {
     cola.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
   }
   return false;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GENERADOR DE COSTA (forma "franja")
+// ─────────────────────────────────────────────────────────────────
+//  Pinta el chunk en 3 franjas con bordes irregulares:
+//    1. Franja agua (1/3 aprox, del lado del océano)
+//    2. Franja arena (1/3 aprox, en el medio)
+//    3. Franja pasto (1/3 aprox, del lado opuesto)
+//
+//  El lado del océano se decide con la semilla.
+//  Los bordes son irregulares para dar naturalidad.
+// ═══════════════════════════════════════════════════════════════
+function pintarCosta(mapa, semillaBase, zona) {
+  const rng = crearRNG(hashString(semillaBase + "@costa" + zona));
+
+  // ─── 1. ¿De qué lado está el océano? ───
+  const ladoOceano = rng() < 0.5 ? "izquierda" : "derecha";
+
+  // ─── 2. Ancho de cada franja (con variación) ───
+  const tercio = Math.floor(ANCHO_PANTALLA / 3);
+  const anchoAgua   = tercio + randInt(rng, -2, 2);
+  const anchoArena  = tercio + randInt(rng, -2, 2);
+  // El pasto ocupa el resto
+
+  // ─── 3. Pintar las 3 franjas ───
+  const yMin = 1, yMax = ALTO_PANTALLA - 2;
+
+  // Para cada columna, decidimos si es agua, arena o pasto
+  for (let x = 0; x < ANCHO_PANTALLA; x++) {
+    // Calcular la "distancia desde el océano" para esta columna
+    const distOceano = ladoOceano === "izquierda" ? x : (ANCHO_PANTALLA - 1 - x);
+
+    // Decidir la zona base de esta columna
+    let zonaBase;  // "agua" | "arena" | "pasto"
+    if (distOceano < anchoAgua) {
+      zonaBase = "agua";
+    } else if (distOceano < anchoAgua + anchoArena) {
+      zonaBase = "arena";
+    } else {
+      zonaBase = "pasto";
+    }
+
+    // Pintar la columna
+    for (let y = yMin; y <= yMax; y++) {
+      // ─── Irregularidad: bordes ondulados ───
+      // Cada celda tiene una pequeña chance de "saltar" a la franja vecina.
+      // Esto rompe la línea recta.
+
+      // Ondulación: valor entre -2 y 2 según la fila
+      const ondaY = Math.sin((y + zona * 3) * 0.4) * 1.5;
+
+      // Distancia efectiva: incluye la ondulación
+      const distEfectiva = distOceano + ondaY;
+
+      let zonaCelda = zonaBase;
+      if (distEfectiva < anchoAgua - 1) {
+        zonaCelda = "agua";
+      } else if (distEfectiva < anchoAgua + anchoArena - 1) {
+        zonaCelda = "arena";
+      }
+
+      // Pequeña chance de variación celda por celda
+      const r = rng();
+      if (r < 0.05) {
+        // 5% de saltar a la franja vecina
+        if (zonaCelda === "agua" && distEfectiva > anchoAgua - 3) zonaCelda = "arena";
+        else if (zonaCelda === "arena") zonaCelda = (r < 0.025 ? "agua" : "pasto");
+        else if (zonaCelda === "pasto" && distEfectiva < anchoAgua + anchoArena + 2) zonaCelda = "arena";
+      }
+
+      // ─── Asignar tile según la zona ───
+      if (zonaCelda === "agua") {
+        mapa[y][x] = WATER;
+      } else if (zonaCelda === "arena") {
+        // Arena: mayormente SAND, con algún arbusto suelto
+        const r2 = rng();
+        if (r2 < 0.05) mapa[y][x] = BUSH;
+        else           mapa[y][x] = SAND;
+      } else {
+        // Pasto: GRASS con árboles/arbustos ocasionales
+        const r2 = rng();
+        if (r2 < 0.10)      mapa[y][x] = BUSH;
+        else if (r2 < 0.14) mapa[y][x] = TREE;
+        else                mapa[y][x] = GRASS;
+      }
+    }
+  }
 }
 
 function generarPantallaValida(semillaBase, zona, maxIntentos = 10) {

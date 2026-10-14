@@ -18,8 +18,12 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
 - F12 · Objetos equipables de mejor nivel
 - F13 · Drops alternativos de objetos
-- F14 · Rediseño del sistema de biomas con JSON
+- F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 - F15 · Biomas forzados + chunks de transición
+- F16 · Rediseño del bioma "costa" · ✅ IMPLEMENTADO en v1.7.1
+- F17 · Sistema de "biomas con forma"
+- F18 · Barco (atravesar agua)
+- F19 · Tema "espacio" (nueva piel)
 
 ---
 
@@ -149,14 +153,14 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 **Idea:** permitir al jugador **equipar ítems** (cascos, botas, hachas) y **modificar el mundo** (picar, talar, construir). Los cambios deben **persistir** entre sesiones.
 
 **Modelo de persistencia:** deltas.
-```
 mundo = función(semilla, zona) + deltas
-```
+
 - Los deltas guardan solo los cambios del jugador (`"zona:x,y" → tile nuevo`).
 - Se combinan con el mundo generado al cargar un chunk.
 - Es el modelo estándar de Minecraft, Terraria, etc.
 
 **Capas del sistema:**
+
 | Capa | Semilla | Estado |
 |------|---------|:------:|
 | Terreno | `SEMILLA` | ✅ Implementado |
@@ -238,24 +242,6 @@ mundo = función(semilla, zona) + deltas
 - `ROTURA_POR_TILE` en `tiles.js` — define qué se rompe con qué.
 - `tileBase` en `biomas.js` — a qué tile se convierte el objeto roto.
 
-### Fase 2 · Interfaz lateral
-- Mover los 5 slots actuales al panel lateral derecho.
-- Rediseñar: 3 slots de equipados + barra de progreso de zonas + HUD.
-- Expandir la pantalla horizontalmente.
-
-### Fase 3 · Interacción con click sostenido
-- Detectar click sostenido sobre un árbol o piedra.
-- Verificar que el jugador esté **al lado** de la celda.
-- Verificar que tenga el objeto correcto equipado.
-- Mostrar cartel "Necesitás un hacha" si no lo tiene.
-
-### Fase 4 · Barra de rotura
-- Barra lineal arriba del objeto.
-- 3-5 segundos hasta romper.
-- Al terminar → el tile se reemplaza por pasto 🟩.
-
-**Estado:** ⏸️ Pendiente. Se retomará después de resolver el bug de biomas.
-
 ---
 
 ## ⚙️ F12 · Sistema de objetos equipables de mejor nivel
@@ -287,121 +273,64 @@ mundo = función(semilla, zona) + deltas
 
 ---
 
-## 🗺️ F14 · Rediseño del sistema de biomas con JSON
+## 🗺️ F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 
-**Motivo:** el sistema actual (`permutacionBiomas()`) es rígido, difícil de escalar y tiene bugs. Se reemplaza por una **tabla JSON externa**.
+**Motivo:** el sistema viejo (`permutacionBiomas()`) era rígido, difícil de escalar y tenía bugs. Se reemplazó por una **tabla JSON/JS externa**.
 
-**Concepto:** los biomas se definen como datos (no como código). El motor lee el JSON y genera el mundo según lo que dice.
+**Estado:** completado. Ver `js/world/biomas.js`.
 
-### Estructura del JSON
+**Concepto:**
+- 7 biomas definidos como datos.
+- Cada bioma tiene: `nombre`, `emoji`, `tileBase`, `vecinos` (con pesos), `tiles` (con pesos).
+- El motor `obtenerBiomaDeZona()` decide el bioma de cada zona en cadena.
+- Determinista por semilla.
 
-Cada bioma es un objeto con esta forma:
+**Biomas actuales:**
+- pradera, bosque, costa, ruina, oceano, desierto, nieve.
 
-```json
-{
-  "biomas": {
-    "bosque": {
-      "nombre": "Bosque",
-      "emoji": "🌳",
-      "vecinos": [
-        { "id": "bosque",  "peso": 50 },
-        { "id": "pradera", "peso": 30 },
-        { "id": "ruina",   "peso": 20 }
-      ],
-      "tiles": [
-        { "tile": "TREE",      "peso": 40 },
-        { "tile": "BUSH",      "peso": 15 },
-        { "tile": "TALLGRASS", "peso": 10 },
-        { "tile": "GRASS",     "peso": 35 }
-      ]
-    }
-  }
-}
-Conceptos clave
-Vecinos con peso: cada bioma define qué otros biomas pueden estar a su lado y con qué probabilidad. Ej:
+**Tiles nuevos:** 🟧 (desierto), 🌵 (cactus), ❄️ (nieve), 🧊 (hielo), 🌲 (pino).
 
-bosque → bosque (50%), bosque → pradera (30%), bosque → ruina (20%).
+**Referencia:**
+- `js/world/biomas.js` — tabla de biomas.
+- `js/world/mundo.js` — motor de asignación y pintado.
 
-Un bioma que "se mantiene" tiene peso alto hacia sí mismo (ej: oceano 70% hacia sí mismo).
+---
 
-Un bioma de transición tiene pesos repartidos (ej: costa → oceano 30%, costa 40%, pradera 30%).
+## 🏙️ F15 · Biomas forzados + chunks de transición
 
-Esto resuelve el "realismo": un océano no aparece al lado de una ciudad. Siempre hay una costa como puente.
+**Idea:** después de generar el mundo natural, una **segunda pasada** inserta biomas forzados (ciudades, puertos, islas, ruinas temáticas) que reemplazan zonas existentes.
 
-Biomas a implementar (7 totales)
-Bioma	Estado	Tiles principales
-bosque	✅ Existe	🌳 🌿 🌾 🟩
-pradera	✅ Existe	🟩 🌳 🌾 🪨
-costa	✅ Existe	🌊 🟨 🟩 🌿
-ruina	✅ Existe	🟩 🧱 🪨 🌾
-oceano	🆕 Nuevo	🌊 (90-95%) + 🪨 (5-10%)
-desierto	🆕 Nuevo	🏜️ 🌵 🪨
-nieve	🆕 Nuevo	❄️ 🧊 🌲
-Tiles nuevos necesarios
-🏜️ arena del desierto (distinta de 🟨 playa)
+### Reglas confirmadas
 
-🌵 cactus
+| Aspecto | Decisión |
+|---------|----------|
+| Aparición | Regla por zona (ej: "cada 10 zonas insertar un bioma forzado") |
+| Tamaño | Zona entera (50×34) |
+| Transición | Chunks de transición automáticos alrededor |
+| Detección | El jugador los descubre al llegar |
+| Continuidad | Puede bloquear el paso. No se garantiza transitable |
+| Reemplazo | Los tiles nuevos pisan los viejos |
 
-❄️ nieve
+### Tipos de biomas forzados (ejemplos)
 
-🧊 hielo
+- 🏙️ Ciudad — reemplaza pradera o bosque.
+- ⚓ Puerto — reemplaza costa, requiere oceano cerca.
+- 🏝️ Isla — aparece dentro de océano.
+- 🏰 Castillo — reemplaza ruina.
 
-🌲 pino
+### Chunks de transición
 
-Reglas
-Zona 0: siempre pradera (zona segura).
+**Concepto:**
+Sin transición: [pradera] [ciudad] [pradera]
+Con transición: [pradera] [trans] [ciudad] [trans] [pradera]
 
-Resto de zonas: elegir entre vecinos del bioma anterior con sus pesos.
+El chunk de transición **mezcla automáticamente** los tiles de ambos biomas adyacentes.
 
-Determinista por semilla.
+### Condiciones de aparición
 
-Pendiente de definir
-Formato exacto del JSON.
-
-Cómo cargarlo (¿fetch? ¿import? ¿dentro de un .js?).
-
-Cómo se cachea la permutación de biomas.
-
-Cómo se valida que no haya biomas aislados.
-
-Estado: ⏸️ Planificado. Se implementará en sesión dedicada.
-
-🏙️ F15 · Biomas forzados + chunks de transición
-Idea: después de generar el mundo natural, una segunda pasada inserta biomas forzados (ciudades, puertos, islas, ruinas temáticas) que reemplazan zonas existentes.
-
-Reglas confirmadas
-Aspecto	Decisión
-Aparición	Regla por zona (ej: "cada 10 zonas insertar un bioma forzado")
-Tamaño	Zona entera (50×34)
-Transición	Chunks de transición automáticos alrededor
-Detección	El jugador los descubre al llegar
-Continuidad	Puede bloquear el paso. No se garantiza transitable
-Reemplazo	Los tiles nuevos pisan los viejos
-Tipos de biomas forzados (ejemplos)
-🏙️ Ciudad — reemplaza pradera o bosque.
-
-⚓ Puerto — reemplaza costa, requiere oceano cerca.
-
-🏝️ Isla — aparece dentro de océano.
-
-🏰 Castillo — reemplaza ruina.
-
-Chunks de transición
-Concepto:
-
-text
-Sin transición:    [pradera] [ciudad] [pradera]
-Con transición:    [pradera] [trans] [ciudad] [trans] [pradera]
-El chunk de transición mezcla automáticamente los tiles de ambos biomas adyacentes. Ej:
-
-Transición pradera↔ciudad: mitad izquierda más pradera, mitad derecha más ciudad.
-
-El motor genera la mezcla sin necesidad de definirla en el JSON.
-
-Condiciones de aparición
 Cada bioma forzado tendrá condiciones en el JSON:
 
-json
+```json
 "puerto": {
   "tipo": "forzado",
   "condiciones": {
@@ -409,6 +338,7 @@ json
     "vecinosRequeridos": ["oceano"]
   }
 }
+
 Pendiente de definir
 Regla exacta de aparición (¿cada cuántas zonas?).
 
@@ -420,6 +350,181 @@ Si los biomas forzados afectan a sus vecinos.
 
 Si son transitables o pueden bloquear.
 
-Estado: ⏸️ Planificado. Se implementará después de F14.
+Estado: ⏸️ Planificado. Se implementará después de HP + daño.
+
+## 🏖️ F16 · Rediseño del bioma "costa" · ✅ IMPLEMENTADO en v1.7.1
+
+**Problema:** el bioma "costa" pintaba los tiles con probabilidad uniforme. El resultado eran "charcos" de agua salpicados por el chunk.
+
+**Solución:** la costa ahora usa **forma de franja**:
+- Agua en un lateral (~1/3 del chunk).
+- Arena en el medio (~1/3).
+- Pasto en el otro lateral (~1/3).
+- Bordes irregulares (con ondulación) para naturalidad.
+
+**Implementación:**
+- `js/world/biomas.js`: campo `forma: "franja"` en el bioma costa.
+- `js/world/mundo.js`: nueva función `pintarCosta()`.
+
+**Estado:** ✅ Completado.
+
+Problema: el bioma "costa" pintaba los tiles con probabilidad uniforme. El resultado eran "charcos" de agua salpicados por el chunk.
+
+Solución: la costa ahora usa forma de franja:
+
+Agua en un lateral (~1/3 del chunk).
+
+Arena en el medio (~1/3).
+
+Pasto en el otro lateral (~1/3).
+
+Bordes irregulares (con ondulación) para naturalidad.
+
+Implementación:
+
+js/world/biomas.js: campo forma: "franja" en el bioma costa.
+
+js/world/mundo.js: nueva función pintarCosta().
+
+Estado: ✅ Completado.
+
+🌊 F17 · Sistema de "biomas con forma"
+Idea: algunos biomas no se generan con probabilidad uniforme por celda. Tienen forma.
+
+Formas previstas:
+
+Franja: agua en un lateral (costa) — ✅ implementado.
+
+Lago: masa circular en el centro.
+
+Río: franja atravesando el chunk.
+
+Isla: tierra rodeada de agua.
+
+Montaña: elevación con cordillera.
+
+Estado actual:
+
+✅ pintarCosta() implementado (franja).
+
+⏸️ Otras formas pendientes.
+
+Extensible a:
+
+Motor genérico de formas basado en el campo forma de cada bioma.
+
+Función pintarForma(mapa, forma, ...) que dispatchee a la estrategia correcta.
+
+Estado: ⏸️ Planificado. Se implementará cuando se necesite (ríos, lagos, etc.).
+
+🛶 F18 · Barco (atravesar agua)
+Idea: un objeto equipable que permite al jugador caminar sobre tiles de agua.
+
+Objeto: 🛶 (Canoa)
+Aparece: 1 por mundo, en cualquier zona, siempre pegado a un tile de agua.
+
+Recolección: al pisarlo, se suma al inventario.
+
+Slot: slot de equipados (junto a 🪓 ⛏️ 🕯️).
+
+Uso
+El jugador tiene 🛶 en el inventario.
+
+Hace click sostenido sobre un tile de agua adyacente (a 1 tile).
+
+Se inicia una barra de 5 segundos (como al talar/picar).
+
+Al terminar:
+
+El jugador se "sube" al barco.
+
+Su emoji cambia a 🚣.
+
+Puede moverse sobre tiles de WATER 🌊.
+
+Si el jugador pisa un tile no-agua (pasto, arena, etc.), vuelve a 🏃‍♂️ automáticamente. El barco queda "guardado" en el inventario.
+
+Detalles
+Solo atraviesa WATER. No atraviesa arena, pasto, árboles, etc.
+
+El barco es del jugador. Una vez conseguido, siempre lo tiene (no se pierde).
+
+No se consume. Se puede usar infinitas veces.
+
+Pendiente de definir
+¿Qué pasa si el jugador "atraviesa" agua pero hay una isla en el medio?
+
+¿El barco puede "romperse" o perderse? (no por ahora)
+
+¿Se puede volver a "colocar" el barco en agua desde el inventario después?
+
+Estado: ⏸️ Anotado. Se implementará después de HP + daño real.
+
+---
+
+## 🌌 F19 · Tema "espacio" (nueva piel)
+
+**Idea:** reutilizar el motor completo del juego con un cambio temático de "roguelike medieval" a "explorador espacial".
+
+**Regla clave:** **no se toca el motor.** Solo se cambian **datos**.
+
+### Qué cambia
+
+| Capa | Archivo | Cambio |
+|------|---------|--------|
+| Tiles | `tiles.js` | Los íconos (emoji) de cada tile |
+| Biomas | `biomas.js` | Los nombres, emojis de resumen, y vecinos |
+| Mobs | `mobs.js` | Nombres, emojis, y quizás stats |
+| UI | `index.html`, `render.js` | Textos de la interfaz |
+| Config | `config.js` | `BIOMA_INICIAL` |
+
+### Ejemplos de conversión
+
+| Original | Espacio |
+|----------|---------|
+| 🟩 GRASS | 🌑 Suelo lunar |
+| 🌳 TREE | 🛸 Nave alienígena |
+| 🧱 WALL | 🔩 Panel metálico |
+| 🌊 WATER | 🟪 Líquido alienígena |
+| 🟨 SAND | 🟫 Arena espacial |
+| 🏜️ DESERT | 🟥 Arena roja (Marte) |
+| 🌵 CACTUS | 🦑 Criatura alienígena |
+| ❄️ SNOW | ⬜ Cristal blanco |
+| 🧊 ICE | 🔵 Hielo azul |
+| 🌲 PINE | 🗼 Torre/antena |
+| 🐅 TIGRE | 👽 Alien hostil |
+| 🐓 GALLINA | 🤖 Dron pacífico |
+| 🐖 CERDO | 🦎 Reptiliano neutral |
+| 🏃‍♂️ PLAYER | 🚀 Astronauta o cohete |
+| 🪓 HACHA | ⚡ Sable de energía |
+| ⛏️ PICO | 🔫 Taladro |
+| 🕯️ LINTERNA | 💡 Lámpara |
+| 🛶 BARCO | 🚀 Módulo de escape |
+
+### Biomas espaciales
+
+| Original | Espacio |
+|----------|---------|
+| pradera | superficie_lunar 🌑 |
+| bosque | campo_de_cristales 💎 |
+| costa | lago_de_metano 🟪 |
+| ruina | base_abandonada 🛸 |
+| oceano | mar_de_energía 🔵 |
+| desierto | desierto_rojo 🟥 |
+| nieve | glaciar_espacial ⬜ |
+
+### Tiempo estimado
+- Conversión básica (íconos + nombres): **1-2 horas**.
+- Ajuste de pesos de vecinos y tiles: **1-2 horas adicionales**.
+
+### Consideraciones
+- Los IDs de los biomas (`pradera`, `bosque`, etc.) pueden quedar iguales para no tocar el motor.
+- Solo cambian los **nombres legibles** y los **emojis**.
+- Si se quiere hacer un fork separado, duplicar todo el proyecto.
+
+### Estado
+⏸️ Anotado. No es prioridad. Se puede implementar en cualquier momento porque solo toca datos.
+
+---
 
 **Fin del BACKLOG**

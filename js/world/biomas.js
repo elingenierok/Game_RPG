@@ -57,17 +57,20 @@ const BIOMAS = {
     ],
   },
 
-  // ─── Costa ───
+    // ─── Costa ───
   costa: {
     nombre: "Costa",
     emoji: "🏖️",
     tileBase: "SAND",
+    forma: "franja",
     vecinos: [
       { id: "oceano",  peso: 40 },
       { id: "costa",   peso: 20 },
       { id: "pradera", peso: 40 },
     ],
     tiles: [
+      // Los "tiles" se ignoran cuando forma = "franja".
+      // Pero los dejamos por compatibilidad.
       { tile: "SAND",  peso: 50 },
       { tile: "WATER", peso: 30 },
       { tile: "GRASS", peso: 15 },
@@ -121,10 +124,10 @@ const BIOMAS = {
       { id: "costa",    peso: 10 },
     ],
     tiles: [
-      { tile: "DESERT_SAND", peso: 85 },
+      { tile: "SAND",        peso: 85  },
       { tile: "CACTUS",      peso: 5  },
       { tile: "ROCK",        peso: 5  },
-      { tile: "SAND",        peso: 5  },
+      { tile: "DESERT_SAND", peso: 5 },
     ],
   },
 

@@ -28,7 +28,7 @@ const ICONOS = {
   [HACHA]:       "🪓",
   [PICO]:        "⛏️",
   [LINTERNA]:    "🕯️",
-  [DESERT_SAND]: "🏜️",
+  [DESERT_SAND]: "🟧",
   [CACTUS]:      "🌵",
   [SNOW]:        "❄️",
   [ICE]:         "🧊",
