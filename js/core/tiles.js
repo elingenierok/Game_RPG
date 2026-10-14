@@ -6,7 +6,8 @@ const GRASS  = 0, TREE   = 1, WALL   = 2, WATER = 3,
       PATH   = 8, LLAGUE = 9, PLAYER = 10, LUPA = 11,
       MANZANA = 12, TIGRE = 13, GALLINA = 14, CERDO = 15,
       HACHA = 16, PICO = 17, LINTERNA = 18,
-      DESERT_SAND = 19, CACTUS = 20, SNOW = 21, ICE = 22, PINE = 23;
+      DESERT_SAND = 19, CACTUS = 20, SNOW = 21, ICE = 22, PINE = 23,
+      BARCO = 24;
 
 const ICONOS = {
   [GRASS]:       "🟩",
@@ -33,6 +34,7 @@ const ICONOS = {
   [SNOW]:        "❄️",
   [ICE]:         "🧊",
   [PINE]:        "🌲",
+  [BARCO]:       "🛶",
 };
 
 const BLOQUEANTES = new Set([TREE, WALL, WATER, ROCK, CACTUS, ICE, PINE]);
@@ -66,6 +68,7 @@ const NOMBRE_A_TILE = {
   SNOW:        SNOW,
   ICE:         ICE,
   PINE:        PINE,
+  BARCO:       BARCO,
 };
 
 // ═══════════════════════════════════════════════════════════════

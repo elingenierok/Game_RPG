@@ -24,6 +24,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F17 · Sistema de "biomas con forma"
 - F18 · Barco (atravesar agua)
 - F19 · Tema "espacio" (nueva piel)
+- F20 · Sistema de sprites animados (atlas + animaciones)
 
 ---
 
@@ -153,7 +154,10 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 **Idea:** permitir al jugador **equipar ítems** (cascos, botas, hachas) y **modificar el mundo** (picar, talar, construir). Los cambios deben **persistir** entre sesiones.
 
 **Modelo de persistencia:** deltas.
+
+```
 mundo = función(semilla, zona) + deltas
+```
 
 - Los deltas guardan solo los cambios del jugador (`"zona:x,y" → tile nuevo`).
 - Se combinan con el mundo generado al cargar un chunk.
@@ -321,8 +325,11 @@ mundo = función(semilla, zona) + deltas
 ### Chunks de transición
 
 **Concepto:**
+
+```
 Sin transición: [pradera] [ciudad] [pradera]
 Con transición: [pradera] [trans] [ciudad] [trans] [pradera]
+```
 
 El chunk de transición **mezcla automáticamente** los tiles de ambos biomas adyacentes.
 
@@ -338,19 +345,19 @@ Cada bioma forzado tendrá condiciones en el JSON:
     "vecinosRequeridos": ["oceano"]
   }
 }
+```
 
-Pendiente de definir
-Regla exacta de aparición (¿cada cuántas zonas?).
+### Pendiente de definir
 
-Definición completa de cada bioma forzado.
+- Regla exacta de aparición (¿cada cuántas zonas?).
+- Definición completa de cada bioma forzado.
+- Algoritmo de mezcla para chunks de transición.
+- Si los biomas forzados afectan a sus vecinos.
+- Si son transitables o pueden bloquear.
 
-Algoritmo de mezcla para chunks de transición.
+**Estado:** ⏸️ Planificado. Se implementará después de HP + daño.
 
-Si los biomas forzados afectan a sus vecinos.
-
-Si son transitables o pueden bloquear.
-
-Estado: ⏸️ Planificado. Se implementará después de HP + daño.
+---
 
 ## 🏖️ F16 · Rediseño del bioma "costa" · ✅ IMPLEMENTADO en v1.7.1
 
@@ -368,97 +375,61 @@ Estado: ⏸️ Planificado. Se implementará después de HP + daño.
 
 **Estado:** ✅ Completado.
 
-Problema: el bioma "costa" pintaba los tiles con probabilidad uniforme. El resultado eran "charcos" de agua salpicados por el chunk.
+---
 
-Solución: la costa ahora usa forma de franja:
+## 🌊 F17 · Sistema de "biomas con forma"
 
-Agua en un lateral (~1/3 del chunk).
+**Idea:** algunos biomas no se generan con probabilidad uniforme por celda. Tienen **forma**.
 
-Arena en el medio (~1/3).
+**Formas previstas:**
+- **Franja:** agua en un lateral (costa) — ✅ implementado.
+- **Lago:** masa circular en el centro.
+- **Río:** franja atravesando el chunk.
+- **Isla:** tierra rodeada de agua.
+- **Montaña:** elevación con cordillera.
 
-Pasto en el otro lateral (~1/3).
+**Estado actual:**
+- ✅ `pintarCosta()` implementado (franja).
+- ⏸️ Otras formas pendientes.
 
-Bordes irregulares (con ondulación) para naturalidad.
+**Extensible a:**
+- Motor genérico de formas basado en el campo `forma` de cada bioma.
+- Función `pintarForma(mapa, forma, ...)` que dispatchee a la estrategia correcta.
 
-Implementación:
+**Estado:** ⏸️ Planificado. Se implementará cuando se necesite (ríos, lagos, etc.).
 
-js/world/biomas.js: campo forma: "franja" en el bioma costa.
+---
 
-js/world/mundo.js: nueva función pintarCosta().
+## 🛶 F18 · Barco (atravesar agua)
 
-Estado: ✅ Completado.
+**Idea:** un objeto equipable que permite al jugador caminar sobre tiles de agua.
 
-🌊 F17 · Sistema de "biomas con forma"
-Idea: algunos biomas no se generan con probabilidad uniforme por celda. Tienen forma.
+### Objeto: 🛶 (Canoa)
+- **Aparece:** 1 por mundo, en cualquier zona, siempre **pegado a un tile de agua**.
+- **Recolección:** al pisarlo, se suma al inventario.
+- **Slot:** slot de equipados (junto a 🪓 ⛏️ 🕯️).
 
-Formas previstas:
+### Uso
+1. El jugador tiene 🛶 en el inventario.
+2. Hace **click sostenido** sobre un tile de agua **adyacente** (a 1 tile).
+3. Se inicia una **barra de 5 segundos** (como al talar/picar).
+4. Al terminar:
+   - El jugador se "sube" al barco.
+   - Su emoji cambia a 🚣.
+   - Puede moverse sobre tiles de `WATER` 🌊.
+5. Si el jugador pisa un tile **no-agua** (pasto, arena, etc.), vuelve a 🏃‍♂️ automáticamente. El barco queda "guardado" en el inventario.
 
-Franja: agua en un lateral (costa) — ✅ implementado.
+### Detalles
+- **Solo atraviesa `WATER`.** No atraviesa arena, pasto, árboles, etc.
+- **El barco es del jugador.** Una vez conseguido, siempre lo tiene (no se pierde).
+- **No se consume.** Se puede usar infinitas veces.
 
-Lago: masa circular en el centro.
+### Pendiente de definir
+- ¿Qué pasa si el jugador "atraviesa" agua pero hay una isla en el medio?
+- ¿El barco puede "romperse" o perderse? (no por ahora)
+- ¿Se puede volver a "colocar" el barco en agua desde el inventario después?
 
-Río: franja atravesando el chunk.
-
-Isla: tierra rodeada de agua.
-
-Montaña: elevación con cordillera.
-
-Estado actual:
-
-✅ pintarCosta() implementado (franja).
-
-⏸️ Otras formas pendientes.
-
-Extensible a:
-
-Motor genérico de formas basado en el campo forma de cada bioma.
-
-Función pintarForma(mapa, forma, ...) que dispatchee a la estrategia correcta.
-
-Estado: ⏸️ Planificado. Se implementará cuando se necesite (ríos, lagos, etc.).
-
-🛶 F18 · Barco (atravesar agua)
-Idea: un objeto equipable que permite al jugador caminar sobre tiles de agua.
-
-Objeto: 🛶 (Canoa)
-Aparece: 1 por mundo, en cualquier zona, siempre pegado a un tile de agua.
-
-Recolección: al pisarlo, se suma al inventario.
-
-Slot: slot de equipados (junto a 🪓 ⛏️ 🕯️).
-
-Uso
-El jugador tiene 🛶 en el inventario.
-
-Hace click sostenido sobre un tile de agua adyacente (a 1 tile).
-
-Se inicia una barra de 5 segundos (como al talar/picar).
-
-Al terminar:
-
-El jugador se "sube" al barco.
-
-Su emoji cambia a 🚣.
-
-Puede moverse sobre tiles de WATER 🌊.
-
-Si el jugador pisa un tile no-agua (pasto, arena, etc.), vuelve a 🏃‍♂️ automáticamente. El barco queda "guardado" en el inventario.
-
-Detalles
-Solo atraviesa WATER. No atraviesa arena, pasto, árboles, etc.
-
-El barco es del jugador. Una vez conseguido, siempre lo tiene (no se pierde).
-
-No se consume. Se puede usar infinitas veces.
-
-Pendiente de definir
-¿Qué pasa si el jugador "atraviesa" agua pero hay una isla en el medio?
-
-¿El barco puede "romperse" o perderse? (no por ahora)
-
-¿Se puede volver a "colocar" el barco en agua desde el inventario después?
-
-Estado: ⏸️ Anotado. Se implementará después de HP + daño real.
+**Estado:** ⏸️ Anotado. Se implementará después de HP + daño real.
 
 ---
 
@@ -513,17 +484,110 @@ Estado: ⏸️ Anotado. Se implementará después de HP + daño real.
 | desierto | desierto_rojo 🟥 |
 | nieve | glaciar_espacial ⬜ |
 
-### Tiempo estimado
-- Conversión básica (íconos + nombres): **1-2 horas**.
-- Ajuste de pesos de vecinos y tiles: **1-2 horas adicionales**.
-
 ### Consideraciones
 - Los IDs de los biomas (`pradera`, `bosque`, etc.) pueden quedar iguales para no tocar el motor.
 - Solo cambian los **nombres legibles** y los **emojis**.
 - Si se quiere hacer un fork separado, duplicar todo el proyecto.
 
-### Estado
-⏸️ Anotado. No es prioridad. Se puede implementar en cualquier momento porque solo toca datos.
+### Tiempo estimado
+- Conversión básica (íconos + nombres): **1-2 horas**.
+- Ajuste de pesos de vecinos y tiles: **1-2 horas adicionales**.
+
+**Estado:** ⏸️ Anotado. No es prioridad. Se puede implementar en cualquier momento porque solo toca datos.
+
+---
+
+## 🎨 F20 · Sistema de sprites animados (atlas + animaciones)
+
+**Idea:** reemplazar los emojis del jugador, mobs y objetos interactivos por **imágenes (sprites) animadas**. Un solo archivo de imagen (atlas) contiene todos los frames, indexados por posición.
+
+### Concepto
+
+**Atlas (imagen):** un PNG con una grilla de frames. Ejemplo 4 columnas × 5 filas:
+
+```
+┌──────┬──────┬──────┬──────┐
+│ 🚶1  │ 🚶2  │ 🚶3  │ 🚶4  │  ← fila 0: caminar
+├──────┼──────┼──────┼──────┤
+│ 🧍1  │ 🧍2  │ 🪓1  │ 🪓2  │  ← fila 1: quieto + talar
+├──────┼──────┼──────┼──────┤
+│ ⛏️1  │ ⛏️2  │ 🚣1  │ 🚣2  │  ← fila 2: picar + remar
+└──────┴──────┴──────┴──────┘
+```
+
+**Metadatos (JSON):** un archivo que dice qué celdas componen cada animación.
+
+```json
+{
+  "personaje": {
+    "quieto":    { "fila": 0, "frames": [0, 1], "intervalo": 500 },
+    "caminar":   { "fila": 0, "frames": [0, 1, 2, 3], "intervalo": 150 },
+    "talar":     { "fila": 1, "frames": [0, 1, 2], "intervalo": 200 },
+    "picar":     { "fila": 1, "frames": [3, 4, 5], "intervalo": 200 }
+  }
+}
+```
+
+**Motor de animación:** un sistema que sabe qué objeto animar, en qué estado está, en qué frame va, y cuándo cambiar al siguiente.
+
+**Render:** dibuja la celda correcta del atlas con `background-image` + `background-position`.
+
+### Qué puede tener animación
+
+| Cosa | Estados |
+|------|---------|
+| **Jugador** | Quieto, caminar, talar, picar, remar, atacar, daño, muerte |
+| **Árbol** | Intacto, temblando, cayendo, tocón |
+| **Piedra** | Intacta, temblando, rota |
+| **Cofre** | Cerrado, abriéndose, abierto |
+| **Enemigos** | Quieto, caminar, atacar, daño, muerte |
+
+### Fases propuestas
+
+| Fase | Descripción | Estado |
+|:----:|-------------|:------:|
+| 1 | Sprite estático (sin animación) del jugador | ⏸️ Pendiente |
+| 2 | Animación de quieto + caminar | ⏸️ Pendiente |
+| 3 | Animaciones de acción (talar, picar, remar) | ⏸️ Pendiente |
+| 4 | Animación de objetos (árbol, piedra, cofre) | ⏸️ Pendiente |
+| 5 | Animación de enemigos | ⏸️ Pendiente |
+
+### Complejidad real
+
+| Aspecto | Complejidad | Tiempo |
+|---------|:-----------:|:------:|
+| Conseguir/crear el spritesheet | 🟡 Media | 1-4 h (o semanas con arte manual) |
+| Escribir el motor de animación | 🟡 Media | 1 sesión |
+| Integrar con el render | 🟡 Media | 1 sesión |
+| Cambiar `jugador.js` para detectar estados | 🟢 Baja | 30 min |
+| Integrar con `rotura.js` (talar/picar) | 🟢 Baja | 30 min |
+| Debug y ajustes | 🟡 Media | 1 sesión |
+| **Total Nivel 2 (básico)** | | **~2-3 sesiones** |
+| **Total Nivel 3 (completo)** | | **~4-5 sesiones** |
+
+### Problemas conocidos
+
+- **Generar sprites con IA**: las IA son malas para spritesheets (no respetan la grilla, varía el estilo). Mejor: generar **un frame de referencia** con IA y dibujar el resto a mano en **Piskel** o **Aseprite**.
+- **Coherencia de paleta**: los frames deben mantener los mismos colores.
+- **Alineación**: el personaje no puede "saltar" entre frames.
+- **Pivote**: definir si el punto de referencia es el centro o los pies.
+
+### Herramientas recomendadas
+
+- **Piskel** (navegador, gratis).
+- **Aseprite** (~$20) — estándar de la industria.
+- **LibreSprite** (gratis) — fork de Aseprite.
+- **PixelLab AI**, **Scenario.com** — generación de sprites con IA.
+
+### Preguntas pendientes
+
+1. ¿Atlas único o varios atlas? (jugador + objetos + mobs)
+2. ¿PNG o SVG?
+3. ¿Solo para el jugador o también para mobs y objetos?
+4. ¿Cuántos estados necesita el jugador?
+5. ¿Sprite de qué tamaño? 16×16 o 32×32.
+
+**Estado:** ⏸️ Anotado. Se implementará después de HP + daño real. Empezar por la Fase 1 (sprite estático).
 
 ---
 

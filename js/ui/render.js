@@ -214,6 +214,7 @@ const ICONO_POR_NOMBRE = {
   HACHA:    "🪓",
   PICO:     "⛏️",
   LINTERNA: "🕯️",
+  BARCO:    "🛶",
 };
 
 function iconoPorNombre(nombre) {
@@ -240,13 +241,13 @@ function actualizarSlotsEquipados() {
   const slotHacha    = document.getElementById("slot-hacha");
   const slotPico     = document.getElementById("slot-pico");
   const slotLinterna = document.getElementById("slot-linterna");
+  const slotBarco    = document.getElementById("slot-barco");
 
-  // ¿Qué equipables tiene el jugador?
   const tieneHacha    = (estado.inventario.HACHA    || 0) > 0;
   const tienePico     = (estado.inventario.PICO     || 0) > 0;
   const tieneLinterna = (estado.inventario.LINTERNA || 0) > 0;
+  const tieneBarco    = (estado.inventario.BARCO    || 0) > 0;
 
-  // Actualizar cada slot
   if (tieneHacha) {
     slotHacha.textContent = "🪓";
     slotHacha.classList.add("tiene");
@@ -269,5 +270,13 @@ function actualizarSlotsEquipados() {
   } else {
     slotLinterna.textContent = "—";
     slotLinterna.classList.remove("tiene");
+  }
+
+  if (tieneBarco) {
+    slotBarco.textContent = "🛶";
+    slotBarco.classList.add("tiene");
+  } else {
+    slotBarco.textContent = "—";
+    slotBarco.classList.remove("tiene");
   }
 }

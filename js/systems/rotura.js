@@ -229,6 +229,12 @@ divMapa.addEventListener("mousedown", (e) => {
   const celda = coordenadasACelda(e);
   if (!celda) return;
 
+  // Intentar colocar barco primero (si aplica)
+  if (typeof intentarColocarBarco === "function") {
+    if (intentarColocarBarco(celda.x, celda.y)) return;
+  }
+
+  // Si no, intentar romper
   intentarIniciarRotura(celda.x, celda.y);
 });
 
@@ -252,5 +258,8 @@ document.addEventListener("mouseleave", () => {
 function cancelarRoturaSiActiva() {
   if (rotura.activa) {
     cancelarRotura();
+  }
+  if (typeof cancelarColocacionBarco === "function" && typeof barco !== "undefined" && barco.colocando) {
+    cancelarColocacionBarco();
   }
 }

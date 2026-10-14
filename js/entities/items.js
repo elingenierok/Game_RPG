@@ -22,6 +22,7 @@ function obtenerItemsDeChunk(zona) {
       const y = randInt(rng, 1, ALTO_PANTALLA - 2);
 
       if (BLOQUEANTES.has(chunk.mapa[y][x])) continue;
+      if (chunk.mapa[y][x] === WATER) continue;
       if (estado.llave.zona === zona &&
           estado.llave.x === x && estado.llave.y === y) continue;
       if (items.some(it => it.x === x && it.y === y)) continue;
@@ -62,11 +63,9 @@ function recogerItemEn(x, y) {
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 7.5b · OBJETOS EQUIPABLES
 // ─────────────────────────────────────────────────────────────────
-//  Los objetos equipables (🪓 ⛏️ 🕯️) son únicos por mundo:
+//  Los objetos equipables (🪓 ⛏️ 🕯️ 🛶) son únicos por mundo:
 //  1 de cada uno, en una zona específica elegida AL AZAR entre
-//  todas las zonas del mundo que tengan el bioma correspondiente.
-//
-//  La elección depende de SEMILLA_OBJETOS → cambia con cada semilla.
+//  todas las zonas del mundo que cumplan con los requisitos.
 //
 //  Semilla: SEMILLA_OBJETOS.
 //  Ubicación: determinista por semilla (misma semilla → mismo lugar).
@@ -77,6 +76,7 @@ const EQUIPABLES = [
   { tipo: HACHA,    bioma: "bosque"  },
   { tipo: PICO,     bioma: "ruina"   },
   { tipo: LINTERNA, bioma: "costa"   },
+  { tipo: BARCO,    bioma: "costa",  porChunk: true },
 ];
 
 // Cache: zona → [{ tipo, x, y }]
@@ -86,31 +86,31 @@ const cacheEquipables = new Map();
 const _zonasEquipables = new Map();
 
 // ─── Determina en qué zona va cada equipable ───
-//  Busca TODAS las zonas del mundo con el bioma correspondiente
-//  y elige una AL AZAR según SEMILLA_OBJETOS.
-//  Si no hay ninguna, devuelve null (el objeto no aparece).
 function obtenerZonaDeEquipable(tipo, bioma) {
   if (_zonasEquipables.has(tipo)) return _zonasEquipables.get(tipo);
 
-  // Recorrer todas las zonas del mundo (positivas y negativas)
-  // y recolectar las que tengan el bioma buscado.
+  // ¿Este equipable va en TODOS los chunks del bioma? (porChunk)
+  const config = EQUIPABLES.find(e => e.tipo === tipo);
+  if (config && config.porChunk) {
+    _zonasEquipables.set(tipo, "porChunk");
+    return "porChunk";
+  }
+
   const candidatas = [];
 
   for (let z = -LIMITE_CHUNKS; z <= LIMITE_CHUNKS; z++) {
-    if (z === 0) continue;   // zona 0 no tiene objetos
+    if (z === 0) continue;
     const chunk = cacheChunks.get(z) || obtenerChunk(z);
     if (chunk && chunk.bioma === bioma) {
       candidatas.push(z);
     }
   }
 
-  // Si no hay candidatas, el objeto no aparece en este mundo
   if (candidatas.length === 0) {
     _zonasEquipables.set(tipo, null);
     return null;
   }
 
-  // Elegir una candidata al azar según SEMILLA_OBJETOS
   const clave = SEMILLA_OBJETOS + "@equipable_zona@" + tipo;
   const rng = crearRNG(hashString(clave));
   const indiceElegido = Math.floor(rng() * candidatas.length);
@@ -132,21 +132,57 @@ function obtenerEquipablesDeChunk(zona) {
 
   const equipables = [];
 
-  for (const { tipo, bioma } of EQUIPABLES) {
+    for (const { tipo, bioma } of EQUIPABLES) {
+    // ¿Va en todos los chunks del bioma?
+    const config = EQUIPABLES.find(e => e.tipo === tipo);
     const zonaObjeto = obtenerZonaDeEquipable(tipo, bioma);
-    if (zonaObjeto !== zona) continue;
+
+    if (config && config.porChunk) {
+      // Debe ser del bioma correspondiente
+      if (chunk.bioma !== bioma) continue;
+    } else {
+      // Solo en la zona elegida
+      if (zonaObjeto !== zona) continue;
+    }
 
     const rng = crearRNG(hashString(SEMILLA_OBJETOS + "@equipable" + tipo + "@zona" + zona));
 
-    for (let intento = 0; intento < 30; intento++) {
+    // El barco necesita más intentos porque tiene más restricciones
+    const maxIntentos = (tipo === BARCO) ? 80 : 30;
+
+    for (let intento = 0; intento < maxIntentos; intento++) {
       const x = randInt(rng, 1, ANCHO_PANTALLA - 2);
       const y = randInt(rng, 1, ALTO_PANTALLA - 2);
 
+      // No sobre bloqueantes
       if (BLOQUEANTES.has(chunk.mapa[y][x])) continue;
+
+      // No sobre agua
+      if (chunk.mapa[y][x] === WATER) continue;
+
+      // ─── Reglas especiales del barco ───
+      if (tipo === BARCO) {
+        // No puede estar en los bordes del chunk (para que sea accesible)
+        if (x <= 1 || x >= ANCHO_PANTALLA - 2) continue;
+        if (y <= 1 || y >= ALTO_PANTALLA - 2) continue;
+
+        // Debe tener agua adyacente
+        const tieneAguaAlLado =
+          (y > 0 && chunk.mapa[y-1][x] === WATER) ||
+          (y < ALTO_PANTALLA - 1 && chunk.mapa[y+1][x] === WATER) ||
+          (x > 0 && chunk.mapa[y][x-1] === WATER) ||
+          (x < ANCHO_PANTALLA - 1 && chunk.mapa[y][x+1] === WATER);
+        if (!tieneAguaAlLado) continue;
+      }
+
+      // No sobre la llave
       if (estado.llave.zona === zona &&
           estado.llave.x === x && estado.llave.y === y) continue;
+
+      // No sobre otro equipable
       if (equipables.some(e => e.x === x && e.y === y)) continue;
 
+      // No sobre manzana
       const items = obtenerItemsDeChunk(zona);
       if (items.some(it => it.x === x && it.y === y)) continue;
 
@@ -187,5 +223,6 @@ function tipoEquipableANombre(tipo) {
   if (tipo === HACHA)    return "HACHA";
   if (tipo === PICO)     return "PICO";
   if (tipo === LINTERNA) return "LINTERNA";
+  if (tipo === BARCO)    return "BARCO";
   return "DESCONOCIDO";
 }
