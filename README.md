@@ -6,7 +6,7 @@
 ## 📌 Estado actual del proyecto
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.9 · Barco funcional + cámara fluida aprobada para migración |
+| **Versión actual** | v1.9.1 · Prototipo chunks 2D aprobado · migración pendiente |
 | **Última actualización** | 2026-10-15 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -377,6 +377,8 @@ HUYENDO ──[se aleja lo suficiente]──> DEAMBULANDO
 | R14 | Tick de IA configurable | 🟢 | `TICK_MS = 400`, `TICK_DEAMBULAR_CADA = 2` | v1.5 |
 | R15 | **Documentación modular** | 🟢 | **README + CHANGELOG + BACKLOG** | **v1.5.1** |
 | R16 | **Sistema de "forma" para biomas** | 🟢 | **`forma: "franja"` en `biomas.js`** | **v1.7.1** |
+| R17 | **Chunks 2D (migración pendiente)** | 🟡 | **Pasar de `zona` (número) a `{cx, cy}`** | **v1.10 (planificado)** |
+| R18 | **Cámara fluida (migración pendiente)** | 🟡 | **Jugador fijo en el centro, mundo se desplaza** | **v1.10 (planificado)** |
 ---
 ## 🎨 MARCO 8 · Estilo Visual
 | Elemento | Estilo | Referencia |
@@ -560,9 +562,11 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 - [x] **Barco (F18) · completo** (desembarco + cruce de zona navegando)
 - [x] **Cambio a click único** para acciones que requieren tiempo (romper, colocar barco)
 - [x] **Prototipo de cámara central** (probado en `chunk-camara.html`)
+- [x] **Prototipo de chunks 2D** (probado en `chunks-2d.html`)
 ### 🔥 Próximas tareas (urgentes)
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
+| 🔥 Alta | **Migración a chunks 2D + cámara fluida** | ⏸️ | Ver BACKLOG · F21 |
 | 🔥 Alta | **Migrar a cámara central fluida** | ⏸️ | Ver F21 |
 | 🔥 Alta | **Bug: no se puede bajar del barco** | ⏸️ | Ver CHANGELOG v1.8.1 |
 | 🔥 Alta | **Bug: no se puede cruzar zona navegando** | ⏸️ | Ver CHANGELOG v1.8.1 |
@@ -607,7 +611,7 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 | 7.8 | Enemigos (spawn, colisión) | `js/entities/enemigos.js` |
 | 7.9 | IA de mobs (tiempo real) | `js/systems/ia.js` |
 | 7.10 | Sistema de rotura (click sostenido) | `js/systems/rotura.js` |\n\n| 7.11 | Sistema del barco | `js/systems/barco.js` |
-| 19 | **Sistema de cámara central** | `js/systems/camara.js` ⏸️ pendiente |
+| 19 | **Sistema de cámara (chunks 2D)** | `js/systems/camara.js` ⏸️ pendiente |
 | 8 | Carga de pantalla | `js/world/chunks.js` |
 | 9 | Render del mapa | `js/ui/render.js` |
 | 10 | Render barra de zonas | `js/ui/render.js` |

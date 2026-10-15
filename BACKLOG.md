@@ -22,7 +22,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F18 · Barco (atravesar agua) · ✅ IMPLEMENTADO en v1.9
 - F19 · Tema "espacio" (nueva piel)
 - F20 · Sistema de sprites animados (atlas + animaciones)
-- F21 · Cámara central fluida
+- F21 · Migración a chunks 2D + cámara fluida · 🎨 APROBADO
 ---
 ## 🌗 F1 · Ciclo día-noche
 **Idea:** visión variable según momento del día.
@@ -420,76 +420,145 @@ Cada bioma forzado tendrá condiciones en el JSON:
 **Estado:** ⏸️ Anotado. Se implementará después de HP + daño real. Empezar por la Fase 1 (sprite estático).
 ---
 **---
-🎥 F21 · Cámara central fluida · 🎨 PROTOTIPO APROBADO
-Estado: prototipo funcional en chunk-camara.html. Aprobado para migrar al juego real.
-Concepto
-Reemplazar el sistema actual ("pantalla fija por zonas, salto al cruzar") por un sistema de cámara central:
-- El jugador queda fijo en el centro de la pantalla.
-- El mundo se desplaza debajo.
-- El movimiento entre tiles es fluido (200ms por tile).
-- Mantener la tecla mueve continuamente.
-- Sin saltos al cruzar el borde del mundo (mapa duplicado).
-Comparación visual
-Sistema actual:
-[pantalla 0] → SALTO → [pantalla 1] → SALTO → [pantalla 2]
-Sistema propuesto (cámara central):
-[ventana] ─────── desplazamiento fluido ──────→ [ventana]
-jugador siempre en el centro · mundo se mueve
-Lo que implica el cambio
-Aspecto	Hoy	Con cámara central
-Pantalla	Fija por zona	Continuo, sin cortes
-Transición de zona	Overlay + salto	Ninguna (el mundo sigue)
-Jugador en pantalla	Se mueve por el grid	Fijo en el centro
-Cámara	No existe	Sigue al jugador
-Render	Dibuja el chunk actual	Dibuja el viewport sobre el mundo
-Zonas	Chunks discretos	Ventana sobre un mundo continuo
+## 🎥 F21 · Migración a chunks 2D + cámara fluida · 🎨 PROTOTIPO APROBADO
 
+**Estado:** prototipo funcional en `chunks-2d.html`. **Aprobado para migrar al juego real.**
 
-Problemas resueltos
-- ✅ Movimiento suave entre tiles (200ms, con requestAnimationFrame).
+### Concepto general
+
+Reemplazar el sistema actual (chunks 1D + pantalla estática por zona) por un sistema **2D + cámara fluida**:
+
+- El **jugador queda fijo en el centro** de la pantalla.
+- El **mundo se desplaza** debajo.
+- El **movimiento entre tiles es fluido** (200ms por tile).
+- **Mantener la tecla** mueve continuamente.
+- **Mundo circular** en X e Y (tipo Pac-Man).
+- **Sin saltos** al cruzar el borde del mundo.
+
+### Valores confirmados
+
+| Aspecto | Valor |
+|---------|-------|
+| `ANCHO_CHUNK` | **32** |
+| `ALTO_CHUNK` | **32** |
+| `TAMANO_CELDA` | **32** (en prototipo; en juego real probablemente 16) |
+| `ANCHO_VENTANA` | **32** |
+| `ALTO_VENTANA` | **24** |
+| `DURACION_MOVIMIENTO` | **200 ms** |
+| `LIMITE_CHUNKS` | **±5** en X e Y (con wrap circular) |
+| Zona (0,0) | **pradera segura** |
+
+### Aclaración sobre `TAMANO_CELDA`
+
+- **En el prototipo:** 32px (para ver bien el mundo).
+- **En el juego real:** probablemente 16px o 20px (para no ocupar toda la pantalla con el mapa).
+- **Es ajustable después.** Cambiar `TAMANO_CELDA` recalcula todo automáticamente.
+
+### Lo que implica el cambio
+
+| Aspecto | Hoy | Con chunks 2D + cámara |
+|---------|-----|------------------------|
+| Identificador de chunk | `zona` (número) | `{cx, cy}` (par) |
+| Movimiento del jugador | E-O | **360°** |
+| Direccionalidad | Corredor E-O | **Cuadrícula infinita** |
+| Transición de zona | Overlay + salto | **Ninguna** (el mundo sigue) |
+| Jugador en pantalla | Se mueve por el grid | **Fijo en el centro** |
+| Cámara | No existe | **Sigue al jugador** |
+| Render | Dibuja el chunk actual | **Dibuja ventana sobre varios chunks** |
+| Fronteras | 1 columna (E-O) | **4 bordes + 4 esquinas (pendiente)** |
+| Mobs | Spawn por `zona` | **Spawn por `{cx, cy}`** |
+| Límites | `LIMITE_CHUNKS` en X | `LIMITE_CHUNKS` en X **e Y** |
+
+### Problemas resueltos (en el prototipo)
+
+- ✅ Movimiento suave entre tiles (200ms, `requestAnimationFrame`).
 - ✅ Mantener tecla = movimiento continuo.
-- ✅ Mundo circular sin saltos (mapa duplicado y wrap).
+- ✅ Mundo circular sin saltos (con wrap).
 - ✅ El jugador no "salta" visualmente.
-Problemas conocidos (a resolver en la migración)
-- El sistema actual genera chunks por separado. Con cámara central, hay que renderizar una ventana sobre varios chunks a la vez.
-- Las fronteras entre chunks deben seguir existiendo (son columnas compartidas). Con cámara central, el jugador ve "pedazos" de varios chunks. Hay que decidir cómo se pintan las fronteras.
-- Los mobs de un chunk no se ven si el jugador está en otro. Hay que decidir si los mobs del chunk vecino se renderizan.
-- El sistema de rotura (click sobre tile) usa coordenadas de viewport → mundo. Hay que adaptarlo.
-- Los overlays de transición ("⟶ Zona N") ya no aplican. Se pueden quitar.
-- Los botones de movimiento siguen funcionando igual.
-- La barra de objetivos tiene que adaptarse (el jugador ve varios chunks a la vez).
-Archivos a tocar en la migración
-Archivo	Cambio
-index.html	Estructura del viewport (mapa con overflow: hidden + transform)
-css/estilo.css	Estilos del viewport y del jugador fijo
-js/systems/camara.js	NUEVO — sistema de cámara
-js/ui/render.js	Renderizar ventana sobre múltiples chunks
-js/entities/jugador.js	Movimiento fluido + manejar límites del mundo
-js/world/chunks.js	Adaptar cargarPantalla() — ya no se "carga", se "consulta"
-js/entities/rotura.js	Click convertido a coordenadas del mundo
-js/systems/barco.js	Adaptar (usa coordenadas de celda)
+- ✅ Render de ventana que consulta varios chunks a la vez.
 
+### Problemas conocidos (a resolver en la migración)
 
-Fases de la migración
-Fase	Descripción	Estado
-0	Prototipo aprobado (chunk-camara.html)	✅ Hecho
-1	Sistema de cámara mínimo en el juego (ver mundo rodando)	⏸️ Pendiente
-2	Migrar jugador al sistema de movimiento fluido	⏸️ Pendiente
-3	Adaptar render a ventana sobre múltiples chunks	⏸️ Pendiente
-4	Adaptar rotura, barco, ítems, mobs	⏸️ Pendiente
-5	Quitar transiciones de zona (overlays de salto)	⏸️ Pendiente
-6	Adaptar barra de objetivos	⏸️ Pendiente
+**1 · Cortes entre chunks**
+- Los tiles cambian bruscamente en el borde de los chunks.
+- **Solución propuesta:** "fronteras compartidas en 2D". Cada chunk nuevo consulta el borde del anterior y arranca con tiles similares.
+- **Prioridad:** 🔥 Alta (es lo que más se nota).
+- **Se implementa después** de que la migración base funcione.
 
+**2 · Render de varios chunks**
+- Hay que decidir cómo se renderizan los chunks parcialmente visibles.
+- Probablemente: la ventana consulta cada celda y pide el tile al chunk correspondiente (como en el prototipo).
 
-Consideraciones
-- Mundo circular: en el prototipo usa wrap circular en X. En el juego real puede seguir siendo circular o limitado por LIMITE_CHUNKS.
-- Radio de seguridad: el sistema de "alejar mobs del jugador al cruzar zona" ya no aplica. Los mobs se generan en sus chunks y quedan ahí.
-- Caché de chunks: sigue funcionando, pero la "ventana visible" puede tocar 2 o 3 chunks a la vez.
-Referencia
-- Prototipo funcional: chunk-camara.html (en la raíz del proyecto).
-- Duración por tile: 200ms.
-- Mundo de prueba: 125 columnas × 17 filas, circular en X.
-- Rendimiento: usa requestAnimationFrame a ~60fps.
-Estado
-⏸️ Migración pendiente. Es el próximo cambio grande del proyecto.
+**3 · Mobs en chunks vecinos**
+- Los mobs se generan por chunk. Si el jugador ve varios chunks a la vez, los mobs de los chunks vecinos también deberían renderizarse y actuar.
+- **Decisión pendiente:** ¿los mobs de chunks no visitados actúan (ticks corriendo) o están congelados?
+
+**4 · Rotura y barco (coordenadas del mundo)**
+- El click actual usa coordenadas del viewport → celda del chunk.
+- Con cámara fluida, hay que convertir click → coordenadas del mundo.
+
+**5 · Sistema de rotura (barra de stamina)**
+- Sigue funcionando igual, pero el click apunta a celdas del mundo.
+
+**6 · Overlays de transición**
+- Los overlays "⟶ Zona N" ya no aplican. Se pueden quitar.
+
+**7 · Barra de objetivos**
+- Tiene que adaptarse para mostrar múltiples chunks.
+
+### Archivos a tocar en la migración
+
+| Archivo | Cambio |
+|---------|--------|
+| `js/core/config.js` | `ANCHO_CHUNK`, `ALTO_CHUNK`, `ANCHO_VENTANA`, `ALTO_VENTANA`, `TAMANO_CELDA` |
+| `js/world/mundo.js` | Generación por chunk 2D. Fronteras adaptadas. |
+| `js/world/chunks.js` | Caché 2D (`"cx,cy"`). Consulta por chunk. |
+| `js/systems/camara.js` | **NUEVO** — sistema de cámara fluida |
+| `js/ui/render.js` | Render de ventana sobre múltiples chunks |
+| `js/entities/jugador.js` | Movimiento 360° en coordenadas del mundo |
+| `js/entities/mobs.js` | Spawn por chunk 2D |
+| `js/entities/items.js` | Spawn por chunk 2D |
+| `js/entities/enemigos.js` | Caché de mobs por chunk 2D |
+| `js/systems/ia.js` | IA en coordenadas del mundo |
+| `js/systems/rotura.js` | Click → coordenadas del mundo |
+| `js/systems/barco.js` | Igual que rotura |
+| `js/core/estado.js` | Estado del jugador en coordenadas del mundo |
+| `index.html` | Estructura del viewport |
+| `css/estilo.css` | Estilos del viewport |
+
+### Fases de la migración
+
+| Fase | Descripción | Estado |
+|:----:|-------------|:------:|
+| 0 | Prototipo aprobado (`chunks-2d.html`) | ✅ Hecho |
+| 1 | Preparación: commit + push + branch `2d` + constantes nuevas | ⏸️ Pendiente |
+| 2 | Sistema de cámara aislado (`js/systems/camara.js`) | ⏸️ Pendiente |
+| 3 | Chunks 2D (caché, `{cx, cy}`) — rompe el juego | ⏸️ Pendiente |
+| 4 | Render de ventana (adaptar `render.js` + `jugador.js`) | ⏸️ Pendiente |
+| 5 | Adaptar mobs, ítems, enemigos a chunks 2D | ⏸️ Pendiente |
+| 6 | Adaptar rotura, barco (coordenadas del mundo) | ⏸️ Pendiente |
+| 7 | Quitar overlays de transición de zona | ⏸️ Pendiente |
+| 8 | Adaptar barra de objetivos | ⏸️ Pendiente |
+| 9 | Fronteras compartidas en 2D (suavizar cortes) | ⏸️ Pendiente |
+
+**Total estimado: 4-6 sesiones.**
+
+### Ubicación de trabajo
+
+- **Branch de git:** `2d` (creado a partir de `main`).
+- **`main` sigue funcionando** con el sistema actual hasta que la migración esté completa.
+- Al terminar, se hace `merge` de `2d` a `main`.
+
+### Referencia
+
+- **Prototipo funcional:** `chunks-2d.html` (en la raíz del proyecto).
+- **Duración por tile:** 200ms.
+- **Mundo de prueba:** chunks 32×32, ventana 32×24, circular en X e Y.
+- **Rendimiento:** usa `requestAnimationFrame` a ~60fps.
+
+### Estado
+⏸️ Migración pendiente. **Es el próximo cambio estructural del proyecto.**
+
+---
+
 **Fin del BACKLOG**
