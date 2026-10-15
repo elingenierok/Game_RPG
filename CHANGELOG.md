@@ -1,5 +1,38 @@
 📝 Changelog · Game_RPG
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
+v1.9 · 2026-10-15 (barco completo + cámara fluida aprobada)
+➕ Nuevo
+- Desembarco del barco: click sostenido sobre tierra adyacente → barra de 2 seg → bajarse
+- Cruce de zona navegando: adaptado cambiarZona() para funcionar con barco
+  - Si el borde del nuevo chunk es agua → sigue navegando
+  - Si es tierra → se baja automáticamente
+- Click único para acciones: ya no hace falta mantener apretado el mouse
+  - Romper árboles/piedras: 1 click → barra baja → se rompe
+  - Colocar barco: 1 click sobre agua adyacente → barra → se sube
+  - Desembarcar: 1 click sobre tierra adyacente → barra → se baja
+  - Cancelaciones siguen funcionando: mover al jugador, cambiar de zona
+🎨 Prototipo · Cámara central fluida (APROBADO para migrar)
+- Archivo nuevo: chunk-camara.html (independiente, para pruebas)
+- Sistema probado y aprobado:
+  - Cámara central: el jugador queda fijo en el centro de la pantalla
+  - El mundo se desplaza debajo (no el jugador)
+  - Movimiento fluido entre tiles (200ms por tile)
+  - Mantener tecla = movimiento continuo
+  - Mundo circular en X (al cruzar borde vuelve al principio)
+  - Mapa duplicado para evitar saltos en el borde
+- Visualización más suave, sin escalonamiento
+🐛 Fixes
+- Fix barco: aparece en tierra, pegado a agua, lejos de los bordes del chunk
+- Fix barco: porChunk en costa (1 por cada chunk de costa)
+- Fix manzanas: no se generan sobre agua
+- Fix cartel "Necesitás un barco": solo aparece si el click fue sobre agua adyacente
+📖 Documentación
+- BACKLOG: F18 marcado como completo
+- BACKLOG: F21 nuevo (cámara central fluida)
+- README: versión v1.9
+⏸️ Próximo paso (bloqueante)
+- Migrar al juego real el sistema de cámara central fluida (ver F21).
+- Es un cambio estructural. Requiere tocar render.js, jugador.js, chunks.js, estilo.css.
 v1.8.1 · 2026-10-14 (barco · CON BUGS PENDIENTES)
 ➕ Nuevo
 - Tile 🛶 (BARCO) agregado a tiles.js.
