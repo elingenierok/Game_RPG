@@ -4,6 +4,11 @@
 function intentarMover(dx, dy) {
   if (estado.transicionando || estado.ganado) return;
 
+  // Si hay un desembarco en curso, cancelarlo (el jugador se movió)
+  if (typeof cancelarDesembarco === "function") {
+    cancelarDesembarco();
+  }
+
   const nx = estado.jugador.x + dx;
   const ny = estado.jugador.y + dy;
 
@@ -110,7 +115,7 @@ function cambiarZona(delta) {
   setTimeout(() => {
     cargarPantalla(zonaNueva);
 
-    if (delta > 0) {
+        if (delta > 0) {
       estado.jugador.x = 0;
     } else {
       estado.jugador.x = ANCHO_PANTALLA - 1;
@@ -118,6 +123,17 @@ function cambiarZona(delta) {
     estado.jugador.y = yActual;
 
     alejarMobsDelJugador();
+
+    // ─── Si estaba navegando y el tile nuevo no es agua, bajarse ───
+    if (typeof estaNavegando === "function" && estaNavegando()) {
+      const tileNuevo = estado.pantalla.mapa[estado.jugador.y][estado.jugador.x];
+      if (tileNuevo !== WATER) {
+        // El tile del borde no es agua → el jugador se baja del barco
+        if (typeof finalizarNavegacionForzada === "function") {
+          finalizarNavegacionForzada();
+        }
+      }
+    }
 
     render();
     renderBarraZonas();

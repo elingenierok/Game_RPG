@@ -229,26 +229,21 @@ divMapa.addEventListener("mousedown", (e) => {
   const celda = coordenadasACelda(e);
   if (!celda) return;
 
-  // Intentar colocar barco primero (si aplica)
+  // 1. ¿Ya está navegando? Intentar desembarcar
+  if (typeof estaNavegando === "function" && estaNavegando()) {
+    if (typeof iniciarDesembarco === "function") {
+      if (iniciarDesembarco(celda.x, celda.y)) return;
+    }
+    return;   // Si no puede desembarcar, no hacer nada
+  }
+
+  // 2. Intentar colocar barco (si aplica)
   if (typeof intentarColocarBarco === "function") {
     if (intentarColocarBarco(celda.x, celda.y)) return;
   }
 
-  // Si no, intentar romper
+  // 3. Si no, intentar romper
   intentarIniciarRotura(celda.x, celda.y);
-});
-
-document.addEventListener("mouseup", () => {
-  if (rotura.activa) {
-    cancelarRotura();
-  }
-});
-
-// Si el mouse sale de la ventana mientras aprieta
-document.addEventListener("mouseleave", () => {
-  if (rotura.activa) {
-    cancelarRotura();
-  }
 });
 
 // ═══════════════════════════════════════════════════════════════

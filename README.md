@@ -6,8 +6,8 @@
 ## 📌 Estado actual del proyecto
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v1.8.1 · Barco (🛶) · con bugs pendientes |
-| **Última actualización** | 2026-10-14 |
+| **Versión actual** | v1.9 · Barco funcional + cámara fluida aprobada para migración |
+| **Última actualización** | 2026-10-15 |
 | **Estado global** | 🧪 En fase de test · Prototipo jugable |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -557,10 +557,13 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 - [x] **Objetos equipables completos (F11 fases 1-4)**
 - [x] **Rediseño del bioma "costa" con forma de franja (F16)**
 - [x] **Tile desierto cambiado a 🟧 (naranja)**
-- [x] **Barco (F18) · implementación base** (con bugs pendientes)
+- [x] **Barco (F18) · completo** (desembarco + cruce de zona navegando)
+- [x] **Cambio a click único** para acciones que requieren tiempo (romper, colocar barco)
+- [x] **Prototipo de cámara central** (probado en `chunk-camara.html`)
 ### 🔥 Próximas tareas (urgentes)
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
+| 🔥 Alta | **Migrar a cámara central fluida** | ⏸️ | Ver F21 |
 | 🔥 Alta | **Bug: no se puede bajar del barco** | ⏸️ | Ver CHANGELOG v1.8.1 |
 | 🔥 Alta | **Bug: no se puede cruzar zona navegando** | ⏸️ | Ver CHANGELOG v1.8.1 |
 | 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
@@ -604,6 +607,7 @@ F1 (día-noche) · F2 (movimiento amortiguado) · F3 (capas) · F4 (semillas sep
 | 7.8 | Enemigos (spawn, colisión) | `js/entities/enemigos.js` |
 | 7.9 | IA de mobs (tiempo real) | `js/systems/ia.js` |
 | 7.10 | Sistema de rotura (click sostenido) | `js/systems/rotura.js` |\n\n| 7.11 | Sistema del barco | `js/systems/barco.js` |
+| 19 | **Sistema de cámara central** | `js/systems/camara.js` ⏸️ pendiente |
 | 8 | Carga de pantalla | `js/world/chunks.js` |
 | 9 | Render del mapa | `js/ui/render.js` |
 | 10 | Render barra de zonas | `js/ui/render.js` |

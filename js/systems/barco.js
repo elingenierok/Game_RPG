@@ -154,3 +154,139 @@ function verificarBajarseDelBarco() {
     mostrarCartelRapido("🚣 Bajaste del barco");
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  DESEMBARCO · Bajar del barco a tierra adyacente
+// ─────────────────────────────────────────────────────────────────
+//  Mientras el jugador navega, puede hacer click sostenido sobre
+//  una celda de tierra adyacente. Tras 2 segundos, se baja del
+//  barco y aparece en esa celda.
+// ═══════════════════════════════════════════════════════════════
+
+const desembarco = {
+  activo: false,
+  x: null,
+  y: null,
+  tiempoInicio: 0,
+  duracionMs: 2000,
+  intervalID: null,
+};
+
+// ─── ¿El jugador puede desembarcar en esta celda? ───
+function puedeDesembarcarEn(x, y) {
+  // 1. Debe estar navegando
+  if (!barco.activo) return false;
+
+  // 2. La celda debe ser tierra (no agua)
+  const tile = estado.pantalla.mapa[y][x];
+  if (tile === WATER) return false;
+
+  // 3. No debe ser bloqueante
+  if (BLOQUEANTES.has(tile)) return false;
+
+  // 4. Debe estar adyacente al jugador
+  const dx = Math.abs(estado.jugador.x - x);
+  const dy = Math.abs(estado.jugador.y - y);
+  if (dx + dy !== 1) return false;
+
+  // 5. No debe haber mob
+  const mob = obtenerMobEn(estado.zona, x, y);
+  if (mob) return false;
+
+  return true;
+}
+
+// ─── Iniciar desembarco ───
+function iniciarDesembarco(x, y) {
+  if (!puedeDesembarcarEn(x, y)) return false;
+
+  desembarco.activo = true;
+  desembarco.x = x;
+  desembarco.y = y;
+  desembarco.tiempoInicio = Date.now();
+
+  // Mostrar barra
+  const barra = document.getElementById("barra-stamina");
+  barra.classList.add("visible");
+
+  desembarco.intervalID = setInterval(actualizarDesembarco, INTERVALO_ROTURA_MS);
+
+  return true;
+}
+
+// ─── Actualizar desembarco ───
+function actualizarDesembarco() {
+  if (!desembarco.activo) return;
+
+  // ¿El jugador se movió? Cancelar
+  const dx = Math.abs(estado.jugador.x - desembarco.x);
+  const dy = Math.abs(estado.jugador.y - desembarco.y);
+  if (dx + dy !== 1) {
+    cancelarDesembarco();
+    return;
+  }
+
+  // Actualizar barra
+  const transcurrido = Date.now() - desembarco.tiempoInicio;
+  const progreso = Math.max(0, 1 - (transcurrido / desembarco.duracionMs));
+  const relleno = document.getElementById("barra-stamina-relleno");
+  relleno.style.width = (progreso * 100) + "%";
+
+  if (transcurrido >= desembarco.duracionMs) {
+    finalizarDesembarco();
+  }
+}
+
+// ─── Finalizar desembarco ───
+function finalizarDesembarco() {
+  if (!desembarco.activo) return;
+
+  // Mover al jugador a tierra
+  estado.jugador.x = desembarco.x;
+  estado.jugador.y = desembarco.y;
+
+  // Bajar del barco
+  barco.activo = false;
+
+  // Limpiar
+  desembarco.activo = false;
+
+  if (desembarco.intervalID !== null) {
+    clearInterval(desembarco.intervalID);
+    desembarco.intervalID = null;
+  }
+
+  // Ocultar barra
+  document.getElementById("barra-stamina").classList.remove("visible");
+  document.getElementById("barra-stamina-relleno").style.width = "100%";
+
+  if (typeof mostrarCartelRapido === "function") {
+    mostrarCartelRapido("🏃 Bajaste del barco");
+  }
+
+  render();
+}
+
+// ─── Cancelar desembarco ───
+function cancelarDesembarco() {
+  desembarco.activo = false;
+
+  if (desembarco.intervalID !== null) {
+    clearInterval(desembarco.intervalID);
+    desembarco.intervalID = null;
+  }
+
+  document.getElementById("barra-stamina").classList.remove("visible");
+  document.getElementById("barra-stamina-relleno").style.width = "100%";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FORZAR BAJADA DEL BARCO (por cambio de zona)
+// ─────────────────────────────────────────────────────────────────
+//  Cuando el jugador cruza de zona navegando, pero el tile de
+//  destino no es agua, se baja del barco automáticamente.
+// ═══════════════════════════════════════════════════════════════
+function finalizarNavegacionForzada() {
+  if (!barco.activo) return;
+  barco.activo = false;
+}
