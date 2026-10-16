@@ -1,117 +1,73 @@
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 14 · INPUT
 // ─────────────────────────────────────────────────────────────────
-//  Soporta 3 formas de mover al jugador:
-//  1. Teclas WASD
-//  2. Flechas del teclado
-//  3. Botones en pantalla (click sostenido)
+//  Teclado (WASD + flechas) + botones en pantalla.
+//  El input es continuo: si mantenés una tecla, el jugador se mueve
+//  en cuanto termina la animación anterior.
 // ═══════════════════════════════════════════════════════════════
+
+// Estado de las teclas
+const teclas = {
+  arriba: false,
+  abajo: false,
+  izquierda: false,
+  derecha: false,
+};
+
+// Dirección que se está intentando mover
+function obtenerDireccionActual() {
+  // Prioridad vertical si ambas están apretadas
+  if (teclas.arriba)    return { dx: 0, dy: -1 };
+  if (teclas.abajo)     return { dx: 0, dy: +1 };
+  if (teclas.izquierda) return { dx: -1, dy: 0 };
+  if (teclas.derecha)   return { dx: +1, dy: 0 };
+  return null;
+}
 
 // ─── Teclado ───
 document.addEventListener("keydown", (e) => {
+  if (e.repeat) return;   // ignorar repetición del teclado
   const k = e.key.toLowerCase();
-  if (k === "w" || k === "arrowup")    intentarMover(0, -1);
-  if (k === "s" || k === "arrowdown")  intentarMover(0, +1);
-  if (k === "a" || k === "arrowleft")  intentarMover(-1, 0);
-  if (k === "d" || k === "arrowright") intentarMover(+1, 0);
+  if (k === "w" || k === "arrowup")    { teclas.arriba = true;    e.preventDefault(); }
+  if (k === "s" || k === "arrowdown")  { teclas.abajo = true;     e.preventDefault(); }
+  if (k === "a" || k === "arrowleft")  { teclas.izquierda = true; e.preventDefault(); }
+  if (k === "d" || k === "arrowright") { teclas.derecha = true;   e.preventDefault(); }
 });
 
-// ═══════════════════════════════════════════════════════════════
-//  BOTONES DE MOVIMIENTO (click sostenido)
-// ─────────────────────────────────────────────────────────────────
-//  Cada botón corresponde a una dirección.
-//  Mientras se mantiene apretado, el jugador se mueve repetidamente.
-//  Al soltar, se detiene.
-// ═══════════════════════════════════════════════════════════════
+document.addEventListener("keyup", (e) => {
+  const k = e.key.toLowerCase();
+  if (k === "w" || k === "arrowup")    teclas.arriba = false;
+  if (k === "s" || k === "arrowdown")  teclas.abajo = false;
+  if (k === "a" || k === "arrowleft")  teclas.izquierda = false;
+  if (k === "d" || k === "arrowright") teclas.derecha = false;
+});
 
-const INTERVALO_MOVIMIENTO = 200;  // ms entre cada movimiento
-
-// Estado de cada botón
-const botonesEstado = {
-  arriba:    { activo: false, intervaloID: null, dx: 0,  dy: -1 },
-  abajo:     { activo: false, intervaloID: null, dx: 0,  dy: +1 },
-  izquierda: { activo: false, intervaloID: null, dx: -1, dy: 0  },
-  derecha:   { activo: false, intervaloID: null, dx: +1, dy: 0  },
-};
-
-// ─── Iniciar movimiento continuo ───
-function iniciarMovimiento(direccion, boton) {
-  const estadoBoton = botonesEstado[direccion];
-  if (!estadoBoton) return;
-  if (estadoBoton.activo) return;   // ya está activo
-
-  estadoBoton.activo = true;
-  boton.classList.add("activo");
-
-  // Primer movimiento inmediato
-  intentarMover(estadoBoton.dx, estadoBoton.dy);
-
-  // Después, mover cada INTERVALO_MOVIMIENTO ms
-  estadoBoton.intervaloID = setInterval(() => {
-    intentarMover(estadoBoton.dx, estadoBoton.dy);
-  }, INTERVALO_MOVIMIENTO);
-}
-
-// ─── Detener movimiento continuo ───
-function detenerMovimiento(direccion, boton) {
-  const estadoBoton = botonesEstado[direccion];
-  if (!estadoBoton) return;
-
-  estadoBoton.activo = false;
-  boton.classList.remove("activo");
-
-  if (estadoBoton.intervaloID !== null) {
-    clearInterval(estadoBoton.intervaloID);
-    estadoBoton.intervaloID = null;
-  }
-}
-
-// ─── Detener TODOS los botones (por si se sueltan varios a la vez) ───
-function detenerTodosLosBotones() {
-  document.querySelectorAll(".btn-mover").forEach((boton) => {
-    const dir = boton.dataset.dir;
-    detenerMovimiento(dir, boton);
-  });
-}
-
-// ─── Conectar los botones ───
+// ─── Botones en pantalla ───
 document.querySelectorAll(".btn-mover").forEach((boton) => {
-  const direccion = boton.dataset.dir;
+  const dir = boton.dataset.dir;
 
-  // Mouse: presionar
-  boton.addEventListener("mousedown", (e) => {
+  const iniciar = (e) => {
     e.preventDefault();
-    iniciarMovimiento(direccion, boton);
-  });
+    if (dir === "arriba")    teclas.arriba = true;
+    if (dir === "abajo")     teclas.abajo = true;
+    if (dir === "izquierda") teclas.izquierda = true;
+    if (dir === "derecha")   teclas.derecha = true;
+    boton.classList.add("activo");
+  };
 
-  // Mouse: soltar
-  boton.addEventListener("mouseup", () => {
-    detenerMovimiento(direccion, boton);
-  });
-
-  // Mouse: salir del botón mientras se mantiene
-  boton.addEventListener("mouseleave", () => {
-    detenerMovimiento(direccion, boton);
-  });
-
-  // Touch: presionar
-  boton.addEventListener("touchstart", (e) => {
+  const detener = (e) => {
     e.preventDefault();
-    iniciarMovimiento(direccion, boton);
-  }, { passive: false });
+    if (dir === "arriba")    teclas.arriba = false;
+    if (dir === "abajo")     teclas.abajo = false;
+    if (dir === "izquierda") teclas.izquierda = false;
+    if (dir === "derecha")   teclas.derecha = false;
+    boton.classList.remove("activo");
+  };
 
-  // Touch: soltar
-  boton.addEventListener("touchend", (e) => {
-    e.preventDefault();
-    detenerMovimiento(direccion, boton);
-  }, { passive: false });
-
-  // Touch: cancelar
-  boton.addEventListener("touchcancel", () => {
-    detenerMovimiento(direccion, boton);
-  });
+  boton.addEventListener("mousedown", iniciar);
+  boton.addEventListener("mouseup", detener);
+  boton.addEventListener("mouseleave", detener);
+  boton.addEventListener("touchstart", iniciar, { passive: false });
+  boton.addEventListener("touchend", detener, { passive: false });
+  boton.addEventListener("touchcancel", detener, { passive: false });
 });
-
-// ─── Si el mouse sale de la ventana mientras aprieta, detener todo ───
-document.addEventListener("mouseup", detenerTodosLosBotones);
-document.addEventListener("mouseleave", detenerTodosLosBotones);

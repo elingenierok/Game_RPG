@@ -1,39 +1,61 @@
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 7.5 · ÍTEMS
+//  BLOQUE 7.5 · ÍTEMS (chunks 2D)
 // ─────────────────────────────────────────────────────────────────
-//  Los ítems se generan con su propio RNG (@items), separado del
-//  terreno. Cada chunk tiene 0 a 3 ítems, siempre en celdas
-//  transitables.
+//  Ahora los ítems viven en coordenadas del mundo (wx, wy).
+//  Un chunk es de 32×32 celdas.
 // ═══════════════════════════════════════════════════════════════
-function obtenerItemsDeChunk(zona) {
-  const clave = SEMILLA_OBJETOS + "@items" + zona;
-  const rng = crearRNG(hashString(clave));
+
+const _cacheItemsPorChunk = new Map();
+
+// ─── Genera los ítems de un chunk (0-3 por chunk) ───
+function generarItemsDeChunk(cx, cy) {
+  const clave = cx + "," + cy;
+  if (_cacheItemsPorChunk.has(clave)) return _cacheItemsPorChunk.get(clave);
+
+  const rng = crearRNG(hashString(SEMILLA_OBJETOS + "@items@" + cx + "," + cy));
   const items = [];
-
-  const chunk = cacheChunks.get(zona) || obtenerChunk(zona);
-  if (!chunk) return items;
-
   const cantidad = randInt(rng, 0, 3);
-  const maxIntentosPorItem = 20;
+  const maxIntentos = 20;
+
+  const chunk = obtenerChunk(cx, cy);
 
   for (let i = 0; i < cantidad; i++) {
-    for (let intento = 0; intento < maxIntentosPorItem; intento++) {
-      const x = randInt(rng, 1, ANCHO_PANTALLA - 2);
-      const y = randInt(rng, 1, ALTO_PANTALLA - 2);
+    for (let intento = 0; intento < maxIntentos; intento++) {
+      const lx = randInt(rng, 1, ANCHO_CHUNK - 2);
+      const ly = randInt(rng, 1, ALTO_CHUNK - 2);
 
-      if (BLOQUEANTES.has(chunk.mapa[y][x])) continue;
-      if (chunk.mapa[y][x] === WATER) continue;
-      if (estado.llave.zona === zona &&
-          estado.llave.x === x && estado.llave.y === y) continue;
-      if (items.some(it => it.x === x && it.y === y)) continue;
+            if (BLOQUEANTES.has(chunk.mapa[ly][lx])) continue;
+      if (chunk.mapa[ly][lx] === WATER) continue;
 
-      items.push({ x, y, tipo: MANZANA });
+      const wx = cx * ANCHO_CHUNK + lx;
+      const wy = cy * ALTO_CHUNK + ly;
+
+      if (items.some(it => it.wx === wx && it.wy === wy)) continue;
+
+      // No spawnear manzana si hay un mob en esa celda
+      if (typeof cacheMobs !== "undefined") {
+        const mobs = cacheMobs.get(cx + "," + cy);
+        if (mobs && mobs.some(m => m.wx === wx && m.wy === wy)) continue;
+      }
+
+      items.push({ wx, wy, tipo: MANZANA });
       break;
     }
   }
+
+  _cacheItemsPorChunk.set(clave, items);
   return items;
 }
 
+// ─── Obtiene los ítems que pueden estar en coordenadas (wx, wy) ───
+//  Como el mundo es grande, solo consultamos el chunk de esa celda.
+function obtenerItemsDeChunk(wx, wy) {
+  const info = coordsMundoATile(wx, wy);
+  const items = generarItemsDeChunk(info.cx, info.cy);
+  return items;
+}
+
+// ─── Datos de un ítem ───
 function tipoItemANombre(tipo) {
   if (tipo === MANZANA) return "MANZANA";
   return "DESCONOCIDO";
@@ -43,15 +65,17 @@ function iconoDeItem(tipo) {
   return ICONOS[tipo] || "?";
 }
 
-function recogerItemEn(x, y) {
-  const clave = estado.zona + ":" + x + "," + y;
+// ─── Recoger un ítem en coordenadas del mundo ───
+function recogerItemEn(wx, wy) {
+  const clave = wx + "," + wy;
   if (estado.itemsRecogidos.has(clave)) return null;
 
-  const items = obtenerItemsDeChunk(estado.zona);
-  const item = items.find(it => it.x === x && it.y === y);
+  const info = coordsMundoATile(wx, wy);
+  const items = generarItemsDeChunk(info.cx, info.cy);
+  const item = items.find(it => it.wx === wx && it.wy === wy);
   if (!item) return null;
 
-  const tileBase = estado.pantalla.mapa[y][x];
+  const tileBase = tileEnMundo(wx, wy);
   if (BLOQUEANTES.has(tileBase)) return null;
 
   estado.itemsRecogidos.add(clave);
@@ -61,17 +85,12 @@ function recogerItemEn(x, y) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 7.5b · OBJETOS EQUIPABLES
+//  BLOQUE 7.5b · OBJETOS EQUIPABLES (chunks 2D)
 // ─────────────────────────────────────────────────────────────────
-//  Los objetos equipables (🪓 ⛏️ 🕯️ 🛶) son únicos por mundo:
-//  1 de cada uno, en una zona específica elegida AL AZAR entre
-//  todas las zonas del mundo que cumplan con los requisitos.
-//
-//  Semilla: SEMILLA_OBJETOS.
-//  Ubicación: determinista por semilla (misma semilla → mismo lugar).
+//  Cada equipable se genera UNA VEZ por mundo, en un chunk
+//  específico elegido al azar según la semilla.
 // ═══════════════════════════════════════════════════════════════
 
-// Configuración: qué objeto va en qué bioma
 const EQUIPABLES = [
   { tipo: HACHA,    bioma: "bosque"  },
   { tipo: PICO,     bioma: "ruina"   },
@@ -79,135 +98,119 @@ const EQUIPABLES = [
   { tipo: BARCO,    bioma: "costa",  porChunk: true },
 ];
 
-// Cache: zona → [{ tipo, x, y }]
-const cacheEquipables = new Map();
-
-// Cache: tipo → zona donde va
+const _cacheEquipablesPorChunk = new Map();
 const _zonasEquipables = new Map();
 
-// ─── Determina en qué zona va cada equipable ───
-function obtenerZonaDeEquipable(tipo, bioma) {
+// ─── Determina el chunk donde va cada equipable ───
+function obtenerChunkDeEquipable(tipo, bioma) {
   if (_zonasEquipables.has(tipo)) return _zonasEquipables.get(tipo);
 
-  // ¿Este equipable va en TODOS los chunks del bioma? (porChunk)
   const config = EQUIPABLES.find(e => e.tipo === tipo);
   if (config && config.porChunk) {
     _zonasEquipables.set(tipo, "porChunk");
     return "porChunk";
   }
 
-  const candidatas = [];
-
-  for (let z = -LIMITE_CHUNKS; z <= LIMITE_CHUNKS; z++) {
-    if (z === 0) continue;
-    const chunk = cacheChunks.get(z) || obtenerChunk(z);
-    if (chunk && chunk.bioma === bioma) {
-      candidatas.push(z);
+  // Buscar chunks del bioma correspondiente
+  const candidatos = [];
+  const r = LIMITE_CHUNKS;
+  for (let cy = -r; cy <= r; cy++) {
+    for (let cx = -r; cx <= r; cx++) {
+      if (cx === 0 && cy === 0) continue;
+      const biomaChunk = obtenerBiomaDeChunk(SEMILLA, cx, cy);
+      if (biomaChunk === bioma) candidatos.push({ cx, cy });
     }
   }
 
-  if (candidatas.length === 0) {
+  if (candidatos.length === 0) {
     _zonasEquipables.set(tipo, null);
     return null;
   }
 
-  const clave = SEMILLA_OBJETOS + "@equipable_zona@" + tipo;
+  const clave = SEMILLA_OBJETOS + "@equipable_chunk@" + tipo;
   const rng = crearRNG(hashString(clave));
-  const indiceElegido = Math.floor(rng() * candidatas.length);
-  const zonaElegida = candidatas[indiceElegido];
+  const elegido = candidatos[Math.floor(rng() * candidatos.length)];
 
-  _zonasEquipables.set(tipo, zonaElegida);
-  return zonaElegida;
+  _zonasEquipables.set(tipo, elegido);
+  return elegido;
 }
 
-// ─── Devuelve los equipables de un chunk ───
-function obtenerEquipablesDeChunk(zona) {
-  if (cacheEquipables.has(zona)) return cacheEquipables.get(zona);
+// ─── Genera los equipables de un chunk ───
+function generarEquipablesDeChunk(cx, cy) {
+  const clave = cx + "," + cy;
+  if (_cacheEquipablesPorChunk.has(clave)) return _cacheEquipablesPorChunk.get(clave);
 
-  const chunk = cacheChunks.get(zona) || obtenerChunk(zona);
-  if (!chunk) {
-    cacheEquipables.set(zona, []);
-    return [];
-  }
-
+  const chunk = obtenerChunk(cx, cy);
   const equipables = [];
 
-    for (const { tipo, bioma } of EQUIPABLES) {
-    // ¿Va en todos los chunks del bioma?
+  for (const { tipo, bioma } of EQUIPABLES) {
     const config = EQUIPABLES.find(e => e.tipo === tipo);
-    const zonaObjeto = obtenerZonaDeEquipable(tipo, bioma);
+    const chunkObjetivo = obtenerChunkDeEquipable(tipo, bioma);
 
-    if (config && config.porChunk) {
-      // Debe ser del bioma correspondiente
+    // ¿Va en este chunk?
+    if (config.porChunk) {
+      // Debe ser del bioma correcto
       if (chunk.bioma !== bioma) continue;
     } else {
-      // Solo en la zona elegida
-      if (zonaObjeto !== zona) continue;
+      if (!chunkObjetivo || chunkObjetivo.cx !== cx || chunkObjetivo.cy !== cy) continue;
     }
 
-    const rng = crearRNG(hashString(SEMILLA_OBJETOS + "@equipable" + tipo + "@zona" + zona));
-
-    // El barco necesita más intentos porque tiene más restricciones
+    const rng = crearRNG(hashString(SEMILLA_OBJETOS + "@equipable@" + tipo + "@" + cx + "," + cy));
     const maxIntentos = (tipo === BARCO) ? 80 : 30;
 
     for (let intento = 0; intento < maxIntentos; intento++) {
-      const x = randInt(rng, 1, ANCHO_PANTALLA - 2);
-      const y = randInt(rng, 1, ALTO_PANTALLA - 2);
+      const lx = randInt(rng, 1, ANCHO_CHUNK - 2);
+      const ly = randInt(rng, 1, ALTO_CHUNK - 2);
 
-      // No sobre bloqueantes
-      if (BLOQUEANTES.has(chunk.mapa[y][x])) continue;
+      if (BLOQUEANTES.has(chunk.mapa[ly][lx])) continue;
+      if (chunk.mapa[ly][lx] === WATER) continue;
 
-      // No sobre agua
-      if (chunk.mapa[y][x] === WATER) continue;
-
-      // ─── Reglas especiales del barco ───
       if (tipo === BARCO) {
-        // No puede estar en los bordes del chunk (para que sea accesible)
-        if (x <= 1 || x >= ANCHO_PANTALLA - 2) continue;
-        if (y <= 1 || y >= ALTO_PANTALLA - 2) continue;
+        if (lx <= 1 || lx >= ANCHO_CHUNK - 2) continue;
+        if (ly <= 1 || ly >= ALTO_CHUNK - 2) continue;
 
-        // Debe tener agua adyacente
-        const tieneAguaAlLado =
-          (y > 0 && chunk.mapa[y-1][x] === WATER) ||
-          (y < ALTO_PANTALLA - 1 && chunk.mapa[y+1][x] === WATER) ||
-          (x > 0 && chunk.mapa[y][x-1] === WATER) ||
-          (x < ANCHO_PANTALLA - 1 && chunk.mapa[y][x+1] === WATER);
-        if (!tieneAguaAlLado) continue;
+        const tieneAgua =
+          (ly > 0 && chunk.mapa[ly-1][lx] === WATER) ||
+          (ly < ALTO_CHUNK - 1 && chunk.mapa[ly+1][lx] === WATER) ||
+          (lx > 0 && chunk.mapa[ly][lx-1] === WATER) ||
+          (lx < ANCHO_CHUNK - 1 && chunk.mapa[ly][lx+1] === WATER);
+        if (!tieneAgua) continue;
       }
 
-      // No sobre la llave
-      if (estado.llave.zona === zona &&
-          estado.llave.x === x && estado.llave.y === y) continue;
+      const wx = cx * ANCHO_CHUNK + lx;
+      const wy = cy * ALTO_CHUNK + ly;
 
-      // No sobre otro equipable
-      if (equipables.some(e => e.x === x && e.y === y)) continue;
+      if (equipables.some(e => e.wx === wx && e.wy === wy)) continue;
 
-      // No sobre manzana
-      const items = obtenerItemsDeChunk(zona);
-      if (items.some(it => it.x === x && it.y === y)) continue;
+      // No spawnear equipable si hay un mob en esa celda
+      if (typeof cacheMobs !== "undefined") {
+        const mobs = cacheMobs.get(cx + "," + cy);
+        if (mobs && mobs.some(m => m.wx === wx && m.wy === wy)) continue;
+      }
 
-      equipables.push({ tipo, x, y });
+      equipables.push({ tipo, wx, wy });
       break;
     }
   }
 
-  cacheEquipables.set(zona, equipables);
+  _cacheEquipablesPorChunk.set(clave, equipables);
   return equipables;
 }
 
-// ─── Obtiene un equipable en una posición (o null) ───
-function obtenerEquipableEn(zona, x, y) {
-  const equipables = obtenerEquipablesDeChunk(zona);
-  return equipables.find(e => e.x === x && e.y === y) || null;
+// ─── Obtiene los equipables que pueden estar en (wx, wy) ───
+function obtenerEquipablesDeChunk(wx, wy) {
+  const info = coordsMundoATile(wx, wy);
+  return generarEquipablesDeChunk(info.cx, info.cy);
 }
 
-// ─── Marca un equipable como recogido (desaparece) ───
-function recogerEquipableEn(x, y) {
-  const clave = estado.zona + ":" + x + "," + y;
+// ─── Recoger un equipable ───
+function recogerEquipableEn(wx, wy) {
+  const clave = wx + "," + wy;
   if (estado.itemsRecogidos.has(clave)) return null;
 
-  const equipables = obtenerEquipablesDeChunk(estado.zona);
-  const eq = equipables.find(e => e.x === x && e.y === y);
+  const info = coordsMundoATile(wx, wy);
+  const equipables = generarEquipablesDeChunk(info.cx, info.cy);
+  const eq = equipables.find(e => e.wx === wx && e.wy === wy);
   if (!eq) return null;
 
   const nombre = tipoEquipableANombre(eq.tipo);
@@ -218,7 +221,6 @@ function recogerEquipableEn(x, y) {
   return eq;
 }
 
-// ─── Nombre legible de un equipable ───
 function tipoEquipableANombre(tipo) {
   if (tipo === HACHA)    return "HACHA";
   if (tipo === PICO)     return "PICO";

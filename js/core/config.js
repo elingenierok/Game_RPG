@@ -3,39 +3,50 @@
 // ─────────────────────────────────────────────────────────────────
 //  ⚙️  PANEL DE AJUSTES · Cambiá TODO desde acá
 //
-//  ANCHO_PANTALLA / ALTO_PANTALLA
-//    → tamaño de la grilla (en celdas)
-//    → al cambiarlo, el resto se recalcula solo:
-//        · tamaño de cada celda
-//        · tamaño de los emojis
-//        · grilla del CSS
+//  SISTEMA DE CHUNKS 2D:
+//    El mundo se divide en chunks cuadrados de ANCHO_CHUNK × ALTO_CHUNK.
+//    Cada chunk se genera proceduralmente a partir de su (cx, cy).
 //
-//  FÓRMULA DE TAMAÑO DE CELDA:
-//    grilla grande (>=40) → celdas chicas (16px)
-//    grilla chica  (<40)  → celdas grandes (30px)
-//  Ajustable en la constante TAMANO_CELDA.
+//  VENTANA VISIBLE:
+//    El jugador ve una ventana de ANCHO_VENTANA × ALTO_VENTANA celdas.
+//    La cámara está centrada en el jugador.
+//
+//  TAMAÑO VISUAL:
+//    Cada celda se dibuja a TAMANO_CELDA píxeles.
+//    Los emojis son FONT_EMOJI píxeles (un poco más chicos).
 // ═══════════════════════════════════════════════════════════════
 
-// ─── Tamaño de la grilla ───
-const ANCHO_PANTALLA  = 25;
-const ALTO_PANTALLA   = 17;
+// ─── Tamaño del chunk ───
+const ANCHO_CHUNK = 32;
+const ALTO_CHUNK  = 32;
 
-// ─── Tamaño visual (DERIVADO del ancho) ───
-// Si cambiás ANCHO_PANTALLA, esto se ajusta solo.
-const TAMANO_CELDA = ANCHO_PANTALLA >= 40 ? 16 : 30;
+// ─── Tamaño de la ventana visible ───
+const ANCHO_VENTANA = 32;
+const ALTO_VENTANA  = 24;
+
+// ─── Tamaño visual de cada celda ───
+const TAMANO_CELDA = 24;
 const FONT_EMOJI   = TAMANO_CELDA - 2;
 
-// ─── Zonas y mundo ───
-const ZONAS_VISIBLES  = 5;
-const ZONA_LLAVE      = 2;
+// ─── Límite de chunks (radio desde (0,0)) ───
+// ±LIMITE_CHUNKS en X e Y → (2*LIMITE+1)² chunks totales
+const LIMITE_CHUNKS = 4;
+
+// ─── Llave (posición del chunk donde aparece) ───
+const LLAVE_CHUNK_CX = 2;
+const LLAVE_CHUNK_CY = 0;
+
+// ─── Duración del movimiento del jugador ───
+// Cuánto tarda en moverse de una celda a la siguiente.
+const DURACION_MOVIMIENTO_MS = 300;
 
 // ─── Tick de IA (mobs en tiempo real) ───
-const TICK_MS = 400;              // intervalo base del tick (ms)
-const TICK_DEAMBULAR_CADA = 2;    // cada cuántos ticks deambula un mob
+const TICK_MS = 400;
+const TICK_DEAMBULAR_CADA = 2;
 
 // ─── Sistema de rotura (romper árboles, piedras, etc.) ───
-const DURACION_ROTURA_MS = 3000;   // 3 segundos por defecto
-const INTERVALO_ROTURA_MS = 50;    // cada cuánto se actualiza la barra
+const DURACION_ROTURA_MS = 3000;
+const INTERVALO_ROTURA_MS = 50;
 
 // ─── Radio de seguridad al entrar a una zona (tiles) ───
 const RADIO_SEGURIDAD_SPAWN = 3;
@@ -45,12 +56,7 @@ const RADIO_SEGURIDAD_SPAWN = 3;
 let SEMILLA = "test_mundo_01";
 
 // SEMILLA_MOBS = distribución de mobs. Independiente del mundo.
-// Por defecto: cambia en cada carga de página.
-// Los mobs son distintos aunque el mundo sea el mismo.
 let SEMILLA_MOBS = Date.now();
 
-// SEMILLA_OBJETOS = distribución de ítems. Por ahora ligada al mundo.
-// Preparada para separar en el futuro (cambiar a Date.now() si se desea).
+// SEMILLA_OBJETOS = distribución de ítems. Ligada al mundo por ahora.
 let SEMILLA_OBJETOS = SEMILLA;
-
-let LIMITE_CHUNKS = 20;

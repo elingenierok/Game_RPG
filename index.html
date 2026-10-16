@@ -37,21 +37,15 @@
       <div class="slot-equipado" id="slot-barco">—</div>
     </div>
 
-        <!-- Barra de stamina (rotura) -->
+          <!-- Barra de stamina (rotura) -->
     <div id="barra-stamina">
       <div id="barra-stamina-relleno"></div>
     </div>
 
-    <!-- Mapa -->
+    <!-- Mapa (viewport) -->
     <div id="pantalla">
       <div id="mapa"></div>
-    </div>
-
-    <!-- Barra de objetivos (abajo del mapa) -->
-    <div id="barra-objetivos">
-      <div class="flecha" id="flechaIzq">←</div>
-      <div class="slots" id="slots"></div>
-      <div class="flecha" id="flechaDer">→</div>
+      <div id="jugador-fijo">🏃‍♂️</div>
     </div>
 
   </div>
@@ -97,11 +91,12 @@
 <script src="js/core/rng.js"></script>
 <script src="js/world/biomas.js"></script>
 <script src="js/world/mundo.js"></script>
+<script src="js/systems/camara.js"></script>
 <script src="js/core/estado.js"></script>
+<script src="js/world/chunks.js"></script>
 <script src="js/entities/items.js"></script>
 <script src="js/entities/mobs.js"></script>
 <script src="js/entities/enemigos.js"></script>
-<script src="js/world/chunks.js"></script>
 <script src="js/ui/render.js"></script>
 <script src="js/systems/ia.js"></script>
 <script src="js/entities/jugador.js"></script>
@@ -109,7 +104,6 @@
 <script src="js/core/input.js"></script>
 <script src="js/systems/rotura.js"></script>
 <script src="js/systems/barco.js"></script>
-<script src="js/world/limite.js"></script>
 <script src="js/main.js"></script>
 
 </body>

@@ -1,96 +1,88 @@
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 7.8 · ENEMIGOS · Spawn, render, colisión
+//  BLOQUE 7.8 · ENEMIGOS (chunks 2D)
 // ─────────────────────────────────────────────────────────────────
-//  Los mobs se generan con su propio RNG (@mobs), separado del
-//  terreno y los ítems.
-//
-//  Cache: los mobs de un chunk se generan una vez y se guardan en
-//  caché hasta que el jugador cambia de semilla o el mob muere.
+//  Los mobs se generan por chunk. Cada chunk tiene sus mobs,
+//  cacheados por "cx,cy".
 // ═══════════════════════════════════════════════════════════════
 
-const cacheMobs = new Map();       // zona → [{ tipo, x, y }]
-const mobsDerrotados = new Set();  // "zona:x,y" de mobs eliminados
+const cacheMobs = new Map();   // "cx,cy" → [{tipo, wx, wy, estado, ...}]
 
 // ─── Genera los mobs de un chunk ───
-function obtenerMobsDeChunk(zona) {
-  if (cacheMobs.has(zona)) return cacheMobs.get(zona);
+function generarMobsDeChunk(cx, cy) {
+  const clave = cx + "," + cy;
+  if (cacheMobs.has(clave)) return cacheMobs.get(clave);
 
-  // Zona inicial sin mobs (lugar seguro de spawn)
-  if (zona === 0) {
-    cacheMobs.set(zona, []);
+  // Zona (0,0): sin mobs (zona segura)
+  if (cx === 0 && cy === 0) {
+    cacheMobs.set(clave, []);
     return [];
   }
 
-  const rng = crearRNG(hashString(SEMILLA_MOBS + "@mobs" + zona));
-  const chunk = cacheChunks.get(zona) || obtenerChunk(zona);
-  if (!chunk) {
-    cacheMobs.set(zona, []);
-    return [];
-  }
-
-  const bioma = chunk.bioma;
+  const chunk = obtenerChunk(cx, cy);
+  const rng = crearRNG(hashString(SEMILLA_MOBS + "@mobs@" + cx + "," + cy));
   const mobs = [];
 
-  // Para cada tipo de mob
   for (const id of Object.keys(MOBS)) {
     const mob = MOBS[id];
+    if (!mob.spawn.biomas[chunk.bioma]) continue;
 
-    // ¿Aparece en este bioma?
-    if (!mob.spawn.biomas[bioma]) continue;
-
-    // Cantidad aleatoria de este tipo
     const [min, max] = mob.spawn.porChunk;
     const cantidad = randInt(rng, min, max);
 
     for (let i = 0; i < cantidad; i++) {
-      // Buscar posición válida
       let colocado = false;
       for (let intento = 0; intento < 20; intento++) {
-        const x = randInt(rng, 1, ANCHO_PANTALLA - 2);
-        const y = randInt(rng, 1, ALTO_PANTALLA - 2);
+        const lx = randInt(rng, 1, ANCHO_CHUNK - 2);
+        const ly = randInt(rng, 1, ALTO_CHUNK - 2);
 
-        // No sobre bloqueantes del terreno
-        if (BLOQUEANTES.has(chunk.mapa[y][x])) continue;
+        if (BLOQUEANTES.has(chunk.mapa[ly][lx])) continue;
 
-        // No sobre llave
-        if (estado.llave.zona === zona &&
-            estado.llave.x === x && estado.llave.y === y) continue;
+        const wx = cx * ANCHO_CHUNK + lx;
+        const wy = cy * ALTO_CHUNK + ly;
 
-        // No sobre otro mob
-        if (mobs.some(m => m.x === x && m.y === y)) continue;
+        // No spawnear un mob sobre un ítem o equipable
+        const items = generarItemsDeChunk(cx, cy);
+        if (items.some(it => it.wx === wx && it.wy === wy)) continue;
+
+        const equipables = generarEquipablesDeChunk(cx, cy);
+        if (equipables.some(e => e.wx === wx && e.wy === wy)) continue;
+
+        if (mobs.some(m => m.wx === wx && m.wy === wy)) continue;
 
         mobs.push({
           tipo: id,
-          x, y,
-        // ─── Estado mutable de IA (runtime) ───
-        estado: "DEAMBULANDO",         // DEAMBULANDO | PERSIGUIENDO | HUYENDO | QUIETO
-        tickContador: 0,               // contador para alternar velocidad de deambulación
-        mirandoIzquierda: false,       // orientación visual (espejado)
-                  });
+          wx: wx,
+          wy: wy,
+          estado: "DEAMBULANDO",
+          tickContador: 0,
+          mirandoIzquierda: false,
+        });
         colocado = true;
         break;
       }
     }
   }
 
-  cacheMobs.set(zona, mobs);
+  cacheMobs.set(clave, mobs);
   return mobs;
 }
 
-// ─── Obtiene el mob en una posición (o null) ───
-function obtenerMobEn(zona, x, y) {
-  const mobs = obtenerMobsDeChunk(zona);
-  return mobs.find(m => m.x === x && m.y === y) || null;
+// ─── Obtiene el mob en coordenadas del mundo (o null) ───
+function obtenerMobEn(wx, wy) {
+  const info = coordsMundoATile(wx, wy);
+  const mobs = generarMobsDeChunk(info.cx, info.cy);
+  return mobs.find(m => m.wx === wx && m.wy === wy) || null;
 }
 
 // ─── Marca un mob como derrotado ───
-function derrotarMobEn(zona, x, y) {
-  const mobs = cacheMobs.get(zona);
+function derrotarMobEn(wx, wy) {
+  const info = coordsMundoATile(wx, wy);
+  const mobs = cacheMobs.get(info.cx + "," + info.cy);
   if (!mobs) return;
 
-  const idx = mobs.findIndex(m => m.x === x && m.y === y);
+  const idx = mobs.findIndex(m => m.wx === wx && m.wy === wy);
   if (idx === -1) return;
 
   mobs.splice(idx, 1);
-  console.log(`⚔️ Mob derrotado en zona ${zona}, posición ${x},${y}`);
+  console.log(`⚔️ Mob derrotado en ${wx},${wy}`);
 }

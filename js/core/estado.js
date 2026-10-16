@@ -1,31 +1,40 @@
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 7 · ESTADO GLOBAL
+// ─────────────────────────────────────────────────────────────────
+//  Con chunks 2D, el jugador vive en coordenadas del mundo (wx, wy).
+//  Cada chunk es de 32×32 celdas. La cámara sigue al jugador.
 // ═══════════════════════════════════════════════════════════════
+
 const estado = {
-  zona: 0,
-  pantalla: null,
-  jugador: { x: 5, y: 8 },
-  jugadorInicializado: false,
-  jugadorMirandoIzquierda: false,
-  llave: { zona: 0, x: 0, y: 0 },
-  zonasVisitadas: new Set([0]),
-  transicionando: false,
-  ganado: false,
+  // ─── Jugador ───
+  //  Posición en coordenadas del mundo (puede ser decimal durante
+  //  la animación). El jugador siempre está en el centro de la cámara.
+  jugador: {
+    wx: 0,     // posición X en el mundo
+    wy: 0,     // posición Y en el mundo
+    mirandoIzquierda: false,
+    inicializado: false,
+    // Animación en curso
+    animando: false,
+    animInicioX: 0,
+    animInicioY: 0,
+    animFinX: 0,
+    animFinY: 0,
+    animInicio: 0,
+  },
+
+  // ─── Llave ───
+  //  Posición en coordenadas del mundo.
+  llave: { wx: 0, wy: 0 },
+
+  // ─── Inventario ───
   inventario: {},
   itemsRecogidos: new Set(),
+
+  // ─── Estado del juego ───
+  transicionando: false,
+  ganado: false,
 };
 
+// Caché de chunks: clave "cx,cy" → chunk generado
 const cacheChunks = new Map();
-
-{
-  const rngLlave = crearRNG(hashString(SEMILLA + "@llave"));
-  const { mapa } = generarPantallaValida(SEMILLA, ZONA_LLAVE);
-  const libres = [];
-  for (let y = 1; y < ALTO_PANTALLA - 1; y++)
-    for (let x = 2; x < ANCHO_PANTALLA - 2; x++)
-      if (!BLOQUEANTES.has(mapa[y][x])) libres.push([x, y]);
-  if (libres.length > 0) {
-    const [lx, ly] = libres[randInt(rngLlave, 0, libres.length - 1)];
-    estado.llave = { zona: ZONA_LLAVE, x: lx, y: ly };
-  }
-}

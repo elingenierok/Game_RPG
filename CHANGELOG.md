@@ -12,6 +12,122 @@ Historial completo de versiones del proyecto. Para el estado actual, ver [README
 - **Fase 2 (futuro):** biomas forzados (ciudades, puertos, islas) + chunks de transición.
 - **Ver:** BACKLOG · F14 y F15.
 
+## v2.0-alpha · 2026-10-15 (MIGRACIÓN A CHUNKS 2D · EN PROGRESO)
+
+### 🎯 Objetivo
+
+Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con **cámara fluida**.
+
+### ✅ Completado
+
+**Fase 1 · Constantes nuevas**
+- `ANCHO_CHUNK = 32`, `ALTO_CHUNK = 32`
+- `ANCHO_VENTANA = 25`, `ALTO_VENTANA = 17` (después 32×24 en pruebas)
+- `TAMANO_CELDA = 16`
+- `LIMITE_CHUNKS = 4` (±4 en X e Y)
+- `LLAVE_CHUNK_CX = 2`, `LLAVE_CHUNK_CY = 0`
+- `DURACION_MOVIMIENTO_MS = 200`
+
+**Fase 2 · Sistema de cámara (`js/systems/camara.js` — NUEVO)**
+- `camara.x`, `camara.y` (posición con decimales)
+- `iniciarCamara()`, `sincronizarCamara()`, `obtenerOffsetCamara()`
+- `coordsMundoAChunk()`, `coordsMundoATile()`, `normalizarChunk()`
+- La cámara se sincroniza con la posición del jugador cada frame
+
+**Fase 3 · Chunks 2D**
+- `js/core/estado.js`: reescrito. El jugador vive en `(wx, wy)` del mundo.
+- `js/world/chunks.js`: caché de `"cx,cy"` → chunk. `inicializarJugador()`, `inicializarLlave()`.
+- `js/world/mundo.js`: `generarPantalla(semilla, cx, cy)`. `obtenerBiomaDeChunk()` (hash determinista por chunk).
+
+**Fase 4 · Render + movimiento**
+- `js/ui/render.js`: reescrito. Grid extendido (2 celdas de margen), contenido recalculado al cambiar la esquina, `translate` para el desplazamiento fluido.
+- `js/entities/jugador.js`: movimiento 360°. Interpolación de `(wx, wy)`. `alPisarCelda()` para recoger ítems/equipables y verificar la llave.
+- `js/core/input.js`: input continuo (teclas + botones). Detección de dirección actual.
+- `js/main.js`: reescrito. Loop principal con `requestAnimationFrame`.
+
+**Fase 5 · Ítems y mobs 2D**
+- `js/entities/items.js`: reescrito. Ítems y equipables en coordenadas del mundo.
+- `js/entities/enemigos.js`: reescrito. Mobs por chunk 2D (`cacheMobs` con clave `"cx,cy"`).
+- Fix: manzanas no se generan sobre agua.
+- Fix: mobs no se generan sobre ítems/equipables.
+- Fix: ítems no se generan sobre mobs.
+
+### 🎨 Ajustes visuales
+
+- El jugador queda **exactamente sobre la celda central** del viewport.
+- El jugador y el mapa son **no seleccionables** (`user-select: none`).
+- La cámara y el mapa están **sincronizados** (sin desfase).
+
+### ⏸️ Pendiente
+
+**Fase 6 · Rotura y barco**
+- `js/systems/rotura.js`: adaptar click a coordenadas del mundo.
+- `js/systems/barco.js`: adaptar click a coordenadas del mundo.
+
+**Fase 7 · Barra de stamina**
+- Verificar que funcione con la nueva cámara.
+- Probablemente funcione sin cambios.
+
+**Fase 8 · Victoria**
+- `js/ui/victoria.js`: adaptar a la nueva posición de la llave (`estado.llave.wx, wy`).
+
+**Fase 9 · Fronteras compartidas en 2D**
+- Suavizar los cortes entre chunks.
+- Cada chunk nuevo consulta los bordes de los vecinos.
+
+**Limpieza**
+- Eliminar `renderBarraZonas()`, `cambiarZona()`, `limite.js`.
+- Eliminar archivos HTML de prueba: `chunk-camara.html`, `chunks-2d.html`.
+
+### 📖 Documentación
+- README: pendiente actualizar (marcos M1-M19, G14-G18, R17-R18 están desactualizados).
+- BACKLOG: F21 en progreso.
+
+### ⚠️ Estado
+- **v2.0-alpha en progreso.** El juego funciona (mover, recoger, mobs).
+- Falta: rotura, barco, victoria, fronteras, limpieza.
+
+---
+
+## v1.9.1 · 2026-10-15 (prototipo chunks 2D aprobado)
+
+### 🎨 Prototipo · Chunks 2D con cámara fluida (APROBADO)
+
+- Archivo nuevo: `chunks-2d.html` (independiente, para pruebas)
+- **Sistema probado y aprobado:**
+  - Chunks de **32×32 celdas** (potencia de 2)
+  - Celdas de **32px** en el prototipo (para ver bien; en el juego real puede ser otra)
+  - Ventana visible de **32×24 celdas**
+  - **Cámara fluida** (jugador fijo en el centro, mundo se desplaza)
+  - **Movimiento 360°** con WASD
+  - **Mundo circular** en X e Y (tipo Pac-Man)
+  - **Límite de ±5 chunks** (aunque con wrap es circular)
+  - **Zona (0,0) segura** (pradera)
+  - **Render de ventana** que consulta varios chunks a la vez
+  - **Movimiento fluido** (200ms por celda)
+
+### ✅ Observaciones del test
+
+1. Se ve bien con chunk 32×32 y celda 32px. ✅
+2. **Los cortes entre chunks se notan** (cambio brusco de tiles). ⚠️
+   - **Solución propuesta:** fronteras compartidas en 2D (el chunk nuevo consulta el borde del anterior y arranca con tiles similares).
+   - Se implementará después de la migración base.
+3. El wrap circular funciona bien. ✅
+4. El movimiento es fluido. ✅
+5. El jugador está correctamente centrado. ✅
+
+### ⏸️ Próximo paso (bloqueante)
+
+**Migración al juego real** (ver BACKLOG · F21).
+- Trabajar en un **branch `2d`** para no romper `main`.
+- 4-6 sesiones estimadas.
+
+### 📖 Documentación
+- BACKLOG: F21 ampliado con plan de migración completo
+- README: R17, R18 agregados
+
+---
+
 ## v1.8 · 2026-10-13 (fix costa + idea tema espacio)
 
 ### 🎨 Cambios

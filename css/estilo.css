@@ -124,25 +124,6 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    PANTALLA DEL MAPA
    ═══════════════════════════════════════════════════════════════ */
-#pantalla {
-  background: #111;
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 0 30px rgba(100,200,255,0.1);
-}
-
-#mapa {
-  line-height: 1;
-  display: grid;
-  user-select: none;
-}
-
-#mapa .tile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    BARRA DE OBJETIVOS (abajo del mapa)
@@ -305,7 +286,7 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 #ayuda {
   padding: 10px;
-  background: #111;
+    background: #1a1a1a;
   border: 1px solid #222;
   border-radius: 8px;
   font-size: 11px;
@@ -359,4 +340,44 @@ body {
   width: 100%;
   background: linear-gradient(90deg, #6cf, #4a9);
   transition: width 0.05s linear;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEWPORT DEL MAPA (chunks 2D + cámara fluida)
+   ═══════════════════════════════════════════════════════════════ */
+#pantalla {
+  position: relative;
+  overflow: hidden;
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(100,200,255,0.1);
+}
+
+#mapa {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+
+#mapa .tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#jugador-fijo {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+  text-shadow: 0 0 6px rgba(100,200,255,0.8);
+  user-select: none;
+  -webkit-user-select: none;
 }

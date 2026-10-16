@@ -1,10 +1,36 @@
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 16 · INICIO
 // ═══════════════════════════════════════════════════════════════
-cargarPantalla(0);
-iniciarTicks();
-console.log("Semilla:", SEMILLA);
-console.log("Llave en zona", estado.llave.zona, "posición", estado.llave.x + "," + estado.llave.y);
+
+// Inicializar el jugador (busca spawn en el chunk 0,0)
+inicializarJugador();
+
+// Flag para no duplicar el loop
+let _loopIniciado = false;
+
+// Loop principal: actualiza animaciones y renderiza
+function loop() {
+  if (typeof actualizarJugador === "function") actualizarJugador();
+  if (typeof sincronizarCamara === "function") sincronizarCamara();
+
+  // Si el jugador está quieto y hay una tecla apretada, mover
+  if (!estado.jugador.animando) {
+    const dir = obtenerDireccionActual();
+    if (dir) intentarMover(dir.dx, dir.dy);
+  }
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+// Arrancar el loop (una sola vez)
+if (!_loopIniciado) {
+  _loopIniciado = true;
+  loop();
+}
+
+console.log("🌱 Semilla:", SEMILLA);
+console.log("🔑 Llave:", estado.llave.wx + "," + estado.llave.wy);
 
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 17 · REINICIO CON NUEVA SEMILLA
@@ -13,68 +39,53 @@ function reiniciarMundo(nuevaSemilla) {
   SEMILLA = nuevaSemilla;
   SEMILLA_MOBS = Date.now();
   SEMILLA_OBJETOS = SEMILLA;
+
   limpiarCacheBiomas();
-  cacheEquipables.clear();
-  _zonasEquipables.clear();
-  limpiarCacheUbicaciones();
+  cacheChunks.clear();
 
-  if (typeof cancelarRoturaSiActiva === "function") {
-    cancelarRoturaSiActiva();
-  }
-
-  estado.zona = 0;
-  estado.pantalla = null;
-  estado.jugador = { x: 5, y: 8 };
-  estado.jugadorInicializado = false;
-  estado.jugadorMirandoIzquierda = false;
-  estado.zonasVisitadas = new Set([0]);
-  estado.transicionando = false;
+  estado.jugador.wx = 0;
+  estado.jugador.wy = 0;
+  estado.jugador.inicializado = false;
+  estado.jugador.animando = false;
+  estado.jugador.mirandoIzquierda = false;
   estado.ganado = false;
   estado.inventario = {};
   estado.itemsRecogidos = new Set();
 
-  cacheChunks.clear();
-  detenerTicks();
-  cacheMobs.clear();
-
   document.getElementById("overlay").classList.remove("visible");
 
-  {
-    const rngLlave = crearRNG(hashString(SEMILLA + "@llave"));
-    const { mapa } = generarPantallaValida(SEMILLA, ZONA_LLAVE);
-    const libres = [];
-    for (let y = 1; y < ALTO_PANTALLA - 1; y++)
-      for (let x = 2; x < ANCHO_PANTALLA - 2; x++)
-        if (!BLOQUEANTES.has(mapa[y][x])) libres.push([x, y]);
-    if (libres.length > 0) {
-      const [lx, ly] = libres[randInt(rngLlave, 0, libres.length - 1)];
-      estado.llave = { zona: ZONA_LLAVE, x: lx, y: ly };
-    }
-  }
-
-  cargarPantalla(0);
-  iniciarTicks();
+  inicializarJugador();
 
   console.log("🌱 Nueva semilla:", SEMILLA);
-  console.log("🔑 Llave en zona", estado.llave.zona, "posición", estado.llave.x + "," + estado.llave.y);
 }
 
-document.getElementById("btn-aplicar").addEventListener("click", () => {
-  const s = document.getElementById("input-semilla").value.trim();
-  if (s.length === 0) return;
-  reiniciarMundo(s);
+// ─── Listeners de UI ───
+const btnAplicar = document.getElementById("btn-aplicar");
+const btnRandom  = document.getElementById("btn-random");
+const inputSem   = document.getElementById("input-semilla");
+
+if (btnAplicar) btnAplicar.addEventListener("click", () => {
+  const s = inputSem.value.trim();
+  if (s.length > 0) reiniciarMundo(s);
 });
 
-document.getElementById("btn-random").addEventListener("click", () => {
+if (btnRandom) btnRandom.addEventListener("click", () => {
   const nueva = "mundo_" + Math.floor(Math.random() * 999999);
-  document.getElementById("input-semilla").value = nueva;
+  inputSem.value = nueva;
   reiniciarMundo(nueva);
 });
 
-document.getElementById("input-semilla").addEventListener("keydown", (e) => {
+if (inputSem) inputSem.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
-    const s = document.getElementById("input-semilla").value.trim();
-    if (s.length === 0) return;
-    reiniciarMundo(s);
+    const s = inputSem.value.trim();
+    if (s.length > 0) reiniciarMundo(s);
   }
 });
+
+// ═══════════════════════════════════════════════════════════════
+//  BLOQUE 18 · CONFIGURACIÓN DE LÍMITE
+// ═══════════════════════════════════════════════════════════════
+function funLimiteChunk(N) {
+  LIMITE_CHUNKS = N;
+  console.log("📏 Límite de chunks:", N);
+}

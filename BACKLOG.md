@@ -19,10 +19,10 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F15 · Biomas forzados + chunks de transición
 - F16 · Rediseño del bioma "costa" · ✅ IMPLEMENTADO en v1.7.1
 - F17 · Sistema de "biomas con forma"
-- F18 · Barco (atravesar agua) · ✅ IMPLEMENTADO en v1.9
+- F18 · Barco (atravesar agua) · 🧪 IMPLEMENTADO (bugs de coordenadas en v2.0)
 - F19 · Tema "espacio" (nueva piel)
 - F20 · Sistema de sprites animados (atlas + animaciones)
-- F21 · Migración a chunks 2D + cámara fluida · 🎨 APROBADO
+- F21 · Migración a chunks 2D + cámara fluida · 🚧 EN PROGRESO
 ---
 ## 🌗 F1 · Ciclo día-noche
 **Idea:** visión variable según momento del día.
@@ -558,6 +558,43 @@ Reemplazar el sistema actual (chunks 1D + pantalla estática por zona) por un si
 
 ### Estado
 ⏸️ Migración pendiente. **Es el próximo cambio estructural del proyecto.**
+
+---
+
+---
+
+## 🚧 Estado de la migración a v2.0 · EN PROGRESO
+
+**Iniciada:** 2026-10-15
+**Branch:** `2d`
+
+### ✅ Fases completadas
+
+| Fase | Descripción | Estado |
+|:----:|-------------|:------:|
+| 1 | Constantes nuevas en `config.js` | ✅ |
+| 2 | Sistema de cámara aislado (`camara.js`) | ✅ |
+| 3 | Chunks 2D (`estado.js`, `chunks.js`, `mundo.js`) | ✅ |
+| 4 | Render de ventana + movimiento 360° (`render.js`, `jugador.js`, `input.js`) | ✅ |
+| 5 | Ítems y mobs en 2D (`items.js`, `enemigos.js`) | ✅ (parcial) |
+
+### ⏸️ Fases pendientes
+
+| Fase | Descripción | Estado |
+|:----:|-------------|:------:|
+| 6 | Adaptar `rotura.js` a coordenadas del mundo | ⏸️ |
+| 6 | Adaptar `barco.js` a coordenadas del mundo | ⏸️ |
+| 7 | Adaptar `victoria.js` a la nueva posición de la llave | ⏸️ |
+| 7 | Verificar barra de stamina con la nueva cámara | ⏸️ |
+| 8 | Fronteras compartidas en 2D | ⏸️ |
+| 9 | Limpieza de código muerto | ⏸️ |
+
+### 📌 Archivos de prueba (temporales)
+
+- `chunk-camara.html` — prototipo de cámara central
+- `chunks-2d.html` — prototipo de chunks 2D
+
+**Se pueden borrar cuando la migración esté completa.**
 
 ---
 

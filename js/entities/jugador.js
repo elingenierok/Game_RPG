@@ -1,63 +1,59 @@
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 12 · MOVIMIENTO Y TRANSICIÓN
+//  BLOQUE 12 · MOVIMIENTO DEL JUGADOR (360°)
+// ─────────────────────────────────────────────────────────────────
+//  El jugador se mueve en coordenadas del mundo (wx, wy).
+//  Cada movimiento dura DURACION_MOVIMIENTO_MS.
+//  La cámara lo sigue con la misma duración.
 // ═══════════════════════════════════════════════════════════════
+
+// ─── Colisiones ───
+function tileEnMundo(wx, wy) {
+  const info = coordsMundoATile(wx, wy);
+  const chunk = obtenerChunk(info.cx, info.cy);
+  return chunk.mapa[info.ly][info.lx];
+}
+
+function celdaBloqueante(wx, wy) {
+  return BLOQUEANTES.has(tileEnMundo(wx, wy));
+}
+
+// ─── Iniciar movimiento hacia una dirección ───
 function intentarMover(dx, dy) {
-  if (estado.transicionando || estado.ganado) return;
+  if (estado.ganado) return;
+  if (estado.jugador.animando) return;
 
-  // Si hay un desembarco en curso, cancelarlo (el jugador se movió)
-  if (typeof cancelarDesembarco === "function") {
-    cancelarDesembarco();
-  }
+  const actualX = estado.jugador.wx;
+  const actualY = estado.jugador.wy;
 
-  const nx = estado.jugador.x + dx;
-  const ny = estado.jugador.y + dy;
+  const destinoX = actualX + dx;
+  const destinoY = actualY + dy;
 
-  if (nx < 0)  { cambiarZona(-1); return; }
-  if (nx >= ANCHO_PANTALLA) { cambiarZona(+1); return; }
-  if (ny < 0 || ny >= ALTO_PANTALLA) return;
+  // ¿Celda destino bloqueante?
+  if (celdaBloqueante(destinoX, destinoY)) return;
 
-  const tile = estado.pantalla.mapa[ny][nx];
+  // Iniciar animación
+  estado.jugador.animando = true;
+  estado.jugador.animInicioX = estado.jugador.wx;
+  estado.jugador.animInicioY = estado.jugador.wy;
+  estado.jugador.animFinX = destinoX;
+  estado.jugador.animFinY = destinoY;
+  estado.jugador.animInicio = performance.now();
 
-  // ─── ¿Está navegando? Solo puede moverse sobre agua ───
-  if (typeof estaNavegando === "function" && estaNavegando()) {
-    if (tile !== WATER) {
-      return;   // No puede salir del agua mientras navega
-    }
-  } else {
-    // Sin barco: bloqueantes como siempre
-    if (BLOQUEANTES.has(tile)) return;
-  }
+  // Actualizar orientación
+  if (dx > 0) estado.jugador.mirandoIzquierda = true;
+  if (dx < 0) estado.jugador.mirandoIzquierda = false;
+}
 
-  // ─── ¿Hay un mob en la celda destino? ───
-  const mob = obtenerMobEn(estado.zona, nx, ny);
-  if (mob) {
-    const datos = MOBS[mob.tipo];
-    if (datos.colision.alChocar === "batalla") {
-      pausarTicks();
-      iniciarBatalla(mob);
-      return;
-    } else {
-      return;
-    }
-  }
-
-  // ─── Actualizar orientación ───
-  if (dx > 0) estado.jugadorMirandoIzquierda = true;
-  if (dx < 0) estado.jugadorMirandoIzquierda = false;
-
-  // ─── Mover al jugador ───
-  estado.jugador.x = nx;
-  estado.jugador.y = ny;
-
-  // ─── ¿Pisó la llave? ───
-  if (estado.llave.zona === estado.zona &&
-      estado.llave.x === nx && estado.llave.y === ny) {
-    ganar();
+// ─── Efectos al terminar de moverse (pisar celda) ───
+function alPisarCelda(wx, wy) {
+  // ─── ¿Es la llave? ───
+  if (estado.llave.wx === wx && estado.llave.wy === wy) {
+    if (typeof ganar === "function") ganar();
     return;
   }
 
-  // ─── ¿Pisó una manzana? ───
-  const item = recogerItemEn(nx, ny);
+  // ─── ¿Es una manzana? ───
+  const item = recogerItemEn(wx, wy);
   if (item) {
     const nombre = tipoItemANombre(item.tipo);
     const icono = ICONOS[MANZANA] || "🍎";
@@ -67,8 +63,8 @@ function intentarMover(dx, dy) {
     console.log("🍎 Recogiste:", nombre);
   }
 
-  // ─── ¿Pisó un equipable? ───
-  const equipable = recogerEquipableEn(nx, ny);
+  // ─── ¿Es un equipable? ───
+  const equipable = recogerEquipableEn(wx, wy);
   if (equipable) {
     const nombre = tipoEquipableANombre(equipable.tipo);
     let icono = "🎒";
@@ -82,66 +78,30 @@ function intentarMover(dx, dy) {
     console.log("🎒 Recogiste:", nombre);
   }
 
-  // ─── ¿Pisa tierra y está navegando? → Bajar del barco ───
-  if (typeof verificarBajarseDelBarco === "function") {
-    verificarBajarseDelBarco();
-  }
-
-  render();
-  renderBarraZonas();
-  actualizarHUD();
+  if (typeof actualizarHUD === "function") actualizarHUD();
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  TRANSICIÓN ENTRE ZONAS
-// ═══════════════════════════════════════════════════════════════
-function cambiarZona(delta) {
-  const zonaNueva = estado.zona + delta;
+// ─── Actualizar animación del jugador ───
+function actualizarJugador() {
+  if (!estado.jugador.animando) return;
 
-  if (zonaNueva < -LIMITE_CHUNKS || zonaNueva > LIMITE_CHUNKS) {
-    return;
+  const t = Math.min(1, (performance.now() - estado.jugador.animInicio) / DURACION_MOVIMIENTO_MS);
+
+  // Interpolar la posición del jugador
+  estado.jugador.wx = estado.jugador.animInicioX + (estado.jugador.animFinX - estado.jugador.animInicioX) * t;
+  estado.jugador.wy = estado.jugador.animInicioY + (estado.jugador.animFinY - estado.jugador.animInicioY) * t;
+
+  if (t >= 1) {
+    estado.jugador.wx = estado.jugador.animFinX;
+    estado.jugador.wy = estado.jugador.animFinY;
+    estado.jugador.animando = false;
+
+    // Efectos al terminar de moverse
+    alPisarCelda(Math.floor(estado.jugador.wx), Math.floor(estado.jugador.wy));
   }
+}
 
-  estado.transicionando = true;
-
-  const direccion = delta > 0 ? "este" : "oeste";
-  const yActual = estado.jugador.y;
-
-  const overlay = document.getElementById("overlay");
-  document.getElementById("ovTitulo").textContent = `⟶ Zona ${zonaNueva}`;
-  document.getElementById("ovSubtitulo").textContent = `Entrando por el ${direccion}...`;
-  overlay.classList.add("visible");
-
-  setTimeout(() => {
-    cargarPantalla(zonaNueva);
-
-        if (delta > 0) {
-      estado.jugador.x = 0;
-    } else {
-      estado.jugador.x = ANCHO_PANTALLA - 1;
-    }
-    estado.jugador.y = yActual;
-
-    alejarMobsDelJugador();
-
-    // ─── Si estaba navegando y el tile nuevo no es agua, bajarse ───
-    if (typeof estaNavegando === "function" && estaNavegando()) {
-      const tileNuevo = estado.pantalla.mapa[estado.jugador.y][estado.jugador.x];
-      if (tileNuevo !== WATER) {
-        // El tile del borde no es agua → el jugador se baja del barco
-        if (typeof finalizarNavegacionForzada === "function") {
-          finalizarNavegacionForzada();
-        }
-      }
-    }
-
-    render();
-    renderBarraZonas();
-    actualizarHUD();
-
-    setTimeout(() => {
-      overlay.classList.remove("visible");
-      estado.transicionando = false;
-    }, 150);
-  }, 250);
+// ─── Compatibilidad con victoria y otras funciones ───
+function cambiarZona(delta) {
+  // Ya no aplica con cámara fluida. Se mantiene por compatibilidad.
 }

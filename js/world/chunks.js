@@ -1,64 +1,82 @@
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 8 · CARGA DE PANTALLA Y GESTIÓN DE CHUNKS
+//  BLOQUE 8 · CARGA DE CHUNKS 2D
 // ─────────────────────────────────────────────────────────────────
-//  obtenerChunk(zona):
+//  Cada chunk se identifica por (cx, cy).
+//  El caché usa la clave "cx,cy".
+//
+//  obtenerChunk(cx, cy):
 //    1. Si ya está en caché → lo devuelve
-//    2. Si no → lo genera, le copia las fronteras compartidas,
-//       agrega muros sólidos si es un extremo del mundo
-//    3. Lo guarda en caché
+//    2. Si no → lo genera y lo guarda
 // ═══════════════════════════════════════════════════════════════
-function obtenerChunk(zona) {
-  if (cacheChunks.has(zona)) return cacheChunks.get(zona);
 
-  const chunk = generarPantallaValida(SEMILLA, zona);
+function obtenerChunk(cx, cy) {
+  const clave = cx + "," + cy;
+  if (cacheChunks.has(clave)) return cacheChunks.get(clave);
 
-  const fronteraOeste = generarFrontera(SEMILLA, zona - 1, zona);
-  for (let y = 0; y < ALTO_PANTALLA; y++) {
-    chunk.mapa[y][0] = fronteraOeste[y];
-  }
-
-  const fronteraEste = generarFrontera(SEMILLA, zona, zona + 1);
-  for (let y = 0; y < ALTO_PANTALLA; y++) {
-    chunk.mapa[y][ANCHO_PANTALLA - 1] = fronteraEste[y];
-  }
-
-  if (zona === -LIMITE_CHUNKS) {
-    for (let y = 0; y < ALTO_PANTALLA; y++) {
-      chunk.mapa[y][0] = WALL;
-    }
-  }
-  if (zona === LIMITE_CHUNKS) {
-    for (let y = 0; y < ALTO_PANTALLA; y++) {
-      chunk.mapa[y][ANCHO_PANTALLA - 1] = WALL;
-    }
-  }
-
-  cacheChunks.set(zona, chunk);
+  const chunk = generarPantallaValida(SEMILLA, cx, cy);
+  cacheChunks.set(clave, chunk);
   return chunk;
 }
 
-function cargarPantalla(zona) {
-  estado.pantalla = obtenerChunk(zona);
-  estado.zona = zona;
-  estado.zonasVisitadas.add(zona);
+// ─── Inicialización del jugador (spawn) ───
+function inicializarJugador() {
+  if (estado.jugador.inicializado) return;
 
-  if (zona === 0 && !estado.jugadorInicializado) {
-    const rng = crearRNG(hashString(SEMILLA + "@spawn"));
-    const libres = [];
-    for (let y = 1; y < ALTO_PANTALLA - 1; y++)
-      for (let x = 1; x < ANCHO_PANTALLA - 1; x++)
-        if (!BLOQUEANTES.has(estado.pantalla.mapa[y][x]))
-          libres.push([x, y]);
-    const [sx, sy] = libres[randInt(rng, 0, libres.length - 1)];
-    estado.jugador = { x: sx, y: sy };
-    estado.jugadorInicializado = true;
+  const chunk = obtenerChunk(0, 0);
+  const rng = crearRNG(hashString(SEMILLA + "@spawn"));
+  const libres = [];
+
+  for (let ly = 1; ly < ALTO_CHUNK - 1; ly++) {
+    for (let lx = 1; lx < ANCHO_CHUNK - 1; lx++) {
+      if (!BLOQUEANTES.has(chunk.mapa[ly][lx])) {
+        libres.push([lx, ly]);
+      }
+    }
   }
 
-  obtenerChunk(zona - 1);
-  obtenerChunk(zona + 1);
+  if (libres.length === 0) {
+    estado.jugador.wx = Math.floor(ANCHO_CHUNK / 2);
+    estado.jugador.wy = Math.floor(ALTO_CHUNK / 2);
+  } else {
+    // Elegir el más cercano al centro del chunk
+    const centroX = Math.floor(ANCHO_CHUNK / 2);
+    const centroY = Math.floor(ALTO_CHUNK / 2);
+    libres.sort((a, b) => {
+      const distA = Math.abs(a[0] - centroX) + Math.abs(a[1] - centroY);
+      const distB = Math.abs(b[0] - centroX) + Math.abs(b[1] - centroY);
+      return distA - distB;
+    });
+    const [lx, ly] = libres[0];
+    estado.jugador.wx = lx;
+    estado.jugador.wy = ly;
+  }
 
-  render();
-  renderBarraZonas();
-  actualizarHUD();
-  reanudarTicks();
+  estado.jugador.inicializado = true;
+
+  if (typeof iniciarCamara === "function") {
+    iniciarCamara(estado.jugador.wx, estado.jugador.wy);
+  }
+
+  inicializarLlave();
+}
+
+// ─── Inicialización de la llave ───
+function inicializarLlave() {
+  const chunk = obtenerChunk(LLAVE_CHUNK_CX, LLAVE_CHUNK_CY);
+  const rng = crearRNG(hashString(SEMILLA + "@llave"));
+  const libres = [];
+
+  for (let ly = 1; ly < ALTO_CHUNK - 1; ly++) {
+    for (let lx = 1; lx < ANCHO_CHUNK - 1; lx++) {
+      if (!BLOQUEANTES.has(chunk.mapa[ly][lx])) {
+        libres.push([lx, ly]);
+      }
+    }
+  }
+
+  if (libres.length > 0) {
+    const [lx, ly] = libres[randInt(rng, 0, libres.length - 1)];
+    estado.llave.wx = LLAVE_CHUNK_CX * ANCHO_CHUNK + lx;
+    estado.llave.wy = LLAVE_CHUNK_CY * ALTO_CHUNK + ly;
+  }
 }
