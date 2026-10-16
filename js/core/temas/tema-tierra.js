@@ -1,0 +1,240 @@
+// ═══════════════════════════════════════════════════════════════
+//  TEMA · TIERRA
+// ─────────────────────────────────────────────────────────────────
+//  Datos del tema original (bosques, praderas, tigres, hachas).
+//  Es el tema activo por defecto.
+// ═══════════════════════════════════════════════════════════════
+
+const TEMA_TIERRA = {
+
+  // ─── Nombres + emojis de los tiles ───
+  iconos: {
+    GRASS:       "🟩",
+    TREE:        "🌳",
+    WALL:        "🧱",
+    WATER:       "🌊",
+    SAND:        "🟨",
+    BUSH:        "🌿",
+    ROCK:        "⛰️",
+    TALLGRASS:   "🌾",
+    PATH:        "🟫",
+    LLAGUE:      "🔑",
+    PLAYER:      "🏃‍♂️",
+    LUPA:        "🔍",
+    MANZANA:     "🍎",
+    TIGRE:       "🐅",
+    GALLINA:     "🐓",
+    CERDO:       "🐖",
+    HACHA:       "🪓",
+    PICO:        "⛏️",
+    LINTERNA:    "🕯️",
+    DESERT_SAND: "🟧",
+    CACTUS:      "🌵",
+    SNOW:        "❄️",
+    ICE:         "🧊",
+    PINE:        "🌲",
+    BARCO:       "🛶",
+  },
+
+  // ─── Biomas ───
+  biomas: {
+    pradera: {
+      nombre: "Pradera",
+      emoji: "🌿",
+      tileBase: "GRASS",
+      vecinos: [
+        { id: "bosque",   peso: 35 },
+        { id: "pradera",  peso: 20 },
+        { id: "costa",    peso: 20 },
+        { id: "desierto", peso: 15 },
+        { id: "ruina",    peso: 10 },
+      ],
+      tiles: [
+        { tile: "GRASS",     peso: 85 },
+        { tile: "TREE",      peso: 5  },
+        { tile: "TALLGRASS", peso: 5  },
+        { tile: "ROCK",      peso: 5  },
+      ],
+    },
+
+    bosque: {
+      nombre: "Bosque",
+      emoji: "🌳",
+      tileBase: "GRASS",
+      vecinos: [
+        { id: "bosque",   peso: 30 },
+        { id: "pradera",  peso: 35 },
+        { id: "ruina",    peso: 20 },
+        { id: "nieve",    peso: 15 },
+      ],
+      tiles: [
+        { tile: "GRASS",     peso: 60 },
+        { tile: "TREE",      peso: 15 },
+        { tile: "BUSH",      peso: 15 },
+        { tile: "TALLGRASS", peso: 10 },
+      ],
+    },
+
+    costa: {
+      nombre: "Costa",
+      emoji: "🏖️",
+      tileBase: "SAND",
+      forma: "franja",
+      vecinos: [
+        { id: "oceano",  peso: 40 },
+        { id: "costa",   peso: 20 },
+        { id: "pradera", peso: 40 },
+      ],
+      tiles: [
+        { tile: "SAND",  peso: 50 },
+        { tile: "WATER", peso: 30 },
+        { tile: "GRASS", peso: 15 },
+        { tile: "BUSH",  peso: 5  },
+      ],
+    },
+
+    ruina: {
+      nombre: "Ruina",
+      emoji: "🧱",
+      tileBase: "GRASS",
+      vecinos: [
+        { id: "ruina",    peso: 25 },
+        { id: "bosque",   peso: 30 },
+        { id: "desierto", peso: 30 },
+        { id: "pradera",  peso: 15 },
+      ],
+      tiles: [
+        { tile: "GRASS",     peso: 70 },
+        { tile: "WALL",      peso: 10 },
+        { tile: "ROCK",      peso: 10 },
+        { tile: "TALLGRASS", peso: 10 },
+      ],
+    },
+
+    oceano: {
+      nombre: "Océano",
+      emoji: "🌊",
+      tileBase: "WATER",
+      vecinos: [
+        { id: "oceano", peso: 45 },
+        { id: "costa",  peso: 55 },
+      ],
+      tiles: [
+        { tile: "WATER", peso: 93 },
+        { tile: "ROCK",  peso: 7  },
+      ],
+    },
+
+    desierto: {
+      nombre: "Desierto",
+      emoji: "🏜️",
+      tileBase: "DESERT_SAND",
+      vecinos: [
+        { id: "desierto", peso: 35 },
+        { id: "pradera",  peso: 35 },
+        { id: "ruina",    peso: 20 },
+        { id: "costa",    peso: 10 },
+      ],
+      tiles: [
+        { tile: "SAND",        peso: 85 },
+        { tile: "CACTUS",      peso: 5  },
+        { tile: "ROCK",        peso: 5  },
+        { tile: "DESERT_SAND", peso: 5  },
+      ],
+    },
+
+    nieve: {
+      nombre: "Nieve",
+      emoji: "❄️",
+      tileBase: "SNOW",
+      vecinos: [
+        { id: "nieve",   peso: 35 },
+        { id: "bosque",  peso: 40 },
+        { id: "pradera", peso: 25 },
+      ],
+      tiles: [
+        { tile: "SNOW", peso: 75 },
+        { tile: "PINE", peso: 10 },
+        { tile: "ICE",  peso: 8  },
+        { tile: "ROCK", peso: 7  },
+      ],
+    },
+  },
+
+  biomaInicial: "pradera",
+
+  // ─── Mob ───
+  mobs: {
+    tigre: {
+      id: "tigre",
+      nombre: "Tigre",
+      emoji: "🐅",
+      hp: 12,
+      ataque: 5,
+      defensa: 2,
+      velocidadAtaque: 2,
+      spawn: {
+        porChunk: [2, 3],
+        porMapa: null,
+        biomas: { bosque: true, pradera: false, costa: true, ruina: true, nieve: true },
+        tipoAparicion: "ambos",
+        forzarEnEstructura: null,
+        nivelMinimoJugador: 1,
+      },
+      actitud: { base: "hostil", seVuelveAgresivoSi: "nunca", seVuelveNeutralSi: "nunca" },
+      movilidad: { tipo: "movil", velocidad: 1, rangoPatrulla: 0 },
+      deteccion: { distancia: 6, persecucion: 0, alejamiento: 0, requiereVision: false, afectadoPorArbustos: false },
+      colision: { alChocar: "batalla", requiereInteraccion: false },
+      eliminacion: { seEliminaSi: "alGanarBatalla", reaparece: false, tiempoRespawn: 0 },
+      loot: { dropea: false, probabilidad: 0, objetos: [], xp: 5 },
+    },
+
+    gallina: {
+      id: "gallina",
+      nombre: "Gallina",
+      emoji: "🐓",
+      hp: 3,
+      ataque: 0,
+      defensa: 0,
+      velocidadAtaque: 0,
+      spawn: {
+        porChunk: [0, 2],
+        porMapa: null,
+        biomas: { bosque: false, pradera: true, costa: false, ruina: false },
+        tipoAparicion: "ambos",
+        forzarEnEstructura: null,
+        nivelMinimoJugador: 1,
+      },
+      actitud: { base: "pacifico", seVuelveAgresivoSi: "nunca", seVuelveNeutralSi: "nunca" },
+      movilidad: { tipo: "movil", velocidad: 1, rangoPatrulla: 0 },
+      deteccion: { distancia: 4, persecucion: 0, alejamiento: 0, requiereVision: false, afectadoPorArbustos: false },
+      colision: { alChocar: "nada", requiereInteraccion: false },
+      eliminacion: { seEliminaSi: "alMatarlo", reaparece: false, tiempoRespawn: 0 },
+      loot: { dropea: true, probabilidad: 0.8, objetos: [{ id: "pluma", prob: 1.0 }], xp: 1 },
+    },
+
+    cerdo: {
+      id: "cerdo",
+      nombre: "Cerdo",
+      emoji: "🐖",
+      hp: 6,
+      ataque: 2,
+      defensa: 1,
+      velocidadAtaque: 2,
+      spawn: {
+        porChunk: [0, 2],
+        porMapa: null,
+        biomas: { bosque: false, pradera: true, costa: true, ruina: false },
+        tipoAparicion: "ambos",
+        forzarEnEstructura: null,
+        nivelMinimoJugador: 1,
+      },
+      actitud: { base: "neutral", seVuelveAgresivoSi: "loAtacan", seVuelveNeutralSi: "nunca" },
+      movilidad: { tipo: "fijo", velocidad: 0, rangoPatrulla: 0 },
+      deteccion: { distancia: 0, persecucion: 0, alejamiento: 0, requiereVision: false, afectadoPorArbustos: false },
+      colision: { alChocar: "nada", requiereInteraccion: true },
+      eliminacion: { seEliminaSi: "alMatarlo", reaparece: false, tiempoRespawn: 0 },
+      loot: { dropea: true, probabilidad: 0.6, objetos: [{ id: "carne", prob: 1.0 }], xp: 3 },
+    },
+  },
+};

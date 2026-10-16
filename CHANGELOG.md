@@ -12,6 +12,44 @@ Historial completo de versiones del proyecto. Para el estado actual, ver [README
 - **Fase 2 (futuro):** biomas forzados (ciudades, puertos, islas) + chunks de transición.
 - **Ver:** BACKLOG · F14 y F15.
 
+## v2.1-alpha · 2026-10-16 (auditor 2D + refactor items)
+
+### 🎯 Objetivo
+Adaptar el auditor de semillas al mundo 2D circular y hacer que `items.js` sea reutilizable desde fuera del juego.
+
+### ✅ Completado
+
+**Auditor 2D (`auditor/`)**
+- Reescrito completo para chunks `{cx, cy}`.
+- Layout de 2 columnas: configuración + mapa de biomas (izq), mundo generado (der).
+- Vista unificada: matriz simplificada de biomas + mundo con tiles pegados.
+- Ejes X e Y con coordenadas.
+- Botón 🎲 de semilla aleatoria.
+- Íconos de equipables visibles sobre cada chunk del mapa.
+- Scroll horizontal y vertical en el mundo generado.
+- Límite 10×10 chunks.
+
+**Refactor `items.js`**
+- `generarItemsDeChunk(cx, cy, semillaMundo, semillaObjetos)` — semillas opcionales.
+- `generarEquipablesDeChunk(cx, cy, semillaMundo, semillaObjetos)` — semillas opcionales.
+- `obtenerChunkDeEquipable(tipo, bioma, semillaMundo, semillaObjetos)` — semillas opcionales.
+- Reemplazado `obtenerChunk(cx, cy)` por `generarPantalla(semillaMundo, cx, cy)` para no depender del caché global.
+- Cachés separadas por semilla (`sObjetos + "|" + cx + "," + cy`).
+- **Compatibilidad:** si no se pasan semillas, usa las globales (`SEMILLA`, `SEMILLA_OBJETOS`). El juego sigue funcionando igual.
+
+### ⏸️ Pendiente (anotado en BACKLOG · F22)
+- Limitar generación de equipables en producción (`porChunk: false`).
+- Condiciones más finas (adyacencia a bioma, distancia al spawn).
+- Documentar el flag en `items.js`.
+
+### 📖 Documentación
+- BACKLOG: F22 agregado.
+- CHANGELOG: esta entrada.
+
+### ⚠️ Estado
+- Auditor funcional con mundo 2D.
+- `items.js` refactorizado y compatible.
+
 ## v2.0 · 2026-10-16 (migración a chunks 2D completada)
 
 ### 🎯 Objetivo

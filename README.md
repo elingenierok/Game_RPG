@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.0 · Migración a chunks 2D completada |
+| **Versión actual** | v2.1-alpha · auditor 2D + refactor items.js con semillas opcionales |
 | **Última actualización** | 2026-10-16 |
 | **Estado global** | ✅ Jugable · Base del motor completa |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -76,6 +76,10 @@ Se actualiza automáticamente al hacer `git push`.
 
 ```text
 Game_RPG/
+├── auditor/                      ← Herramienta auxiliar de diagnóstico
+│   ├── auditor.html
+│   ├── auditor.css
+│   └── auditor.js
 ├── index.html                    ← Solo HTML (estructura + <script src>)
 ├── README.md                     ← Este documento
 ├── CHANGELOG.md                  ← Historial de versiones
@@ -406,7 +410,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | G16 | Tiles nuevos | 🟢 | 🟧 🌵 ❄️ 🧊 🌲 | v1.6 |
 | G17 | Biomas forzados (Pasada 2) | 🟡 | Ciudades, puertos, islas | Planificado |
 | G18 | Forma de biomas | 🟢 | Costa usa `forma: "franja"` | v1.7.1 |
-
+| G19 | Generación de equipables parametrizable | 🟢 | Semillas opcionales en `items.js` | v2.1-alpha |
 ---
 
 ## 🖥️ MARCO 6 · Interfaz / UX
@@ -451,6 +455,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | R16 | Sistema de "forma" | 🟢 | `forma: "franja"` en `biomas.js` | v1.7.1 |
 | R17 | Chunks 2D | 🟢 | `{cx, cy}` en lugar de `zona` | v2.0 |
 | R18 | Cámara fluida | 🟢 | Jugador fijo en el centro | v2.0 |
+| R19 | Auditor de semillas 2D | 🟢 | Herramienta separada en `auditor/` | v2.1-alpha |
 
 ---
 

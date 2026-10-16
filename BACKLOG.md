@@ -502,5 +502,20 @@ mundo = función(semilla, chunk) + deltas
 ✅ **Base completa.** El juego es 100% jugable con chunks 2D y cámara fluida.
 
 ---
+## ⚙️ F22 · Limitar generación de equipables
 
+**Idea:** hoy los equipables (🪓 ⛏️ 🕯️ 🛶) se generan en **todos** los chunks de su bioma (`porChunk: true`). Eso sirve para test pero no para producción.
+
+**Preparado:** el flag `porChunk` en `EQUIPABLES` (`items.js`) ya controla ambos modos:
+- `porChunk: true` → todos los chunks del bioma (modo test actual).
+- `porChunk: false` → un solo chunk del bioma, elegido por semilla (modo producción).
+
+**Falta:**
+- Decidir qué objetos van en cada modo.
+- Poder limitar por condiciones más finas (ej: "solo si el chunk es adyacente a ruina", "solo lejos del spawn").
+- Documentar bien el flag en `items.js`.
+
+**Estado:** ⏸️ Anotado. Se define cuando el sistema base esté estable.
+
+---
 **Fin del BACKLOG**
