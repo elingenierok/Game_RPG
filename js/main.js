@@ -2,6 +2,27 @@
 //  BLOQUE 16 · INICIO
 // ═══════════════════════════════════════════════════════════════
 
+// ─── Botón de cambio de tema ───
+(function initBotonTema() {
+  const btn = document.getElementById("btn-tema");
+  if (!btn) return;
+  btn.textContent = TEMA_ACTIVO === "tierra" ? "🚀 Ir a Espacio" : "🌍 Ir a Tierra";
+  btn.addEventListener("click", () => {
+    const nuevo = TEMA_ACTIVO === "tierra" ? "espacio" : "tierra";
+    localStorage.setItem("tema", nuevo);
+    location.reload();
+  });
+})();
+
+// ─── Texto de ayuda según tema ───
+(function initAyuda() {
+  const span = document.getElementById("ayuda-objetivo");
+  if (!span) return;
+  span.textContent = TEMA_ACTIVO === "tierra"
+    ? "Buscá la 🔑 para ganar"
+    : "Buscá la 🔋 para ganar";
+})();
+
 // Inicializar el jugador (busca spawn en el chunk 0,0)
 inicializarJugador();
 

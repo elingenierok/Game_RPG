@@ -41,6 +41,7 @@ const TEMA_TIERRA = {
     pradera: {
       nombre: "Pradera",
       emoji: "🌿",
+      color: "#0d1a0d",
       tileBase: "GRASS",
       vecinos: [
         { id: "bosque",   peso: 35 },
@@ -60,6 +61,7 @@ const TEMA_TIERRA = {
     bosque: {
       nombre: "Bosque",
       emoji: "🌳",
+      color: "#0d1f0d",
       tileBase: "GRASS",
       vecinos: [
         { id: "bosque",   peso: 30 },
@@ -78,6 +80,7 @@ const TEMA_TIERRA = {
     costa: {
       nombre: "Costa",
       emoji: "🏖️",
+      color: "#1a1a0d",
       tileBase: "SAND",
       forma: "franja",
       vecinos: [
@@ -96,6 +99,7 @@ const TEMA_TIERRA = {
     ruina: {
       nombre: "Ruina",
       emoji: "🧱",
+      color: "#1a1a1a",
       tileBase: "GRASS",
       vecinos: [
         { id: "ruina",    peso: 25 },
@@ -114,6 +118,7 @@ const TEMA_TIERRA = {
     oceano: {
       nombre: "Océano",
       emoji: "🌊",
+      color: "#0a1420",
       tileBase: "WATER",
       vecinos: [
         { id: "oceano", peso: 45 },
@@ -128,6 +133,7 @@ const TEMA_TIERRA = {
     desierto: {
       nombre: "Desierto",
       emoji: "🏜️",
+      color: "#1a150d",
       tileBase: "DESERT_SAND",
       vecinos: [
         { id: "desierto", peso: 35 },
@@ -146,6 +152,7 @@ const TEMA_TIERRA = {
     nieve: {
       nombre: "Nieve",
       emoji: "❄️",
+      color: "#0d1520",
       tileBase: "SNOW",
       vecinos: [
         { id: "nieve",   peso: 35 },
@@ -236,5 +243,11 @@ const TEMA_TIERRA = {
       eliminacion: { seEliminaSi: "alMatarlo", reaparece: false, tiempoRespawn: 0 },
       loot: { dropea: true, probabilidad: 0.6, objetos: [{ id: "carne", prob: 1.0 }], xp: 3 },
     },
+  },
+    jugador: {
+    quieto:  "🧍‍♂️",
+    correrA: "🏃‍♂️",
+    correrB: "🚶‍♂️",
+    barco:   "🚣",
   },
 };

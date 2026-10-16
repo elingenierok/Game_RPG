@@ -63,12 +63,28 @@ function forzarRedibujadoGrid() {
   _esquinaGridY = null;
 }
 
+// ─── Helper: color del bioma en coordenadas del mundo ───
+function colorDeBioma(wx, wy) {
+  const info = coordsMundoATile(wx, wy);
+  const bioma = obtenerBiomaDeChunk(SEMILLA, info.cx, info.cy);
+  const color = BIOMAS[bioma] && BIOMAS[bioma].color;
+  return color || "transparent";
+}
+
+// ─── Helper: ¿hay tecla apretada? ───
+function hayTeclaApretada() {
+  if (typeof obtenerDireccionActual !== "function") return false;
+  return obtenerDireccionActual() !== null;
+}
+
 // ─── Dibuja el contenido de UNA celda del mundo ───
 function dibujarCeldaEnGrid(celda, wx, wy) {
   celda.style.transform = "";
+  celda.style.background = "transparent";
 
   if (estado.llave.wx === wx && estado.llave.wy === wy) {
     celda.textContent = ICONOS[LLAGUE];
+    celda.style.background = colorDeBioma(wx, wy);
     return;
   }
 
@@ -78,6 +94,7 @@ function dibujarCeldaEnGrid(celda, wx, wy) {
     const clave = wx + "," + wy;
     if (!estado.itemsRecogidos.has(clave)) {
       celda.textContent = iconoDeItem(item.tipo);
+      celda.style.background = colorDeBioma(wx, wy);
       return;
     }
   }
@@ -88,6 +105,7 @@ function dibujarCeldaEnGrid(celda, wx, wy) {
     const clave = wx + "," + wy;
     if (!estado.itemsRecogidos.has(clave)) {
       celda.textContent = ICONOS[equip.tipo];
+      celda.style.background = colorDeBioma(wx, wy);
       return;
     }
   }
@@ -99,6 +117,7 @@ function dibujarCeldaEnGrid(celda, wx, wy) {
     if (mob.mirandoIzquierda) {
       celda.style.transform = "scaleX(-1)";
     }
+    celda.style.background = colorDeBioma(wx, wy);
     return;
   }
 
@@ -111,6 +130,7 @@ function dibujarCeldaEnGrid(celda, wx, wy) {
   const tileID = chunk.mapa[info.ly][info.lx];
   const icono = ICONOS[tileID];
   celda.textContent = icono !== undefined ? icono : ICONOS[GRASS];
+  celda.style.background = colorDeBioma(wx, wy);
 }
 
 // ─── Recalcula todo el grid ───
@@ -138,36 +158,48 @@ function render() {
   const esquinaY = camara.y - centroY;
 
   // Esquina del grid (con margen)
-  // El grid empieza a dibujarse MARGEN_GRID celdas antes de la esquina visible.
   const nuevaEsquinaX = Math.floor(esquinaX) - MARGEN_GRID;
   const nuevaEsquinaY = Math.floor(esquinaY) - MARGEN_GRID;
 
-  // Si la esquina del grid cambió, recalcular todo el grid
   if (nuevaEsquinaX !== _esquinaGridX || nuevaEsquinaY !== _esquinaGridY) {
     _esquinaGridX = nuevaEsquinaX;
     _esquinaGridY = nuevaEsquinaY;
     llenarGrid(_esquinaGridX, _esquinaGridY);
   }
 
-  // Offset visual del grid:
-  // El grid empieza a dibujarse en x=0.
-  // La celda [0][0] corresponde a (_esquinaGridX, _esquinaGridY).
-  // La esquina visible (esquinaX) debe estar en el margen del grid.
   const offsetPxX = -((esquinaX - _esquinaGridX) * TAMANO_CELDA);
   const offsetPxY = -((esquinaY - _esquinaGridY) * TAMANO_CELDA);
 
   divMapa.style.transform = `translate(${offsetPxX}px, ${offsetPxY}px)`;
+
+  // Emoji + orientación del jugador fijo
+  const datosJugador = _temaActivo.jugador;
+  let emojiJugador;
+
+  if (estado.jugador.enBarco) {
+    emojiJugador = datosJugador.barco;
+  } else if (estado.jugador.animando || hayTeclaApretada()) {
+    const frame = Math.floor(performance.now() / 150) % 2;
+    emojiJugador = frame === 0 ? datosJugador.correrA : datosJugador.correrB;
+  } else {
+    emojiJugador = datosJugador.quieto;
+  }
+
+  divJugador.textContent = emojiJugador;
+  divJugador.style.transform = estado.jugador.mirandoIzquierda
+    ? "scaleX(-1)"
+    : "scaleX(1)";
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  HUD
 // ═══════════════════════════════════════════════════════════════
 const ICONO_POR_NOMBRE = {
-  MANZANA:  "🍎",
-  HACHA:    "🪓",
-  PICO:     "⛏️",
-  LINTERNA: "🕯️",
-  BARCO:    "🛶",
+  MANZANA:  ICONOS[MANZANA],
+  HACHA:    ICONOS[HACHA],
+  PICO:     ICONOS[PICO],
+  LINTERNA: ICONOS[LINTERNA],
+  BARCO:    ICONOS[BARCO],
 };
 
 function iconoPorNombre(nombre) {
@@ -204,15 +236,15 @@ function actualizarSlotsEquipados() {
   const tieneLinterna = (estado.inventario.LINTERNA || 0) > 0;
   const tieneBarco    = (estado.inventario.BARCO    || 0) > 0;
 
-  slotHacha.textContent = tieneHacha ? "🪓" : "—";
+  slotHacha.textContent = tieneHacha ? ICONOS[HACHA] : "—";
   slotHacha.classList.toggle("tiene", tieneHacha);
 
-  slotPico.textContent = tienePico ? "⛏️" : "—";
+  slotPico.textContent = tienePico ? ICONOS[PICO] : "—";
   slotPico.classList.toggle("tiene", tienePico);
 
-  slotLinterna.textContent = tieneLinterna ? "🕯️" : "—";
+  slotLinterna.textContent = tieneLinterna ? ICONOS[LINTERNA] : "—";
   slotLinterna.classList.toggle("tiene", tieneLinterna);
 
-  slotBarco.textContent = tieneBarco ? "🛶" : "—";
+  slotBarco.textContent = tieneBarco ? ICONOS[BARCO] : "—";
   slotBarco.classList.toggle("tiene", tieneBarco);
 }

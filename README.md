@@ -1,7 +1,7 @@
 # 🎮 Game_RPG · Proyecto Roguelike Procedural
 
-> Motor de mundo procedural con semilla, mundo 2D circular, cámara fluida,  
-> chunks de 32×32, ítems recolectables, mobs con IA en tiempo real, y  
+> Motor de mundo procedural con semilla, mundo 2D circular, cámara fluida,
+> chunks de 32×32, ítems recolectables, mobs con IA en tiempo real, y
 > módulo de combate por reflejos en desarrollo paralelo.
 
 ---
@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.2-alpha · fase 1: infraestructura de temas (tierra + espacio placeholder) |
+| **Versión actual** | v2.3-alpha · tema espacio + color de fondo por bioma + animación del jugador |
 | **Última actualización** | 2026-10-16 |
 | **Estado global** | ✅ Jugable · Base del motor completa |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -19,12 +19,12 @@
 | **Ejecución pública** | [elingenierok.github.io/Game_RPG](https://elingenierok.github.io/Game_RPG/) |
 | **Repositorio** | [github.com/elingenierok/Game_RPG](https://github.com/elingenierok/Game_RPG) |
 | **Editor** | VS Code |
-| **Carpeta raíz** | *(depende del PC: `C:\Users\Usuario\Game_RPG` o similar)* |
+| **Carpeta raíz** | _(depende del PC: `C:\Users\Usuario\Game_RPG` o similar)_ |
 
 📖 **Documentos complementarios:**
 
 - [CHANGELOG.md](CHANGELOG.md) — Historial completo de versiones
-- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F21)
+- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F22)
 
 ---
 
@@ -67,6 +67,7 @@ Se actualiza automáticamente al hacer `git push`.
 - Enter en el input de semilla → aplicar.
 - Botón 🎲 → semilla aleatoria.
 - Click en el mundo → romper (con objeto equipado) / colocar barco / desembarcar.
+- Botón 🌍 / 🚀 (arriba a la derecha) → cambiar tema (tierra ↔ espacio).
 
 **⚠️ Recarga forzada:** usar `Ctrl+Shift+R` al modificar `.js` o `.css`.
 
@@ -83,7 +84,7 @@ Game_RPG/
 ├── index.html                    ← Solo HTML (estructura + <script src>)
 ├── README.md                     ← Este documento
 ├── CHANGELOG.md                  ← Historial de versiones
-├── BACKLOG.md                    ← Ideas futuras (F1-F21)
+├── BACKLOG.md                    ← Ideas futuras (F1-F22)
 ├── .gitignore                    ← Archivos ignorados por Git
 ├── css/
 │   └── estilo.css                ← Todo el CSS del juego
@@ -95,19 +96,19 @@ Game_RPG/
     │   ├── rng.js                ← BLOQUE 3: hash, PRNG, randInt
     │   ├── tiles.js              ← BLOQUE 2: tiles, iconos, bloqueantes
     │   ├── estado.js             ← BLOQUE 7: estado global (coords del mundo)
-    │   └── input.js              ← BLOQUE 14: listeners de teclado
-    │   └── temas/
+    │   ├── input.js              ← BLOQUE 14: listeners de teclado
+    │   └── temas/                ← Datos temáticos (tierra / espacio)
     │       ├── tema-tierra.js
     │       └── tema-espacio.js
     │
     ├── world/                    ← Generación y gestión del mundo
-    │   ├── biomas.js             ← BLOQUE 5.1: tabla de biomas (datos)
+    │   ├── biomas.js             ← BLOQUE 5.1: wrapper de biomas del tema
     │   ├── mundo.js              ← BLOQUES 4, 5, 6: generación de chunks 2D
     │   └── chunks.js             ← BLOQUE 8: caché 2D + inicialización
     │
     ├── entities/                 ← Todo lo que "vive" en el mundo
     │   ├── jugador.js            ← BLOQUE 12: movimiento 360° + recolección
-    │   ├── mobs.js               ← BLOQUE 7.7: plantilla + datos de mobs
+    │   ├── mobs.js               ← BLOQUE 7.7: wrapper de mobs del tema
     │   ├── enemigos.js           ← BLOQUE 7.8: spawn, colisión, derrota
     │   └── items.js              ← BLOQUE 7.5: ítems y equipables
     │
@@ -118,23 +119,23 @@ Game_RPG/
     └── systems/                  ← Sistemas transversales
         ├── camara.js             ← BLOQUE 20: cámara fluida
         ├── ia.js                 ← BLOQUE 7.9: IA de mobs en tiempo real
-        ├── rotura.js              ← BLOQUE 7.10: sistema de rotura
-        └── barco.js               ← BLOQUE 7.11: sistema del barco
+        ├── rotura.js             ← BLOQUE 7.10: sistema de rotura
+        └── barco.js              ← BLOQUE 7.11: sistema del barco
 ```
 
 **Orden de carga en `index.html` (importante respetar):**
 
 ```text
-config → tiles → rng → biomas → mundo → camara → estado → chunks
-→ items → mobs → enemigos → render → ia → jugador → victoria → input
-→ rotura → barco → main
+tema-tierra → tema-espacio → config → tiles → rng → biomas → mundo
+→ camara → estado → chunks → items → mobs → enemigos → render → ia
+→ jugador → victoria → input → rotura → barco → main
 ```
 
 **Criterio de organización en carpetas:**
 
 | Carpeta | Responsabilidad |
 |---------|-----------------|
-| `core/` | Base del motor: config, RNG, tiles, estado, input |
+| `core/` | Base del motor: config, RNG, tiles, estado, input, temas |
 | `world/` | Generación y gestión del terreno: chunks 2D, biomas |
 | `entities/` | Todo lo que "vive" en el mundo: jugador, mobs, ítems |
 | `ui/` | Render visual, pantallas y overlays |
@@ -142,6 +143,8 @@ config → tiles → rng → biomas → mundo → camara → estado → chunks
 
 **Dependencias críticas:**
 
+- `tema-tierra.js` y `tema-espacio.js` **antes** de `config.js` (los lee `tiles.js`).
+- `config.js` **antes** de `tiles.js` (define `TEMA_ACTIVO`).
 - `mobs.js` **antes** de `enemigos.js` (datos usados por la lógica).
 - `camara.js` **antes** de `estado.js` (usa funciones de la cámara).
 - `estado.js` **antes** de `chunks.js`, `items.js`, `mobs.js`, `enemigos.js`.
@@ -158,6 +161,7 @@ config → tiles → rng → biomas → mundo → camara → estado → chunks
 |--------|-----|
 | `main` | Trabajo general · versión estable |
 | `2d` | Migración a chunks 2D (a mergear a `main`) |
+| `tema-espacio` | Tema espacio (a mergear a `2d` cuando esté pulido) |
 
 ### Antes de trabajar
 
@@ -213,19 +217,20 @@ cd Game_RPG
 | M4 | Tamaño del chunk | 🟢 | 32×32 celdas | v2.0 |
 | M5 | Memoria de cambios del jugador | ⏸️ | Sin memoria | Fase futura |
 | M6 | Evolución temporal del mundo | ⏸️ | No | Fase futura |
-| M7 | Ventana visible | 🟢 | 25×17 celdas | v2.0 |
+| M7 | Ventana visible | 🟢 | 32×24 celdas | v2.0 |
 | M8 | Comportamiento en bordes | 🟢 | Wrap circular en X e Y (tipo Pac-Man) | v2.0 |
 | M9 | Fronteras entre chunks | 🟡 | Sin fronteras compartidas todavía | Pendiente |
 | M10 | Continuidad del jugador al cruzar | 🟢 | Cámara fluida · sin saltos | v2.0 |
 | M11 | Caché de chunks | 🟢 | Map `"cx,cy"` → chunk | v2.0 |
 | M12 | Límite de chunks | 🟢 | ±4 (configurable) | v2.0 |
 | M13 | Muros sólidos en extremos | ⏸️ | No aplica (mundo circular) | v2.0 |
-| M14 | Tamaño de celda | 🟢 | 16×16 px | v2.0 |
+| M14 | Tamaño de celda | 🟢 | 24×24 px (era 16×16) | v2.0 |
 | M15 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
 | M16 | Radio de seguridad al cruzar | ⏸️ | No aplica (mundo continuo) | v2.0 |
 | M17 | Sistema de biomas por tabla | 🟢 | 7 biomas con vecinos + pesos | v1.6 |
 | M18 | Bioma inicial | 🟢 | pradera (chunk 0,0) | v1.6 |
 | M19 | Costa con forma de franja | 🟢 | Agua + arena + pasto con bordes irregulares | v1.7.1 |
+| M20 | Sistema de temas | 🟢 | `tema-tierra` / `tema-espacio` (datos) | v2.2-alpha |
 
 ---
 
@@ -233,7 +238,7 @@ cd Game_RPG
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| J1 | Objetivo del juego | 🧪 | Encontrar la 🔑 | Test de exploración |
+| J1 | Objetivo del juego | 🧪 | Encontrar la 🔑 (o 🔋 en espacio) | Test de exploración |
 | J2 | Condición de victoria | 🧪 | Pisar la llave | Pantalla de "¡Ganaste!" |
 | J3 | Condición de derrota | ⏸️ | No hay | Sin HP todavía |
 | J4 | Progresión | ⏸️ | No hay | Fase futura |
@@ -254,12 +259,13 @@ cd Game_RPG
 | P2 | Estadísticas | ⏸️ | Ninguna | HP, ataque, defensa → fase futura |
 | P3 | Controles | 🟢 | WASD + flechas + botones | v2.0 |
 | P4 | Inventario | 🧪 | Contador de ítems | Solo cuenta, sin uso aún |
-| P5 | Tipos de objetos | 🧪 | 🍎 Manzana + 🪓 ⛏️ 🕯️ 🛶 equipables | v1.9 |
+| P5 | Tipos de objetos | 🧪 | 🍎 + 4 equipables (🪓 ⛏️ 🕯️ 🛶) | v1.9 |
 | P6 | Habilidades especiales | ⏸️ | Ninguna | Fase futura |
 | P7 | Modificar el mundo | 🟢 | Romper árboles, piedras, muros, cactus, hielo | v1.7 |
 | P8 | Necesidades (hambre/sed) | ⏸️ | No | Fase futura |
 | P9 | Orientación visual del jugador | 🟢 | Espejado horizontal (`scaleX(-1)`) | v1.1 |
-| P10 | Movimiento | 🟢 | 360° fluido (200ms por celda) | v2.0 |
+| P10 | Movimiento | 🟢 | 360° fluido (100ms por celda) | v2.0 |
+| P11 | Animación de movimiento | 🟢 | Alterna 2 emojis cada 150ms | v2.3-alpha |
 
 ---
 
@@ -291,13 +297,21 @@ Cada mob es un **objeto de datos** con una estructura común.
 }
 ```
 
-### Mobs implementados
+### Mobs implementados (tema tierra)
 
 | Mob | Emoji | Actitud | Spawn por chunk | Biomas | Rango detección | Al chocar |
 |-----|:-----:|---------|:---------------:|--------|:---------------:|-----------|
 | Tigre | 🐅 | Hostil | 2-3 | Bosque, Costa, Ruina, Nieve | 6 tiles | ⚔️ Batalla |
 | Gallina | 🐓 | Pacífico | 0-2 | Pradera | 4 tiles | Nada (bloquea) |
 | Cerdo | 🐖 | Neutral | 0-2 | Pradera, Costa | — | Nada (bloquea) |
+
+### Mobs implementados (tema espacio)
+
+| Mob | Emoji | Actitud | Basado en |
+|-----|:-----:|---------|-----------|
+| Alien hostil | 👽 | Hostil | Tigre |
+| Dron pacífico | 🤖 | Pacífico | Gallina |
+| Reptiliano neutral | 🦎 | Neutral | Cerdo |
 
 ### Estados de IA
 
@@ -312,7 +326,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| E1 | Tipos de mobs | 🧪 | 3 (🐅 🐓 🐖) | Escalable |
+| E1 | Tipos de mobs | 🧪 | 3 por tema (🐅 🐓 🐖 / 👽 🤖 🦎) | Escalable |
 | E2 | Movimiento de mobs | 🟢 | Tiempo real (ticks 400ms) | v1.5 |
 | E3 | Detección del jugador | 🟢 | Por distancia Manhattan | v1.5 |
 | E4 | Entrada al combate | 🧪 | Choque jugador↔mob | Overlay simulado |
@@ -323,7 +337,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | E9 | Jefes (bosses) | ⏸️ | No | Fase futura |
 | E10 | Tamaño de enemigos | 🟢 | 1×1 | v1.1 |
 | E11 | Separación de semillas | 🟢 | `SEMILLA` + `SEMILLA_MOBS` | v1.3 |
-| E12 | **Pausa global en batalla** | 🟢 | **Todo se detiene durante el combate** | **v2.0** |
+| E12 | Pausa global en batalla | 🟢 | Todo se detiene durante el combate | v2.0 |
 
 ---
 
@@ -389,6 +403,37 @@ Cada mob es un **objeto de datos** con una estructura común.
 - Puede romper rocas del agua desde el barco.
 - Puede navegar entre chunks.
 
+### Sistema de temas
+
+Los objetos equipables se muestran según el **tema activo**:
+
+| Objeto | Emoji tierra | Emoji espacio |
+|--------|:------------:|:-------------:|
+| 🪓 HACHA | 🪓 | ⚡ (sable de energía) |
+| ⛏️ PICO | ⛏️ | 🔫 (taladro) |
+| 🕯️ LINTERNA | 🕯️ | 💡 (lámpara) |
+| 🛶 BARCO | 🛶 | 🚀 (módulo de escape) |
+
+Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis de `ICONOS`, que depende de `TEMA_ACTIVO`. Antes estaban hardcodeados y no respetaban el tema.
+
+**Cómo funciona el tema activo:**
+
+- Se define en `config.js` como `TEMA_ACTIVO`.
+- Se puede cambiar con el botón 🌍/🚀 de la esquina superior derecha.
+- La elección se guarda en `localStorage`.
+- Los datos de cada tema viven en `js/core/temas/tema-tierra.js` y `js/core/temas/tema-espacio.js`.
+
+### Cómo agregar un objeto equipable nuevo
+
+1. Agregarlo al array `EQUIPABLES` de `items.js`:
+   ```js
+   { tipo: NOMBRE_TILE, bioma: "biomaDestino", porChunk: true }
+   ```
+2. Agregar la constante del tile en `tiles.js`.
+3. Agregar el emoji en **ambos** temas (`tema-tierra.js` y `tema-espacio.js`).
+4. Agregar el nombre en `tipoEquipableANombre` (`items.js`).
+5. Agregar el slot correspondiente en `index.html` y en `actualizarSlotsEquipados` (`render.js`).
+
 ---
 
 ## 🌱 MARCO 5 · Generación Procedural
@@ -414,6 +459,8 @@ Cada mob es un **objeto de datos** con una estructura común.
 | G17 | Biomas forzados (Pasada 2) | 🟡 | Ciudades, puertos, islas | Planificado |
 | G18 | Forma de biomas | 🟢 | Costa usa `forma: "franja"` | v1.7.1 |
 | G19 | Generación de equipables parametrizable | 🟢 | Semillas opcionales en `items.js` | v2.1-alpha |
+| G20 | Datos temáticos centralizados | 🟢 | `temas/` con tierra + espacio | v2.2-alpha |
+
 ---
 
 ## 🖥️ MARCO 6 · Interfaz / UX
@@ -433,6 +480,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | U11 | Slots de equipados | 🟢 | 4 slots arriba del mapa | v1.9 |
 | U12 | Layout 3 columnas | 🟢 | 20% flechas · 60% mapa · 20% panel | v1.6.1 |
 | U13 | Barra de stamina | 🟢 | Arriba del mapa, visible en rotura | v1.7 |
+| U14 | Botón de cambio de tema | 🟢 | Arriba a la derecha, fixed | v2.3-alpha |
 
 ---
 
@@ -445,7 +493,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server / Pages) | CORS |
 | R4 | CSS separado | 🟢 | `css/estilo.css` | v1.0 |
 | R5 | Bloques referenciables | 🟢 | `// ═══ BLOQUE N ═══` | v1.0 |
-| R6 | Orden de carga | 🟢 | config → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → render → ia → jugador → victoria → input → rotura → barco → main | v2.0 |
+| R6 | Orden de carga | 🟢 | temas → config → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → render → ia → jugador → victoria → input → rotura → barco → main | v2.3-alpha |
 | R7 | Versionado | 🟢 | Git + GitHub | v1.0 |
 | R8 | Deploy público | 🟢 | GitHub Pages | v1.0 |
 | R9 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
@@ -459,6 +507,8 @@ Cada mob es un **objeto de datos** con una estructura común.
 | R17 | Chunks 2D | 🟢 | `{cx, cy}` en lugar de `zona` | v2.0 |
 | R18 | Cámara fluida | 🟢 | Jugador fijo en el centro | v2.0 |
 | R19 | Auditor de semillas 2D | 🟢 | Herramienta separada en `auditor/` | v2.1-alpha |
+| R20 | Sistema de temas | 🟢 | Datos en `js/core/temas/`, wrapper en tiles/biomas/mobs | v2.2-alpha |
+| R21 | Emojis del jugador por tema | 🟢 | `_temaActivo.jugador` | v2.3-alpha |
 
 ---
 
@@ -468,7 +518,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 |----------|--------|------------|
 | Fondo general | Oscuro `#0a0a0a` | Minimalista |
 | Bordes | Redondeados `border-radius: 8px` | Suaves |
-| Tiles | Emojis en celdas de 16px | v2.0 |
+| Tiles | Emojis en celdas de 24×24 px | v2.0 |
 | **Glow** | Halos luminosos celestes/rosas | **Muy valorado** |
 | Slot actual | Borde celeste + `box-shadow` glow | `#6cf` |
 | Slots de equipados con objeto | Borde celeste + glow | v1.6.1 |
@@ -476,25 +526,67 @@ Cada mob es un **objeto de datos** con una estructura común.
 | Input de semilla | Glow celeste al focus | v0.4 |
 | Jugador y mobs mirando a la izquierda | `transform: scaleX(-1)` | v1.1 |
 | Barra de stamina | Gradiente celeste→verde | v1.7 |
+| **Color de fondo por bioma** | Tinte sutil por bioma | v2.3-alpha |
+| **Animación del jugador** | Emojis alternados al caminar | v2.3-alpha |
+| **Botón de cambio de tema** | Glow celeste, arriba a la derecha | v2.3-alpha |
 
 **Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
 
+### Color de fondo por bioma (v2.3-alpha)
+
+Cada bioma tiene un campo `color` (hexadecimal) que define el fondo sutil de sus tiles. Sirve para dar identidad visual a cada zona sin cargar el emoji principal.
+
+**Colores actuales:**
+
+| Bioma | Tierra | Espacio |
+|-------|--------|---------|
+| pradera / llanura lunar | `#0d1a0d` | `#141414` |
+| bosque / zona de naves | `#0d1f0d` | `#101820` |
+| costa / borde de cráter | `#1a1a0d` | `#1a0f0f` |
+| ruina / ruinas alienígenas | `#1a1a1a` | `#1a1410` |
+| oceano / mar de metano | `#0a1420` | `#150a1a` |
+| desierto / dunas rojas | `#1a150d` | `#1a0a0a` |
+| nieve / campo de hielo | `#0d1520` | `#101a1a` |
+
+Los colores son **intencionalmente sutiles**: apenas se diferencian del fondo negro `#0a0a0a`. La idea es que se note la transición de bioma sin que sea invasivo.
+
+### Animación del jugador (v2.3-alpha)
+
+El jugador tiene 4 estados visuales, definidos en cada tema:
+
+| Estado | Tierra | Espacio |
+|--------|:------:|:-------:|
+| Quieto | 🧍‍♂️ | 👨‍🚀 |
+| Corriendo A | 🏃‍♂️ | 🏍️ |
+| Corriendo B | 🚶‍♂️ | 🏎️ |
+| En barco | 🚣 | 🛸 |
+
+**Cómo funciona:**
+
+- Si `estado.jugador.enBarco === true` → emoji de barco.
+- Si `estado.jugador.animando === true` o hay tecla apretada → alterna entre `correrA` y `correrB` cada 150ms.
+- Si no → emoji `quieto`.
+
+**Orientación:** se aplica `transform: scaleX(-1)` cuando `mirandoIzquierda === true`.
+
+**Velocidad de alternancia:** 150ms (configurable cambiando el divisor en `render.js`).
+
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v2.0)
+## 🧪 MARCO 9 · Sistema de Test (v2.3-alpha)
 
 ### Lo que hay ahora
 
 - **Mundo 2D circular** con chunks de 32×32 celdas.
 - **Cámara fluida**: jugador fijo en el centro, mundo se desplaza.
-- **Movimiento 360°** fluido (200ms por celda).
+- **Movimiento 360°** fluido (100ms por celda).
 - **Wrap circular** en X e Y (tipo Pac-Man).
 - **Chunk (0,0) seguro** (pradera, sin mobs).
-- **7 biomas**: pradera, bosque, costa, ruina, oceano, desierto, nieve.
+- **7 biomas** por tema (tierra + espacio).
 - **Sistema de biomas por tabla** (vecinos + pesos).
 - **Costa con forma de franja**.
-- **Ítems recolectables** (🍎, 0-3 por chunk).
-- **Objetos equipables**: 🪓 ⛏️ 🕯️ 🛶.
+- **Ítems recolectables** (🍎 / 🧪, 0-3 por chunk).
+- **Objetos equipables**: 🪓 ⛏️ 🕯️ 🛶 (o ⚡ 🔫 💡 🚀 en espacio).
 - **Sistema de rotura** (click + barra de stamina).
 - **Sistema del barco** (navegar sobre agua).
 - **Mobs con IA** (deambular, perseguir, huir).
@@ -502,13 +594,17 @@ Cada mob es un **objeto de datos** con una estructura común.
 - **Inventario en HUD** con íconos correctos.
 - **Control de semilla en UI** (input + botones + Enter).
 - **Botones de movimiento** en pantalla.
-- Arquitectura modular: 16 archivos `.js` + 1 CSS + index limpio.
+- **Botón de cambio de tema** (arriba a la derecha).
+- **Color de fondo por bioma**.
+- **Animación del jugador** (quieto, corriendo, en barco).
 
 ### Lo que falta
 
 - **Fronteras compartidas en 2D** (suavizar cortes entre chunks).
 - Barco: mob bloqueando la única celda de tierra → no se puede desembarcar.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
+- Pulir emojis y nombres del tema espacio.
+- Adaptar `auditor/` al sistema de temas.
 
 ---
 
@@ -567,7 +663,7 @@ Interfaz radial con 6 sectores anidados. El jugador **bloquea** arrastrando el m
 
 **Movido a [BACKLOG.md](BACKLOG.md).**
 
-Ideas futuras: F1-F21.
+Ideas futuras: F1-F22.
 
 ---
 
@@ -602,6 +698,9 @@ Ideas futuras: F1-F21.
 - [x] Rediseño de costa (F16)
 - [x] Barco (F18)
 - [x] **Migración a chunks 2D + cámara fluida (F21)** ← v2.0
+- [x] **Auditor 2D** ← v2.1-alpha
+- [x] **Infraestructura de temas** ← v2.2-alpha
+- [x] **Tema espacio + color bioma + animación** ← v2.3-alpha
 
 ### 🔥 Próximas tareas (urgentes)
 
@@ -611,6 +710,7 @@ Ideas futuras: F1-F21.
 | 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
 | 🟡 Media | Prototipo 2 del módulo de combate | ⏸️ | SVG radial |
 | 🟡 Media | Loot y XP de mobs | ⏸️ | Campos ya definidos |
+| 🟡 Media | Pulir tema espacio (emojis, nombres, biomas) | ⏸️ | Ver BACKLOG · F19 |
 | 🟡 Media | Más tipos de ítems | ⏸️ | Extender sistema actual |
 | 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis pintadas |
 | 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
@@ -622,7 +722,7 @@ Ideas futuras: F1-F21.
 - Sistema de inventario completo
 - Refactorización a módulos ES
 - Entidades multi-tile (mobs 2×2)
-- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F21)
+- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F22)
 
 ---
 
@@ -635,11 +735,11 @@ Ideas futuras: F1-F21.
 | 3 | Hash y PRNG | `js/core/rng.js` |
 | 4 | (Eliminado en v2.0 — antes: fronteras 1D) | — |
 | 5 | Generador de chunk | `js/world/mundo.js` |
-| 5.1 | Biomas (datos) | `js/world/biomas.js` |
+| 5.1 | Biomas (wrapper de tema) | `js/world/biomas.js` |
 | 6 | Validación (simplificada) | `js/world/mundo.js` |
 | 7 | Estado global | `js/core/estado.js` |
 | 7.5 | Ítems y equipables | `js/entities/items.js` |
-| 7.7 | Mobs (plantilla + datos) | `js/entities/mobs.js` |
+| 7.7 | Mobs (wrapper de tema) | `js/entities/mobs.js` |
 | 7.8 | Enemigos (spawn, colisión) | `js/entities/enemigos.js` |
 | 7.9 | IA de mobs | `js/systems/ia.js` |
 | 7.10 | Sistema de rotura | `js/systems/rotura.js` |
@@ -683,7 +783,7 @@ Ideas futuras: F1-F21.
 
 ### Al cambiar de versión
 
-1. Bump en el encabezado (`v2.0` → `v2.1`).
+1. Bump en el encabezado (`v2.3-alpha` → `v2.4-alpha`).
 2. Agregar entrada en `CHANGELOG.md`.
 3. Actualizar la fecha.
 
@@ -715,6 +815,7 @@ Ideas futuras: F1-F21.
 - **RNG separado por sistema**: `@chunk` (terreno), `@items` (ítems), `@mobs` (mobs), `@llave` (llave).
 - **GitHub Pages tarda ~30-60s** en actualizarse tras un `git push`.
 - **Carpeta raíz variable**: cambia según la PC. No afecta al proyecto.
+- **Tema activo**: se guarda en `localStorage` y se lee en `config.js`.
 
 ---
 
@@ -722,7 +823,7 @@ Ideas futuras: F1-F21.
 
 - Este README se actualiza **cada vez que se agrega o cambia algo relevante**.
 - Las decisiones 🧪 pueden cambiar. Las decisiones 🟢 se mantienen salvo razón fuerte.
-- Los IDs (M1, J1, R1, S1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
+- Los IDs (M1, J1, R1, X1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
 - Los bloques del código (BLOQUE 1 a 20) son referenciables para modificaciones puntuales.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
 - Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)**.

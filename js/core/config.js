@@ -1,6 +1,6 @@
 // ─── Tema activo ───
 // "tierra" | "espacio"
-const TEMA_ACTIVO = "tierra";
+let TEMA_ACTIVO = localStorage.getItem("tema") || "tierra";
 
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 1 · CONFIGURACIÓN GLOBAL

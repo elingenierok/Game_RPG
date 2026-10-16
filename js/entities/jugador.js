@@ -52,6 +52,7 @@ function intentarMover(dx, dy) {
 
   // Iniciar animación
   estado.jugador.animando = true;
+  estado.jugador.corriendo = true;   // ← NUEVO
   estado.jugador.animInicioX = estado.jugador.wx;
   estado.jugador.animInicioY = estado.jugador.wy;
   estado.jugador.animFinX = destinoX;
@@ -59,8 +60,8 @@ function intentarMover(dx, dy) {
   estado.jugador.animInicio = performance.now();
 
   // Actualizar orientación
-  if (dx > 0) estado.jugador.mirandoIzquierda = true;
-  if (dx < 0) estado.jugador.mirandoIzquierda = false;
+  if (dx > 0) estado.jugador.mirandoIzquierda = true;  // va a la derecha
+  if (dx < 0) estado.jugador.mirandoIzquierda = false;   // va a la izquierda
 }
 
 // ─── Efectos al terminar de moverse (pisar celda) ───
@@ -87,10 +88,10 @@ function alPisarCelda(wx, wy) {
   if (equipable) {
     const nombre = tipoEquipableANombre(equipable.tipo);
     let icono = "🎒";
-    if (nombre === "HACHA")    icono = "🪓";
-    if (nombre === "PICO")     icono = "⛏️";
-    if (nombre === "LINTERNA") icono = "🕯️";
-    if (nombre === "BARCO")    icono = "🛶";
+if (nombre === "HACHA")    icono = ICONOS[HACHA];
+if (nombre === "PICO")     icono = ICONOS[PICO];
+if (nombre === "LINTERNA") icono = ICONOS[LINTERNA];
+if (nombre === "BARCO")    icono = ICONOS[BARCO];
     if (typeof mostrarCartelRapido === "function") {
       mostrarCartelRapido(`${icono} ¡${nombre} conseguido!`);
     }

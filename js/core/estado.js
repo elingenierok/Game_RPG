@@ -14,6 +14,7 @@ const estado = {
     wy: 0,     // posición Y en el mundo
     mirandoIzquierda: false,
     inicializado: false,
+    corriendo: false,
     // Animación en curso
     animando: false,
     animInicioX: 0,

@@ -71,6 +71,7 @@ function finalizarColocacionBarco() {
   if (!barco.colocando) return;
 
   barco.activo = true;
+  estado.jugador.enBarco = true;
   barco.colocando = false;
 
   // Mover al jugador al tile del agua
@@ -116,6 +117,7 @@ function verificarBajarseDelBarco() {
   const tile = tileEnMundo(wx, wy);
   if (tile !== WATER) {
     barco.activo = false;
+    estado.jugador.enBarco = false;
     mostrarCartelRapido("🚣 Bajaste del barco");
   }
 }
@@ -188,6 +190,7 @@ function finalizarDesembarco() {
   estado.jugador.animando = false;
 
   barco.activo = false;
+  estado.jugador.enBarco = false;
   desembarco.activo = false;
 
   if (desembarco.intervalID !== null) {

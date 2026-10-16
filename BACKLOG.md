@@ -5,15 +5,16 @@ Ideas futuras anotadas. **No están priorizadas ni implementadas.** Se anotan pa
 Para el estado actual del proyecto, ver [README.md](README.md).
 
 **Contenido actual:**
+
 - F1 · Ciclo día-noche
-- F2 · Movimiento amortiguado (Modelo 2 · Pokémon)
+- F2 · Movimiento amortiguado (Modelo 2 · Pokémon) · ✅ IMPLEMENTADO en v2.0
 - F3 · Sistema de capas del mundo
 - F4 · Semillas independientes por sistema · ✅ IMPLEMENTADO en v1.3
 - F5 · Spawn forzado por bioma o estructura
 - F6 · Pathfinding con obstáculos
 - F7 · Deambulación más realista
-- F8 · Objetos equipables y modificar el mundo
-- F9 · Sistema de mouse / interacción con click
+- F8 · Objetos equipables y modificar el mundo · 🧪 FASES 1-2 IMPLEMENTADAS
+- F9 · Sistema de mouse / interacción con click · 🧪 PARCIAL
 - F10 · Bioma "playa" como bioma separado
 - F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
 - F12 · Objetos equipables de mejor nivel
@@ -23,9 +24,10 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F16 · Rediseño del bioma "costa" · ✅ IMPLEMENTADO en v1.7.1
 - F17 · Sistema de "biomas con forma"
 - F18 · Barco (atravesar agua) · ✅ IMPLEMENTADO en v2.0
-- F19 · Tema "espacio" (nueva piel)
+- F19 · Tema "espacio" (nueva piel) · 🧪 PARCIAL en v2.3-alpha
 - F20 · Sistema de sprites animados (atlas + animaciones)
 - F21 · Migración a chunks 2D + cámara fluida · ✅ IMPLEMENTADO (base) en v2.0
+- F22 · Limitar generación de equipables
 
 ---
 
@@ -38,27 +40,32 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - **Implementación:** celdas lejanas "apagadas" (opacidad reducida o no renderizadas).
 
 **Preguntas pendientes:**
+
 - ¿Duración del ciclo? ¿Turnos? ¿Tiempo real? ¿Fijo?
 - ¿Afecta gameplay (enemigos más agresivos de noche, eventos)?
 - Fuentes de luz: ¿ítems portables? ¿estructuras fijas? ¿ambas?
 
+**Estado:** ⏸️ Anotado.
+
 ---
 
-## 🚶 F2 · Movimiento amortiguado entre celdas (Modelo 2 · Pokémon)
+## 🚶 F2 · Movimiento amortiguado entre celdas (Modelo 2 · Pokémon) · ✅ IMPLEMENTADO en v2.0
 
 **Idea:** el jugador se mueve **casilla a casilla**, pero con una **animación visual suave** entre una y la siguiente. La lógica de grilla queda intacta.
 
-**Diferencia con Modelo 1 (actual):**
+**Diferencia con Modelo 1 (viejo):**
 
 | Modelo | Comportamiento |
 |--------|----------------|
-| **1 · Actual** | El jugador salta de casilla en casilla **instantáneamente** |
+| **1 · Viejo** | El jugador salta de casilla en casilla **instantáneamente** |
 | **2 · Pokémon** | El jugador se **desliza** de casilla a casilla en ~120-150ms |
 | **3 · Zelda** | El jugador se mueve libremente por píxeles (no viable sin reescribir) |
 
 **Concepto clave:** el jugador **nunca está entre casillas lógicamente**. Solo **visualmente** durante la animación. Al terminar la animación, está en la nueva casilla.
 
-**Estado:** ⏸️ Anotado. **Ya implementado en v2.0** (movimiento fluido 200ms por celda).
+**Estado:** ✅ Implementado en v2.0 (`DURACION_MOVIMIENTO_MS = 100`).
+
+**Extensión (v2.3-alpha):** animación de "correr" alternando 2 emojis cada 150ms mientras se mueve, y orientación según dirección.
 
 ---
 
@@ -79,7 +86,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 
 **Preguntas pendientes:** ¿cómo se renderiza? ¿canvas múltiple? ¿puede una capa leer otra? ¿impacto en performance?
 
-**Estado:** ⏸️ Anotado. **Pendiente para después de terminar la migración a 2D.**
+**Estado:** ⏸️ Anotado. Pendiente para después de HP + daño.
 
 ---
 
@@ -102,6 +109,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 **Idea:** permitir forzar la aparición de un mob en un lugar específico.
 
 **Ejemplos:**
+
 - Un 🐉 dragón que aparece **solo en ruinas** y **solo una vez** por mundo.
 - Un 🐟 pez que aparece **solo en agua** y **solo de noche**.
 - Un 👻 fantasma que aparece **solo dentro de una estructura "castillo"**.
@@ -121,7 +129,8 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 **Mejora propuesta:** que puedan **rodear** obstáculos para llegar al jugador.
 
 **Consideraciones:**
-- Requiere algoritmo **A*** o similar sobre la grilla.
+
+- Requiere algoritmo **A\*** o similar sobre la grilla.
 - El cálculo es más costoso → hay que optimizarlo (cachear caminos, recalcular cada N ticks).
 - Aplica a: persecución (tigre) y huida (gallina).
 - No aplica a deambulación (el moverse al azar ya funciona bien).
@@ -137,6 +146,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 **Problema:** el movimiento se ve "zigzagueante" e impredecible. No parece que estén "paseando".
 
 **Mejoras propuestas:**
+
 - **Momentum:** preferir seguir la misma dirección que venían (ej: 70% de mantener, 30% de cambiar).
 - **Puntos de interés:** que el mob tenga 1-3 puntos de interés en el chunk y vaya rotando entre ellos.
 - **Descansos:** pausas aleatorias de 2-4 ticks entre movimientos.
@@ -146,13 +156,13 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 
 ---
 
-## 🎒 F8 · Objetos equipables y modificar el mundo
+## 🎒 F8 · Objetos equipables y modificar el mundo · 🧪 FASES 1-2 IMPLEMENTADAS
 
 **Idea:** permitir al jugador **equipar ítems** (cascos, botas, hachas) y **modificar el mundo** (picar, talar, construir). Los cambios deben **persistir** entre sesiones.
 
 **Modelo de persistencia:** deltas.
 
-```
+```text
 mundo = función(semilla, chunk) + deltas
 ```
 
@@ -171,6 +181,7 @@ mundo = función(semilla, chunk) + deltas
 | Loot de contenedores | `SEMILLA_LOOT` | ⏸️ Pendiente |
 
 **Fases propuestas:**
+
 1. Objetos equipables (slots + stats). ✅ v1.7
 2. Modificar mundo en memoria (picar/talar). ✅ v2.0
 3. Persistencia con deltas (localStorage). ⏸️
@@ -180,7 +191,7 @@ mundo = función(semilla, chunk) + deltas
 
 ---
 
-## 🖱️ F9 · Sistema de mouse / interacción con click
+## 🖱️ F9 · Sistema de mouse / interacción con click · 🧪 PARCIAL
 
 **Idea:** usar el mouse para **interactuar con entidades y objetos** en el mapa, en lugar de solo caminar sobre ellos.
 
@@ -220,6 +231,7 @@ mundo = función(semilla, chunk) + deltas
 **Estado:** completo. Los objetos equipables se recogen, se muestran en slots, y permiten romper tiles del mundo.
 
 **Referencia:**
+
 - `ROTURA_POR_TILE` en `tiles.js` — define qué se rompe con qué.
 - `tileBase` en `biomas.js` — a qué tile se convierte el objeto roto.
 
@@ -230,6 +242,7 @@ mundo = función(semilla, chunk) + deltas
 **Idea:** a futuro, poder tener versiones de mejor nivel de cada objeto.
 
 **Ejemplos:**
+
 - Hacha de madera (5 seg), hacha de hierro (3 seg), hacha de diamante (1 seg).
 - Pico similar.
 - Linterna con más radio de luz.
@@ -245,6 +258,7 @@ mundo = función(semilla, chunk) + deltas
 **Idea:** los objetos equipables pueden obtenerse de formas alternativas además del spawn en el mundo.
 
 **Fuentes propuestas:**
+
 - Al matar ciertos mobs.
 - Al romper vehículos/piedras específicas.
 - Al abrir cofres.
@@ -261,6 +275,7 @@ mundo = función(semilla, chunk) + deltas
 **Estado:** completado. Ver `js/world/biomas.js`.
 
 **Concepto:**
+
 - 7 biomas definidos como datos.
 - Cada bioma tiene: `nombre`, `emoji`, `tileBase`, `vecinos` (con pesos), `tiles` (con pesos).
 - El motor `obtenerBiomaDeChunk()` decide el bioma de cada chunk por hash determinista.
@@ -269,6 +284,7 @@ mundo = función(semilla, chunk) + deltas
 **Biomas actuales:** pradera, bosque, costa, ruina, oceano, desierto, nieve.
 
 **Referencia:**
+
 - `js/world/biomas.js` — tabla de biomas.
 - `js/world/mundo.js` — motor de asignación y pintado.
 
@@ -305,12 +321,14 @@ mundo = función(semilla, chunk) + deltas
 **Problema:** el bioma "costa" pintaba los tiles con probabilidad uniforme. El resultado eran "charcos" de agua salpicados por el chunk.
 
 **Solución:** la costa ahora usa **forma de franja**:
+
 - Agua en un lateral (~1/3 del chunk).
 - Arena en el medio (~1/3).
 - Pasto en el otro lateral (~1/3).
 - Bordes irregulares (con ondulación) para naturalidad.
 
 **Implementación:**
+
 - `js/world/biomas.js`: campo `forma: "franja"` en el bioma costa.
 - `js/world/mundo.js`: función `pintarCosta()`.
 
@@ -323,6 +341,7 @@ mundo = función(semilla, chunk) + deltas
 **Idea:** algunos biomas no se generan con probabilidad uniforme por celda. Tienen **forma**.
 
 **Formas previstas:**
+
 - **Franja:** agua en un lateral (costa) — ✅ implementado.
 - **Lago:** masa circular en el centro.
 - **Río:** franja atravesando el chunk.
@@ -330,6 +349,7 @@ mundo = función(semilla, chunk) + deltas
 - **Montaña:** elevación con cordillera.
 
 **Estado actual:**
+
 - ✅ `pintarCosta()` implementado (franja).
 - ⏸️ Otras formas pendientes.
 
@@ -344,44 +364,76 @@ mundo = función(semilla, chunk) + deltas
 **Idea:** un objeto equipable que permite al jugador caminar sobre tiles de agua.
 
 ### Objeto: 🛶 (Canoa)
+
 - **Aparece:** en cada chunk de costa (porChunk), en tierra, pegado a agua, lejos de los bordes.
 - **Recolección:** al pisarlo, se suma al inventario.
 - **Slot:** slot de equipados (junto a 🪓 ⛏️ 🕯️).
 
 ### Uso
+
 1. El jugador tiene 🛶 en el inventario.
 2. Hace **click** sobre un tile de agua **adyacente**.
 3. Se inicia una **barra de 5 segundos**.
-4. Al terminar: el jugador se sube al barco (🚣) y puede moverse sobre agua.
+4. Al terminar: el jugador se sube al barco (🚣 / 🛸) y puede moverse sobre agua.
 5. Click sobre tierra adyacente → barra de 2 seg → se baja del barco.
 
 ### Detalles
+
 - **Solo atraviesa `WATER`.**
 - **El barco es del jugador.** Una vez conseguido, siempre lo tiene.
 - **No se consume.**
 - **Puede romper tiles desde el barco** (ej: rocas en el agua).
 
-**Estado:** ✅ Completado en v2.0 (adaptado a chunks 2D).
+**Estado:** ✅ Completado en v2.0. Animación de "en barco" agregada en v2.3-alpha.
 
 ---
 
-## 🌌 F19 · Tema "espacio" (nueva piel)
+## 🌌 F19 · Tema "espacio" (nueva piel) · 🧪 PARCIAL en v2.3-alpha
 
 **Idea:** reutilizar el motor completo del juego con un cambio temático de "roguelike" a "explorador espacial".
 
 **Regla clave:** **no se toca el motor.** Solo se cambian **datos**.
 
-### Qué cambia
+### Estado actual (v2.3-alpha)
 
-| Capa | Archivo | Cambio |
-|------|---------|--------|
-| Tiles | `tiles.js` | Los íconos (emoji) de cada tile |
-| Biomas | `biomas.js` | Los nombres, emojis de resumen, y vecinos |
-| Mobs | `mobs.js` | Nombres, emojis, y quizás stats |
-| UI | `index.html`, `render.js` | Textos de la interfaz |
-| Config | `config.js` | `BIOMA_INICIAL` |
+**Infraestructura completa:**
 
-### Ejemplos de conversión
+- `js/core/temas/tema-tierra.js` — datos originales.
+- `js/core/temas/tema-espacio.js` — datos espaciales.
+- `TEMA_ACTIVO` en `config.js`.
+- `tiles.js`, `biomas.js`, `mobs.js` son wrappers que leen del tema activo.
+
+**Tema espacio funcional:**
+
+- 25 iconos espaciales (nave, meteorito, alien, etc.).
+- 7 biomas espaciales (llanura lunar, zona de naves, borde de cráter, ruinas alienígenas, mar de metano, dunas rojas, campo de hielo).
+- 3 mobs espaciales (alien hostil, dron pacífico, reptiliano neutral).
+- Botón de cambio de tema en la UI (arriba a la derecha).
+- Persistencia en `localStorage`.
+
+**Extras que surgieron durante la implementación:**
+
+- Color de fondo por bioma (tierra y espacio).
+- Animación del jugador (quieto, corriendo, en barco).
+- Emojis del jugador por tema (🧍‍♂️/👨‍🚀, 🏃‍♂️/🏍️, 🚣/🛸).
+
+### Falta
+
+**Diseño:**
+
+- Revisar y ajustar los emojis actuales (los más dudosos: 🪐 como TALLGRASS, 🦎 como CERDO, 🏍️/🏎️ como correr).
+- Diseñar más biomas específicos de espacio (ej: campo de asteroides, pantano de metano tóxico, base minera abandonada).
+- Diseñar mobs nuevos (jefe final, drones hostiles, robots mineros).
+- Diseñar ítems nuevos (herramientas espaciales, combustible, llaves de acceso).
+- Definir la narrativa: ¿por qué el astronauta busca piezas? ¿Qué pasa al reparar la nave?
+
+**Técnico:**
+
+- Adaptar `items.js` para que `EQUIPABLES` use nombres y emojis del tema.
+- Adaptar `auditor/` para que muestre el tema activo.
+- Adaptar `victoria.js` para que el mensaje final dependa del tema ("¡Reparaste la nave!" vs "¡Ganaste!").
+
+### Ejemplos de conversión (referencia)
 
 | Original | Espacio |
 |----------|---------|
@@ -390,23 +442,26 @@ mundo = función(semilla, chunk) + deltas
 | 🧱 WALL | 🔩 Panel metálico |
 | 🌊 WATER | 🟪 Líquido alienígena |
 | 🟨 SAND | 🟫 Arena espacial |
-| 🏜️ DESERT | 🟥 Arena roja (Marte) |
+| 🏜️ DESIERTO | 🟥 Arena roja (Marte) |
 | 🌵 CACTUS | 🦑 Criatura alienígena |
 | ❄️ SNOW | ⬜ Cristal blanco |
-| 🧊 ICE | 🔵 Hielo azul |
+| 🧊 ICE | 🔷 Hielo azul |
 | 🌲 PINE | 🗼 Torre/antena |
 | 🐅 TIGRE | 👽 Alien hostil |
 | 🐓 GALLINA | 🤖 Dron pacífico |
 | 🐖 CERDO | 🦎 Reptiliano neutral |
-| 🏃‍♂️ PLAYER | 🚀 Astronauta o cohete |
+| 🏃‍♂️ PLAYER | 🧑‍🚀 Astronauta |
 | 🪓 HACHA | ⚡ Sable de energía |
 | ⛏️ PICO | 🔫 Taladro |
 | 🕯️ LINTERNA | 💡 Lámpara |
 | 🛶 BARCO | 🚀 Módulo de escape |
 
-**Tiempo estimado:** 2-4 horas.
+### Rama de trabajo
 
-**Estado:** ⏸️ Anotado. Se puede implementar en cualquier momento.
+- Branch: `tema-espacio` (a mergear a `2d` cuando esté estable).
+- Aún no mergeado.
+
+**Estado:** 🧪 Funcional pero con mucho por pulir. El motor está intacto.
 
 ---
 
@@ -435,6 +490,7 @@ mundo = función(semilla, chunk) + deltas
 | 5 | Animación de enemigos | ⏸️ Pendiente |
 
 ### Herramientas recomendadas
+
 - **Piskel** (navegador, gratis).
 - **Aseprite** (~$20).
 - **LibreSprite** (gratis).
@@ -451,7 +507,7 @@ mundo = función(semilla, chunk) + deltas
 
 - El **jugador queda fijo en el centro** de la pantalla.
 - El **mundo se desplaza** debajo.
-- El **movimiento entre tiles es fluido** (200ms por tile).
+- El **movimiento entre tiles es fluido** (100ms por tile).
 - **Mundo circular** en X e Y (tipo Pac-Man).
 
 ### Valores finales
@@ -460,10 +516,10 @@ mundo = función(semilla, chunk) + deltas
 |---------|-------|
 | `ANCHO_CHUNK` | 32 |
 | `ALTO_CHUNK` | 32 |
-| `TAMANO_CELDA` | 16 |
-| `ANCHO_VENTANA` | 25 |
-| `ALTO_VENTANA` | 17 |
-| `DURACION_MOVIMIENTO_MS` | 200 |
+| `TAMANO_CELDA` | 24 |
+| `ANCHO_VENTANA` | 32 |
+| `ALTO_VENTANA` | 24 |
+| `DURACION_MOVIMIENTO_MS` | 100 |
 | `LIMITE_CHUNKS` | 4 (±4 en X e Y) |
 
 ### Fases de la migración
@@ -484,11 +540,13 @@ mundo = función(semilla, chunk) + deltas
 ### Lo que falta
 
 **Fronteras compartidas en 2D:**
+
 - Los cortes entre chunks se ven (cambio brusco de tiles).
 - Solución: que cada chunk nuevo consulte el borde del vecino y arranque con tiles similares.
 - **Estado:** ⏸️ Pendiente. Es la parte más "estética" y se puede postergar.
 
 **Otras mejoras posibles:**
+
 - Barco: si un mob bloquea la única celda de tierra, no se puede desembarcar.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
 - Overlays de transición: ya no aplican (eliminados).
@@ -502,15 +560,18 @@ mundo = función(semilla, chunk) + deltas
 ✅ **Base completa.** El juego es 100% jugable con chunks 2D y cámara fluida.
 
 ---
+
 ## ⚙️ F22 · Limitar generación de equipables
 
 **Idea:** hoy los equipables (🪓 ⛏️ 🕯️ 🛶) se generan en **todos** los chunks de su bioma (`porChunk: true`). Eso sirve para test pero no para producción.
 
 **Preparado:** el flag `porChunk` en `EQUIPABLES` (`items.js`) ya controla ambos modos:
+
 - `porChunk: true` → todos los chunks del bioma (modo test actual).
 - `porChunk: false` → un solo chunk del bioma, elegido por semilla (modo producción).
 
 **Falta:**
+
 - Decidir qué objetos van en cada modo.
 - Poder limitar por condiciones más finas (ej: "solo si el chunk es adyacente a ruina", "solo lejos del spawn").
 - Documentar bien el flag en `items.js`.
@@ -518,4 +579,5 @@ mundo = función(semilla, chunk) + deltas
 **Estado:** ⏸️ Anotado. Se define cuando el sistema base esté estable.
 
 ---
+
 **Fin del BACKLOG**

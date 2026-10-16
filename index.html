@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
+<button id="btn-tema" title="Cambiar tema">🌍 Tema: Tierra</button>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!--  LAYOUT PRINCIPAL: 3 columnas (20% / 60% / 20%)             -->
@@ -45,7 +46,7 @@
     <!-- Mapa (viewport) -->
     <div id="pantalla">
       <div id="mapa"></div>
-      <div id="jugador-fijo">🏃‍♂️</div>
+      <div id="jugador-fijo"></div>
     </div>
 
   </div>
@@ -70,11 +71,10 @@
       <div>🎒 <strong id="inventario">—</strong></div>
     </div>
 
-    <!-- Ayuda -->
     <div id="ayuda">
-      WASD, flechas o botones<br>
-      Buscá la 🔑 para ganar
-    </div>
+  WASD, flechas o botones<br>
+  <span id="ayuda-objetivo"></span>
+</div>
 
   </div>
 
