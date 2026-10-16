@@ -663,7 +663,7 @@ Interfaz radial con 6 sectores anidados. El jugador **bloquea** arrastrando el m
 
 **Movido a [BACKLOG.md](BACKLOG.md).**
 
-Ideas futuras: F1-F22.
+Ideas futuras: F1-F23.
 
 ---
 
@@ -715,6 +715,7 @@ Ideas futuras: F1-F22.
 | 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis pintadas |
 | 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
 | 🟢 Baja | Minimapa completo | ⏸️ | Fase futura |
+| 🟢 Baja | Transformaciones visuales (F23) | ⏸️ | Rotación, glow, pulse, flip vertical |
 
 ### 🌟 Ideas para más adelante
 

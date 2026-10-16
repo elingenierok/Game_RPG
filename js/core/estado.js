@@ -15,6 +15,7 @@ const estado = {
     mirandoIzquierda: false,
     inicializado: false,
     corriendo: false,
+    enBarco: false,
     // Animación en curso
     animando: false,
     animInicioX: 0,

@@ -52,7 +52,6 @@ function intentarMover(dx, dy) {
 
   // Iniciar animación
   estado.jugador.animando = true;
-  estado.jugador.corriendo = true;   // ← NUEVO
   estado.jugador.animInicioX = estado.jugador.wx;
   estado.jugador.animInicioY = estado.jugador.wy;
   estado.jugador.animFinX = destinoX;
