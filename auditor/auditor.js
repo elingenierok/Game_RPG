@@ -1,142 +1,180 @@
-// ═══ AUDITOR DE SEMILLAS ═══
+// ═══ AUDITOR DE SEMILLAS (2D) ═══
 
 const auditor = {
   semilla: "test_mundo_01",
   chunks: [],
-  seleccionado: null,
-  pegados: 1
+  ancho: 5,
+  alto: 5,
+  cx: 0,
+  cy: 0
 };
 
-// ═══ 1 · GENERAR CHUNKS ═══
-function generarChunks(semilla, oeste, este) {
+// ═══ 1 · GENERAR MATRIZ DE CHUNKS ═══
+function generarChunks(semilla, cx0, cy0, ancho, alto) {
   const chunks = [];
-  for (let i = oeste; i >= 1; i--) chunks.push(generarUnChunk(semilla, -i));
-  for (let z = 0; z < este; z++)    chunks.push(generarUnChunk(semilla, z));
+  const xIni = cx0 - Math.floor(ancho / 2);
+  const yIni = cy0 - Math.floor(alto / 2);
+  for (let j = 0; j < alto; j++) {
+    for (let i = 0; i < ancho; i++) {
+      const cx = xIni + i;
+      const cy = yIni + j;
+      const r = generarPantalla(semilla, cx, cy);
+      chunks.push({ cx, cy, bioma: r.bioma, mapa: r.mapa });
+    }
+  }
   return chunks;
 }
-function generarUnChunk(semilla, zona) {
-  const r = generarPantallaValida(semilla, zona);
-  return { zona, bioma: r.bioma, mapa: r.mapa, intentos: r.intentos };
-}
 
-// ═══ 2 · FRANJA ═══
-function renderFranja() {
-  const cont = document.getElementById("franja-chunks");
+// ═══ 2 · MAPA DE BIOMAS ═══
+function renderMapaBiomas() {
+  const cont = document.getElementById("matriz-simplificada");
   cont.innerHTML = "";
-  if (auditor.chunks.length === 0) {
-    cont.innerHTML = '<p style="color:#555;margin:auto">Sin chunks generados.</p>';
-    return;
+
+  const xIni = Math.min(...auditor.chunks.map(c => c.cx));
+  const yIni = Math.min(...auditor.chunks.map(c => c.cy));
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "matriz-con-ejes";
+
+  const ejeY = document.createElement("div");
+  ejeY.className = "eje-y";
+  for (let j = 0; j < auditor.alto; j++) {
+    const celda = document.createElement("div");
+    celda.className = "eje-celda";
+    celda.textContent = yIni + j;
+    ejeY.appendChild(celda);
   }
+  wrapper.appendChild(ejeY);
+
+  const bloque = document.createElement("div");
+  bloque.className = "bloque-matriz";
+
+  const ejeX = document.createElement("div");
+  ejeX.className = "eje-x";
+  ejeX.style.gridTemplateColumns = `repeat(${auditor.ancho}, 1fr)`;
+  for (let i = 0; i < auditor.ancho; i++) {
+    const celda = document.createElement("div");
+    celda.className = "eje-celda";
+    celda.textContent = xIni + i;
+    ejeX.appendChild(celda);
+  }
+  bloque.appendChild(ejeX);
+
+  const grid = document.createElement("div");
+  grid.className = "grid-biomas";
+  grid.style.gridTemplateColumns = `repeat(${auditor.ancho}, 1fr)`;
+
   for (const c of auditor.chunks) {
     const div = document.createElement("div");
-    div.className = "chunk" + (c.zona === auditor.seleccionado ? " seleccionado" : "");
+    div.className = "bioma-celda";
     const emoji = (BIOMAS[c.bioma] && BIOMAS[c.bioma].emoji) || "❓";
+
+    let iconosEquip = "";
+    try {
+      const equipables = generarEquipablesDeChunk(c.cx, c.cy);
+      if (equipables && equipables.length > 0) {
+        iconosEquip = equipables.map(e => ICONOS[e.tipo] || "?").join(" ");
+      }
+    } catch (err) {
+      console.error("[auditor] error equipables en", c.cx, c.cy, err);
+    }
+
     div.innerHTML = `
       <div class="emoji">${emoji}</div>
-      <div class="zona">zona ${c.zona}</div>
-      <div class="meta">${c.bioma}</div>
-      <div class="meta">${c.intentos === 0 ? "✓ directo" : "↻ " + c.intentos + " retry"}</div>
+      <div class="nombre">${c.bioma}</div>
+      ${iconosEquip ? `<div class="equip">${iconosEquip}</div>` : ""}
     `;
-    div.addEventListener("click", () => {
-      auditor.seleccionado = c.zona;
-      renderFranja();
-      renderGrilla();
-    });
-    cont.appendChild(div);
+    div.addEventListener("click", () => centrarEnChunk(c.cx, c.cy));
+    grid.appendChild(div);
   }
+  bloque.appendChild(grid);
+  wrapper.appendChild(bloque);
+  cont.appendChild(wrapper);
 }
 
-// ═══ 3 · GRILLA ═══
-function renderGrilla() {
-  const panel = document.getElementById("panel-grilla");
-  if (auditor.seleccionado === null) {
-    panel.innerHTML = '<p class="vacio">Hacé click en un chunk para ver su grilla.</p>';
-    return;
-  }
-  const c = auditor.chunks.find(x => x.zona === auditor.seleccionado);
-  if (!c) {
-    panel.innerHTML = '<p class="vacio">Chunk no encontrado.</p>';
-    return;
-  }
+// ═══ 3 · MUNDO GENERADO ═══
+function renderMundo() {
+  const cont = document.getElementById("mundo");
+  cont.innerHTML = "";
 
-  const mitad = Math.floor(auditor.pegados / 2);
+  const ESCALA = TAMANO_CELDA / 4;
+  const ANCHO_CELDA = ANCHO_CHUNK * ESCALA;
+  const ALTO_CELDA  = ALTO_CHUNK  * ESCALA;
+  const GAP = 1;
 
-  const zonas = auditor.chunks.map(x => x.zona).sort((a, b) => a - b);
-  const min = zonas[0];
-  const max = zonas[zonas.length - 1];
-  const total = zonas.length;
+  cont.style.gridTemplateColumns = `repeat(${auditor.ancho}, ${ANCHO_CELDA}px)`;
+  cont.style.gap = GAP + "px";
 
-  let inicio;
-  if (total <= auditor.pegados) {
-    inicio = min;
-  } else {
-    inicio = c.zona - mitad;
-    if (inicio < min) inicio = min;
-    if (inicio + auditor.pegados - 1 > max) inicio = max - auditor.pegados + 1;
-  }
+  for (const c of auditor.chunks) {
+    const chunkDiv = document.createElement("div");
+    chunkDiv.className = "chunk-mundo";
+    chunkDiv.dataset.cx = c.cx;
+    chunkDiv.dataset.cy = c.cy;
+    chunkDiv.style.gridTemplateColumns = `repeat(${ANCHO_CHUNK}, ${ESCALA}px)`;
+    chunkDiv.style.width = ANCHO_CELDA + "px";
+    chunkDiv.style.height = ALTO_CELDA + "px";
 
-  let html = `<h2>Zona ${c.zona} · Bioma: ${c.bioma}`;
-  html += ` · ${c.mapa[0].length}×${c.mapa.length}`;
-  html += ` · ${c.intentos === 0 ? "sin reintentos" : c.intentos + " reintentos"}`;
-  html += `</h2>`;
-
-  html += `<div class="fila-grillas">`;
-
-  for (let i = 0; i < auditor.pegados; i++) {
-    const zona = inicio + i;
-    if (i > 0) html += `<div class="columna-union"></div>`;
-
-    const chunk = auditor.chunks.find(x => x.zona === zona);
-    if (!chunk) continue;
-
-    const esActual = (zona === c.zona);
-    html += `<div class="grilla-wrapper">`;
-    html += `<div class="etiqueta ${esActual ? "actual" : ""}">zona ${zona} · ${chunk.bioma}</div>`;
-    html += `<div class="grilla" style="
-      --tam-celda: ${TAMANO_CELDA / 2}px;
-      --font-emoji: ${FONT_EMOJI / 2}px;
-      grid-template-columns: repeat(${chunk.mapa[0].length}, ${TAMANO_CELDA / 2}px);
-    ">`;
-    for (let y = 0; y < chunk.mapa.length; y++) {
-      for (let x = 0; x < chunk.mapa[y].length; x++) {
-        const emoji = ICONOS[chunk.mapa[y][x]] || "?";
-        html += `<div class="celda">${emoji}</div>`;
+    for (let y = 0; y < c.mapa.length; y++) {
+      for (let x = 0; x < c.mapa[y].length; x++) {
+        const celda = document.createElement("div");
+        celda.className = "celda-mundo";
+        celda.style.width = ESCALA + "px";
+        celda.style.height = ESCALA + "px";
+        celda.style.fontSize = (FONT_EMOJI / 4) + "px";
+        celda.textContent = ICONOS[c.mapa[y][x]] || "?";
+        chunkDiv.appendChild(celda);
       }
     }
-    html += `</div></div>`;
+    cont.appendChild(chunkDiv);
   }
-
-  html += `</div>`;
-  panel.innerHTML = html;
 }
 
-// ═══ 4 · EVENTOS ═══
+// ═══ 4 · CENTRAR EN CHUNK ═══
+function centrarEnChunk(cx, cy) {
+  const wrapper = document.getElementById("mundo-wrapper");
+  const target = document.querySelector(`.chunk-mundo[data-cx="${cx}"][data-cy="${cy}"]`);
+  if (!target) return;
+  const wr = wrapper.getBoundingClientRect();
+  const tr = target.getBoundingClientRect();
+  wrapper.scrollLeft += (tr.left - wr.left) - (wr.width - tr.width) / 2;
+  wrapper.scrollTop  += (tr.top  - wr.top)  - (wr.height - tr.height) / 2;
+}
+
+// ═══ 5 · SEMILLA ALEATORIA ═══
+function semillaAleatoria() {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let s = "";
+  for (let i = 0; i < 12; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById("input-semilla").value = s;
+  generarDesdeInputs();
+}
+
+// ═══ 6 · EVENTOS ═══
 function generarDesdeInputs() {
   const semilla = document.getElementById("input-semilla").value.trim() || "test_mundo_01";
-  const oeste = Math.max(0, parseInt(document.getElementById("input-oeste").value) || 0);
-  const este = Math.max(1, parseInt(document.getElementById("input-este").value) || 10);
-  const pegados = parseInt(document.getElementById("select-pegados").value) || 1;
+  const ancho = Math.min(10, Math.max(1, parseInt(document.getElementById("input-ancho").value) || 5));
+  const alto  = Math.min(10, Math.max(1, parseInt(document.getElementById("input-alto").value)  || 5));
+  const cx = parseInt(document.getElementById("input-cx").value) || 0;
+  const cy = parseInt(document.getElementById("input-cy").value) || 0;
 
-  // Limpiar cache del madre antes de generar con nueva semilla
   if (typeof limpiarCacheBiomas === "function") limpiarCacheBiomas();
 
   auditor.semilla = semilla;
-  auditor.pegados = pegados;
-  auditor.chunks = generarChunks(semilla, oeste, este);
-  auditor.seleccionado = null;
+  auditor.ancho = ancho;
+  auditor.alto  = alto;
+  auditor.cx = cx;
+  auditor.cy = cy;
+  auditor.chunks = generarChunks(semilla, cx, cy, ancho, alto);
 
-  renderFranja();
-  renderGrilla();
+  renderMapaBiomas();
+  renderMundo();
 }
 
 function init() {
   document.getElementById("btn-generar").addEventListener("click", generarDesdeInputs);
+  document.getElementById("btn-random").addEventListener("click", semillaAleatoria);
   document.getElementById("input-semilla").addEventListener("keydown", (e) => {
     if (e.key === "Enter") generarDesdeInputs();
-  });
-  document.getElementById("select-pegados").addEventListener("change", (e) => {
-    auditor.pegados = parseInt(e.target.value) || 1;
-    renderGrilla();
   });
   generarDesdeInputs();
 }

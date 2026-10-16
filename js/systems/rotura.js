@@ -1,26 +1,15 @@
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 7.10 · SISTEMA DE ROTURA
+//  BLOQUE 7.10 · SISTEMA DE ROTURA (chunks 2D)
 // ─────────────────────────────────────────────────────────────────
-//  Permite romper árboles y piedras haciendo click sostenido.
-//
-//  Condiciones:
-//    1. El click debe ser EXACTAMENTE sobre la celda del objeto.
-//    2. El jugador debe estar ADYACENTE (4 direcciones).
-//    3. Debe tener el objeto correcto equipado (🪓 para árbol, ⛏️ para piedra).
-//
-//  Comportamiento:
-//    - Al mantener el click: barra de stamina baja de 100% a 0%.
-//    - Al soltar: se cancela.
-//    - Si el jugador se mueve: se cancela.
-//    - Al llegar a 0%: el tile se convierte al tileBase del bioma.
+//  El click se convierte a coordenadas del mundo (wx, wy).
+//  La rotura modifica el chunk correspondiente.
 // ═══════════════════════════════════════════════════════════════
 
 // ─── Estado de la rotura actual ───
 const rotura = {
   activa: false,
-  zona: null,
-  x: null,
-  y: null,
+  wx: null,
+  wy: null,
   tileOriginal: null,
   tileBase: null,
   tiempoInicio: 0,
@@ -29,33 +18,44 @@ const rotura = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-//  DETECCIÓN DE CLICK SOBRE EL MAPA
+//  CONVERSIÓN CLICK → COORDENADAS DEL MUNDO
 // ═══════════════════════════════════════════════════════════════
+function coordenadasClickAMundo(evento) {
+  const pantalla = document.getElementById("pantalla");
+  const rect = pantalla.getBoundingClientRect();
 
-// Convertir coordenadas del mouse a celda del mapa
-function coordenadasACelda(evento) {
-  const rect = divMapa.getBoundingClientRect();
-  const x = evento.clientX - rect.left;
-  const y = evento.clientY - rect.top;
+  const px = evento.clientX - rect.left;
+  const py = evento.clientY - rect.top;
 
-  const celdaX = Math.floor(x / TAMANO_CELDA);
-  const celdaY = Math.floor(y / TAMANO_CELDA);
+  if (px < 0 || py < 0) return null;
+  if (px >= ANCHO_VENTANA * TAMANO_CELDA) return null;
+  if (py >= ALTO_VENTANA * TAMANO_CELDA) return null;
 
-  if (celdaX < 0 || celdaX >= ANCHO_PANTALLA) return null;
-  if (celdaY < 0 || celdaY >= ALTO_PANTALLA) return null;
+  const celdaVX = Math.floor(px / TAMANO_CELDA);
+  const celdaVY = Math.floor(py / TAMANO_CELDA);
 
-  return { x: celdaX, y: celdaY };
+  const centroX = Math.floor(ANCHO_VENTANA / 2);
+  const centroY = Math.floor(ALTO_VENTANA / 2);
+
+  const esquinaX = Math.floor(camara.x - centroX);
+  const esquinaY = Math.floor(camara.y - centroY);
+
+  return {
+    wx: esquinaX + celdaVX,
+    wy: esquinaY + celdaVY,
+  };
 }
 
-// ─── Verificar si el jugador está adyacente a una celda ───
-function jugadorAdyacenteA(x, y) {
-  const dx = Math.abs(estado.jugador.x - x);
-  const dy = Math.abs(estado.jugador.y - y);
-  // Adyacente = 1 tile en cualquiera de las 4 direcciones
+// ─── ¿El jugador está adyacente a (wx, wy)? ───
+function jugadorAdyacenteA(wx, wy) {
+  const jx = Math.floor(estado.jugador.wx);
+  const jy = Math.floor(estado.jugador.wy);
+  const dx = Math.abs(jx - wx);
+  const dy = Math.abs(jy - wy);
   return (dx + dy) === 1;
 }
 
-// ─── Verificar si el jugador tiene el objeto correcto ───
+// ─── ¿Tiene el objeto equipado? ───
 function tieneObjetoEquipado(nombre) {
   return (estado.inventario[nombre] || 0) > 0;
 }
@@ -63,83 +63,65 @@ function tieneObjetoEquipado(nombre) {
 // ═══════════════════════════════════════════════════════════════
 //  INICIAR ROTURA
 // ═══════════════════════════════════════════════════════════════
-
-function intentarIniciarRotura(x, y) {
-  // ─── 1. ¿Hay algo rompible en esa celda? ───
-  const tile = estado.pantalla.mapa[y][x];
+function intentarIniciarRotura(wx, wy) {
+  // 1. ¿Hay algo rompible en esa celda?
+  const tile = tileEnMundo(wx, wy);
   const config = ROTURA_POR_TILE[tile];
+  if (!config) return false;
 
-  if (!config) {
-    // No es árbol ni piedra. No hacer nada.
-    return false;
-  }
+  // 2. ¿El jugador está adyacente?
+  if (!jugadorAdyacenteA(wx, wy)) return false;
 
-  // ─── 2. ¿El jugador está adyacente? ───
-  if (!jugadorAdyacenteA(x, y)) {
-    return false;
-  }
-
-  // ─── 3. ¿Tiene el objeto correcto? ───
+  // 3. ¿Tiene el objeto correcto?
   if (!tieneObjetoEquipado(config.objeto)) {
-    // Mostrar cartel
     const nombreObjeto = config.objeto === "HACHA" ? "hacha" : "pico";
     mostrarCartelRapido(`Necesitás un ${nombreObjeto}`);
     return false;
   }
 
-  // ─── 4. Iniciar rotura ───
+  // 4. Iniciar rotura
   rotura.activa = true;
-  rotura.zona = estado.zona;
-  rotura.x = x;
-  rotura.y = y;
+  rotura.wx = wx;
+  rotura.wy = wy;
   rotura.tileOriginal = tile;
-  rotura.tileBase = NOMBRE_A_TILE[BIOMAS[estado.pantalla.bioma].tileBase];
+
+  // Tile base según el bioma del chunk
+  const info = coordsMundoATile(wx, wy);
+  const bioma = obtenerBiomaDeChunk(SEMILLA, info.cx, info.cy);
+  rotura.tileBase = NOMBRE_A_TILE[BIOMAS[bioma].tileBase];
+
   rotura.tiempoInicio = Date.now();
   rotura.duracionMs = config.duracionMs;
 
-  // Mostrar barra
   const barra = document.getElementById("barra-stamina");
   barra.classList.add("visible");
 
-  // Loop de actualización
   rotura.intervalID = setInterval(actualizarRotura, INTERVALO_ROTURA_MS);
-
   return true;
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  ACTUALIZAR ROTURA
 // ═══════════════════════════════════════════════════════════════
-
 function actualizarRotura() {
   if (!rotura.activa) return;
 
-  // ─── ¿El jugador se movió? Cancelar ───
-  if (!jugadorAdyacenteA(rotura.x, rotura.y)) {
+  if (!jugadorAdyacenteA(rotura.wx, rotura.wy)) {
     cancelarRotura();
     return;
   }
 
-  // ─── ¿Cambió de zona? Cancelar ───
-  if (estado.zona !== rotura.zona) {
-    cancelarRotura();
-    return;
-  }
-
-  // ─── ¿Se perdió el objeto equipado? Cancelar ───
   const config = ROTURA_POR_TILE[rotura.tileOriginal];
   if (!tieneObjetoEquipado(config.objeto)) {
     cancelarRotura();
     return;
   }
 
-  // ─── Actualizar barra ───
   const transcurrido = Date.now() - rotura.tiempoInicio;
   const progreso = Math.max(0, 1 - (transcurrido / rotura.duracionMs));
   const relleno = document.getElementById("barra-stamina-relleno");
   relleno.style.width = (progreso * 100) + "%";
 
-  // ─── ¿Terminó? ───
   if (transcurrido >= rotura.duracionMs) {
     finalizarRotura();
   }
@@ -148,21 +130,26 @@ function actualizarRotura() {
 // ═══════════════════════════════════════════════════════════════
 //  FINALIZAR ROTURA
 // ═══════════════════════════════════════════════════════════════
-
 function finalizarRotura() {
   if (!rotura.activa) return;
 
-  // Convertir el tile al tileBase del bioma
-  estado.pantalla.mapa[rotura.y][rotura.x] = rotura.tileBase;
+  // Convertir el tile en el chunk correspondiente
+  const info = coordsMundoATile(rotura.wx, rotura.wy);
+  const chunk = obtenerChunk(info.cx, info.cy);
+  chunk.mapa[info.ly][info.lx] = rotura.tileBase;
 
   cancelarRotura();
+
+  // Forzar el redibujado del grid (para que el cambio se vea al instante)
+  if (typeof forzarRedibujadoGrid === "function") {
+    forzarRedibujadoGrid();
+  }
   render();
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  CANCELAR ROTURA
 // ═══════════════════════════════════════════════════════════════
-
 function cancelarRotura() {
   rotura.activa = false;
 
@@ -171,20 +158,17 @@ function cancelarRotura() {
     rotura.intervalID = null;
   }
 
-  // Ocultar barra
   const barra = document.getElementById("barra-stamina");
   barra.classList.remove("visible");
   document.getElementById("barra-stamina-relleno").style.width = "100%";
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  CARTEL RÁPIDO (para "Necesitás un hacha")
+//  CARTEL RÁPIDO
 // ═══════════════════════════════════════════════════════════════
-
 let _cartelTimer = null;
 
 function mostrarCartelRapido(texto) {
-  // Crear cartel si no existe
   let cartel = document.getElementById("cartel-rapido");
   if (!cartel) {
     cartel = document.createElement("div");
@@ -219,42 +203,43 @@ function mostrarCartelRapido(texto) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  LISTENERS DEL MOUSE
+//  LISTENER DEL MOUSE
 // ═══════════════════════════════════════════════════════════════
+const divMapaClick = document.getElementById("pantalla");
 
-divMapa.addEventListener("mousedown", (e) => {
-  // Solo botón izquierdo
+divMapaClick.addEventListener("mousedown", (e) => {
   if (e.button !== 0) return;
 
-  const celda = coordenadasACelda(e);
-  if (!celda) return;
+  const coords = coordenadasClickAMundo(e);
+  if (!coords) return;
 
-  // 1. ¿Ya está navegando? Intentar desembarcar
+  // 1. ¿Navegando? Intentar desembarcar
   if (typeof estaNavegando === "function" && estaNavegando()) {
+    // 1a. Intentar desembarcar
     if (typeof iniciarDesembarco === "function") {
-      if (iniciarDesembarco(celda.x, celda.y)) return;
+      if (iniciarDesembarco(coords.wx, coords.wy)) return;
     }
-    return;   // Si no puede desembarcar, no hacer nada
+    // 1b. Si no puede desembarcar, intentar romper (ej: roca en el agua)
+    intentarIniciarRotura(coords.wx, coords.wy);
+    return;
   }
 
-  // 2. Intentar colocar barco (si aplica)
+  // 2. Intentar colocar barco
   if (typeof intentarColocarBarco === "function") {
-    if (intentarColocarBarco(celda.x, celda.y)) return;
+    if (intentarColocarBarco(coords.wx, coords.wy)) return;
   }
 
-  // 3. Si no, intentar romper
-  intentarIniciarRotura(celda.x, celda.y);
+  // 3. Intentar romper
+  intentarIniciarRotura(coords.wx, coords.wy);
 });
 
 // ═══════════════════════════════════════════════════════════════
-//  LIMPIAR AL CAMBIAR DE ZONA O MUNDO
+//  LIMPIAR AL REINICIAR MUNDO
 // ═══════════════════════════════════════════════════════════════
-
 function cancelarRoturaSiActiva() {
-  if (rotura.activa) {
-    cancelarRotura();
-  }
-  if (typeof cancelarColocacionBarco === "function" && typeof barco !== "undefined" && barco.colocando) {
+  if (rotura.activa) cancelarRotura();
+  if (typeof cancelarColocacionBarco === "function" &&
+      typeof barco !== "undefined" && barco.colocando) {
     cancelarColocacionBarco();
   }
 }

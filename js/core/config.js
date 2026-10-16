@@ -38,7 +38,7 @@ const LLAVE_CHUNK_CY = 0;
 
 // ─── Duración del movimiento del jugador ───
 // Cuánto tarda en moverse de una celda a la siguiente.
-const DURACION_MOVIMIENTO_MS = 300;
+const DURACION_MOVIMIENTO_MS = 100;
 
 // ─── Tick de IA (mobs en tiempo real) ───
 const TICK_MS = 400;

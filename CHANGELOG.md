@@ -12,7 +12,7 @@ Historial completo de versiones del proyecto. Para el estado actual, ver [README
 - **Fase 2 (futuro):** biomas forzados (ciudades, puertos, islas) + chunks de transición.
 - **Ver:** BACKLOG · F14 y F15.
 
-## v2.0-alpha · 2026-10-15 (MIGRACIÓN A CHUNKS 2D · EN PROGRESO)
+## v2.0 · 2026-10-16 (migración a chunks 2D completada)
 
 ### 🎯 Objetivo
 
@@ -22,72 +22,76 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 **Fase 1 · Constantes nuevas**
 - `ANCHO_CHUNK = 32`, `ALTO_CHUNK = 32`
-- `ANCHO_VENTANA = 25`, `ALTO_VENTANA = 17` (después 32×24 en pruebas)
+- `ANCHO_VENTANA = 25`, `ALTO_VENTANA = 17`
 - `TAMANO_CELDA = 16`
-- `LIMITE_CHUNKS = 4` (±4 en X e Y)
-- `LLAVE_CHUNK_CX = 2`, `LLAVE_CHUNK_CY = 0`
+- `LIMITE_CHUNKS = 4`
 - `DURACION_MOVIMIENTO_MS = 200`
+- Llave en chunk (2, 0)
 
 **Fase 2 · Sistema de cámara (`js/systems/camara.js` — NUEVO)**
-- `camara.x`, `camara.y` (posición con decimales)
+- `camara.x`, `camara.y`
 - `iniciarCamara()`, `sincronizarCamara()`, `obtenerOffsetCamara()`
 - `coordsMundoAChunk()`, `coordsMundoATile()`, `normalizarChunk()`
-- La cámara se sincroniza con la posición del jugador cada frame
 
 **Fase 3 · Chunks 2D**
-- `js/core/estado.js`: reescrito. El jugador vive en `(wx, wy)` del mundo.
-- `js/world/chunks.js`: caché de `"cx,cy"` → chunk. `inicializarJugador()`, `inicializarLlave()`.
-- `js/world/mundo.js`: `generarPantalla(semilla, cx, cy)`. `obtenerBiomaDeChunk()` (hash determinista por chunk).
+- `estado.js`: jugador vive en `(wx, wy)`.
+- `chunks.js`: caché `"cx,cy"` → chunk. `inicializarJugador()`, `inicializarLlave()`.
+- `mundo.js`: `generarPantalla(semilla, cx, cy)`. `obtenerBiomaDeChunk()`.
 
-**Fase 4 · Render + movimiento**
-- `js/ui/render.js`: reescrito. Grid extendido (2 celdas de margen), contenido recalculado al cambiar la esquina, `translate` para el desplazamiento fluido.
-- `js/entities/jugador.js`: movimiento 360°. Interpolación de `(wx, wy)`. `alPisarCelda()` para recoger ítems/equipables y verificar la llave.
-- `js/core/input.js`: input continuo (teclas + botones). Detección de dirección actual.
-- `js/main.js`: reescrito. Loop principal con `requestAnimationFrame`.
+**Fase 4 · Render + movimiento 360°**
+- `render.js`: grid extendido, contenido recalculado, `translate` para el desplazamiento.
+- `jugador.js`: movimiento 360° con interpolación. `alPisarCelda()`.
+- `input.js`: input continuo (teclas + botones).
+- `main.js`: loop con `requestAnimationFrame`.
 
 **Fase 5 · Ítems y mobs 2D**
-- `js/entities/items.js`: reescrito. Ítems y equipables en coordenadas del mundo.
-- `js/entities/enemigos.js`: reescrito. Mobs por chunk 2D (`cacheMobs` con clave `"cx,cy"`).
+- `items.js` reescrito: ítems y equipables en coordenadas del mundo.
+- `enemigos.js` reescrito: mobs por chunk 2D.
 - Fix: manzanas no se generan sobre agua.
-- Fix: mobs no se generan sobre ítems/equipables.
+- Fix: mobs no se generan sobre ítems.
 - Fix: ítems no se generan sobre mobs.
 
-### 🎨 Ajustes visuales
+**Fase 6 · Rotura y barco 2D**
+- `rotura.js`: click → coordenadas del mundo. Rotura instantánea.
+- `barco.js`: click → coordenadas del mundo. Desembarco funcional.
+- Romper rocas del agua desde el barco.
+- Navegación entre chunks en barco.
 
-- El jugador queda **exactamente sobre la celda central** del viewport.
-- El jugador y el mapa son **no seleccionables** (`user-select: none`).
-- La cámara y el mapa están **sincronizados** (sin desfase).
+**Fase 7 · Victoria y pausa**
+- `victoria.js`: adaptado a `estado.llave.wx, wy`.
+- Pausa global (`estado.pausado`) durante batalla.
+- Se cancela rotura/barco al iniciar batalla.
+
+### 🎨 Ajustes visuales
+- Jugador fijo en el centro exacto del viewport.
+- Jugador y mapa no seleccionables (`user-select: none`).
+- Cámara y mapa sincronizados (sin desfase).
+- Barra de stamina no mueve el layout.
+
+### 🔧 Fixes adicionales
+- Muros N-S eliminados (sin bloqueo vertical).
+- Colisión con mobs restaurada (cerdos/gallinas bloquean, tigres inician batalla).
+- Equipables en cada chunk de su bioma (porChunk: true).
+- Tigres aparecen en nieve.
+- Barco no se puede colocar sobre mobs.
+- `limite.js` y `funLimiteChunk()` eliminados.
 
 ### ⏸️ Pendiente
-
-**Fase 6 · Rotura y barco**
-- `js/systems/rotura.js`: adaptar click a coordenadas del mundo.
-- `js/systems/barco.js`: adaptar click a coordenadas del mundo.
-
-**Fase 7 · Barra de stamina**
-- Verificar que funcione con la nueva cámara.
-- Probablemente funcione sin cambios.
-
-**Fase 8 · Victoria**
-- `js/ui/victoria.js`: adaptar a la nueva posición de la llave (`estado.llave.wx, wy`).
-
-**Fase 9 · Fronteras compartidas en 2D**
-- Suavizar los cortes entre chunks.
-- Cada chunk nuevo consulta los bordes de los vecinos.
-
-**Limpieza**
-- Eliminar `renderBarraZonas()`, `cambiarZona()`, `limite.js`.
-- Eliminar archivos HTML de prueba: `chunk-camara.html`, `chunks-2d.html`.
+- **Fronteras compartidas en 2D:** suavizar cortes entre chunks.
+- Barco: mob bloqueando la única celda de tierra.
+- Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
 
 ### 📖 Documentación
-- README: pendiente actualizar (marcos M1-M19, G14-G18, R17-R18 están desactualizados).
-- BACKLOG: F21 en progreso.
+- README: actualizado a v2.0.
+- BACKLOG: F21 marcado como implementado.
+- CHANGELOG: esta entrada.
 
 ### ⚠️ Estado
-- **v2.0-alpha en progreso.** El juego funciona (mover, recoger, mobs).
-- Falta: rotura, barco, victoria, fronteras, limpieza.
+- **v2.0 estable.** El juego es 100% jugable.
+- Todas las mecánicas funcionan: exploración, ítems, mobs, rotura, barco, batalla, victoria.
 
 ---
+
 
 ## v1.9.1 · 2026-10-15 (prototipo chunks 2D aprobado)
 

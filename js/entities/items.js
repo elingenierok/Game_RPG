@@ -3,28 +3,34 @@
 // ─────────────────────────────────────────────────────────────────
 //  Ahora los ítems viven en coordenadas del mundo (wx, wy).
 //  Un chunk es de 32×32 celdas.
+//
+//  Refactor v2.1: las funciones aceptan semillas opcionales para
+//  que el auditor pueda generar ítems sin depender del estado
+//  global del juego.
 // ═══════════════════════════════════════════════════════════════
 
 const _cacheItemsPorChunk = new Map();
 
 // ─── Genera los ítems de un chunk (0-3 por chunk) ───
-function generarItemsDeChunk(cx, cy) {
-  const clave = cx + "," + cy;
+function generarItemsDeChunk(cx, cy, semillaMundo, semillaObjetos) {
+  const sMundo   = semillaMundo   || SEMILLA;
+  const sObjetos = semillaObjetos || SEMILLA_OBJETOS;
+  const clave = sObjetos + "|" + cx + "," + cy;
   if (_cacheItemsPorChunk.has(clave)) return _cacheItemsPorChunk.get(clave);
 
-  const rng = crearRNG(hashString(SEMILLA_OBJETOS + "@items@" + cx + "," + cy));
+  const rng = crearRNG(hashString(sObjetos + "@items@" + cx + "," + cy));
   const items = [];
   const cantidad = randInt(rng, 0, 3);
   const maxIntentos = 20;
 
-  const chunk = obtenerChunk(cx, cy);
+  const chunk = generarPantalla(sMundo, cx, cy);
 
   for (let i = 0; i < cantidad; i++) {
     for (let intento = 0; intento < maxIntentos; intento++) {
       const lx = randInt(rng, 1, ANCHO_CHUNK - 2);
       const ly = randInt(rng, 1, ALTO_CHUNK - 2);
 
-            if (BLOQUEANTES.has(chunk.mapa[ly][lx])) continue;
+      if (BLOQUEANTES.has(chunk.mapa[ly][lx])) continue;
       if (chunk.mapa[ly][lx] === WATER) continue;
 
       const wx = cx * ANCHO_CHUNK + lx;
@@ -32,7 +38,6 @@ function generarItemsDeChunk(cx, cy) {
 
       if (items.some(it => it.wx === wx && it.wy === wy)) continue;
 
-      // No spawnear manzana si hay un mob en esa celda
       if (typeof cacheMobs !== "undefined") {
         const mobs = cacheMobs.get(cx + "," + cy);
         if (mobs && mobs.some(m => m.wx === wx && m.wy === wy)) continue;
@@ -48,11 +53,9 @@ function generarItemsDeChunk(cx, cy) {
 }
 
 // ─── Obtiene los ítems que pueden estar en coordenadas (wx, wy) ───
-//  Como el mundo es grande, solo consultamos el chunk de esa celda.
 function obtenerItemsDeChunk(wx, wy) {
   const info = coordsMundoATile(wx, wy);
-  const items = generarItemsDeChunk(info.cx, info.cy);
-  return items;
+  return generarItemsDeChunk(info.cx, info.cy);
 }
 
 // ─── Datos de un ítem ───
@@ -89,73 +92,78 @@ function recogerItemEn(wx, wy) {
 // ─────────────────────────────────────────────────────────────────
 //  Cada equipable se genera UNA VEZ por mundo, en un chunk
 //  específico elegido al azar según la semilla.
+//
+//  Refactor v2.1: acepta semillaMundo y semillaObjetos opcionales.
 // ═══════════════════════════════════════════════════════════════
 
 const EQUIPABLES = [
-  { tipo: HACHA,    bioma: "bosque"  },
-  { tipo: PICO,     bioma: "ruina"   },
-  { tipo: LINTERNA, bioma: "costa"   },
-  { tipo: BARCO,    bioma: "costa",  porChunk: true },
+  { tipo: HACHA,    bioma: "bosque",  porChunk: true },
+  { tipo: PICO,     bioma: "ruina",   porChunk: true },
+  { tipo: LINTERNA, bioma: "costa",   porChunk: true },
+  { tipo: BARCO,    bioma: "costa",   porChunk: true },
 ];
 
 const _cacheEquipablesPorChunk = new Map();
 const _zonasEquipables = new Map();
 
 // ─── Determina el chunk donde va cada equipable ───
-function obtenerChunkDeEquipable(tipo, bioma) {
-  if (_zonasEquipables.has(tipo)) return _zonasEquipables.get(tipo);
+function obtenerChunkDeEquipable(tipo, bioma, semillaMundo, semillaObjetos) {
+  const sMundo   = semillaMundo   || SEMILLA;
+  const sObjetos = semillaObjetos || SEMILLA_OBJETOS;
+  const cacheKey = tipo + "|" + sObjetos;
+
+  if (_zonasEquipables.has(cacheKey)) return _zonasEquipables.get(cacheKey);
 
   const config = EQUIPABLES.find(e => e.tipo === tipo);
   if (config && config.porChunk) {
-    _zonasEquipables.set(tipo, "porChunk");
+    _zonasEquipables.set(cacheKey, "porChunk");
     return "porChunk";
   }
 
-  // Buscar chunks del bioma correspondiente
   const candidatos = [];
   const r = LIMITE_CHUNKS;
   for (let cy = -r; cy <= r; cy++) {
     for (let cx = -r; cx <= r; cx++) {
       if (cx === 0 && cy === 0) continue;
-      const biomaChunk = obtenerBiomaDeChunk(SEMILLA, cx, cy);
+      const biomaChunk = obtenerBiomaDeChunk(sMundo, cx, cy);
       if (biomaChunk === bioma) candidatos.push({ cx, cy });
     }
   }
 
   if (candidatos.length === 0) {
-    _zonasEquipables.set(tipo, null);
+    _zonasEquipables.set(cacheKey, null);
     return null;
   }
 
-  const clave = SEMILLA_OBJETOS + "@equipable_chunk@" + tipo;
+  const clave = sObjetos + "@equipable_chunk@" + tipo;
   const rng = crearRNG(hashString(clave));
   const elegido = candidatos[Math.floor(rng() * candidatos.length)];
 
-  _zonasEquipables.set(tipo, elegido);
+  _zonasEquipables.set(cacheKey, elegido);
   return elegido;
 }
 
 // ─── Genera los equipables de un chunk ───
-function generarEquipablesDeChunk(cx, cy) {
-  const clave = cx + "," + cy;
+function generarEquipablesDeChunk(cx, cy, semillaMundo, semillaObjetos) {
+  const sMundo   = semillaMundo   || SEMILLA;
+  const sObjetos = semillaObjetos || SEMILLA_OBJETOS;
+  const clave = sObjetos + "|" + cx + "," + cy;
   if (_cacheEquipablesPorChunk.has(clave)) return _cacheEquipablesPorChunk.get(clave);
 
-  const chunk = obtenerChunk(cx, cy);
+  const chunk = generarPantalla(sMundo, cx, cy);
   const equipables = [];
 
   for (const { tipo, bioma } of EQUIPABLES) {
     const config = EQUIPABLES.find(e => e.tipo === tipo);
-    const chunkObjetivo = obtenerChunkDeEquipable(tipo, bioma);
+    const chunkObjetivo = obtenerChunkDeEquipable(tipo, bioma, sMundo, sObjetos);
 
-    // ¿Va en este chunk?
     if (config.porChunk) {
-      // Debe ser del bioma correcto
       if (chunk.bioma !== bioma) continue;
     } else {
       if (!chunkObjetivo || chunkObjetivo.cx !== cx || chunkObjetivo.cy !== cy) continue;
     }
 
-    const rng = crearRNG(hashString(SEMILLA_OBJETOS + "@equipable@" + tipo + "@" + cx + "," + cy));
+    const rng = crearRNG(hashString(sObjetos + "@equipable@" + tipo + "@" + cx + "," + cy));
     const maxIntentos = (tipo === BARCO) ? 80 : 30;
 
     for (let intento = 0; intento < maxIntentos; intento++) {
@@ -182,7 +190,6 @@ function generarEquipablesDeChunk(cx, cy) {
 
       if (equipables.some(e => e.wx === wx && e.wy === wy)) continue;
 
-      // No spawnear equipable si hay un mob en esa celda
       if (typeof cacheMobs !== "undefined") {
         const mobs = cacheMobs.get(cx + "," + cy);
         if (mobs && mobs.some(m => m.wx === wx && m.wy === wy)) continue;

@@ -28,8 +28,27 @@ function intentarMover(dx, dy) {
   const destinoX = actualX + dx;
   const destinoY = actualY + dy;
 
-  // ¿Celda destino bloqueante?
-  if (celdaBloqueante(destinoX, destinoY)) return;
+  // ─── ¿Está navegando? ───
+  const tileDestino = tileEnMundo(destinoX, destinoY);
+  if (typeof estaNavegando === "function" && estaNavegando()) {
+    // Con barco: solo puede moverse sobre agua
+    if (tileDestino !== WATER) return;
+  } else {
+    // Sin barco: colisiones normales
+    if (BLOQUEANTES.has(tileDestino)) return;
+  }
+    // ─── ¿Hay un mob en la celda destino? ───
+  if (typeof estaNavegando !== "function" || !estaNavegando()) {
+    const mob = obtenerMobEn(destinoX, destinoY);
+    if (mob) {
+      const datos = MOBS[mob.tipo];
+      if (datos.colision.alChocar === "batalla") {
+        if (typeof pausarTicks === "function") pausarTicks();
+        if (typeof iniciarBatalla === "function") iniciarBatalla(mob);
+      }
+      return;   // En cualquier caso, no puede pasar
+    }
+  }
 
   // Iniciar animación
   estado.jugador.animando = true;
@@ -99,9 +118,4 @@ function actualizarJugador() {
     // Efectos al terminar de moverse
     alPisarCelda(Math.floor(estado.jugador.wx), Math.floor(estado.jugador.wy));
   }
-}
-
-// ─── Compatibilidad con victoria y otras funciones ───
-function cambiarZona(delta) {
-  // Ya no aplica con cámara fluida. Se mantiene por compatibilidad.
 }

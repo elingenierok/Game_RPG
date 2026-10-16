@@ -6,42 +6,48 @@
   <link rel="stylesheet" href="auditor.css">
 </head>
 <body>
-  <header>
-    <h1>🔍 Auditor de Semillas</h1>
-    <div class="controles">
-      <label>Semilla
-        <input type="text" id="input-semilla" value="test_mundo_01">
-      </label>
-      <label>Chunks al oeste
-        <input type="number" id="input-oeste" value="0" min="0" max="20">
-      </label>
-      <label>Chunks al este
-        <input type="number" id="input-este" value="10" min="1" max="50">
-      </label>
-      <label>Chunks a mostrar
-        <select id="select-pegados">
-          <option value="1" selected>1 (solo el seleccionado)</option>
-          <option value="3">3 (uno a cada lado)</option>
-          <option value="5">5</option>
-          <option value="7">7</option>
-          <option value="9">9</option>
-        </select>
-      </label>
-      <button id="btn-generar">Generar</button>
-    </div>
-  </header>
+  <div class="layout">
 
-  <section id="franja-chunks" class="franja"></section>
+    <!-- ═══ TARJETA IZQUIERDA ═══ -->
+    <aside class="tarjeta-izq">
+      <section class="bloque">
+        <h2>Configuración</h2>
+        <label>Semilla
+  <div style="display:flex;gap:4px">
+    <input type="text" id="input-semilla" value="test_mundo_01">
+    <button id="btn-random" title="Semilla aleatoria">🎲</button>
+  </div>
+</label>
+        <label>Ancho <input type="number" id="input-ancho" value="5" min="1" max="10"></label>
+        <label>Alto <input type="number" id="input-alto" value="5" min="1" max="10"></label>
+        <label>CX <input type="number" id="input-cx" value="0" min="-50" max="50"></label>
+        <label>CY <input type="number" id="input-cy" value="0" min="-50" max="50"></label>
+        <button id="btn-generar">Generar</button>
+      </section>
 
-  <section id="panel-grilla" class="panel-grilla">
-    <p class="vacio">Hacé click en un chunk para ver su grilla.</p>
-  </section>
+      <section class="bloque">
+        <h2>Mapa de biomas</h2>
+        <div class="matriz-simplificada" id="matriz-simplificada"></div>
+      </section>
+    </aside>
+
+    <!-- ═══ TARJETA DERECHA ═══ -->
+    <main class="tarjeta-der">
+      <h2>Mundo generado</h2>
+      <div class="mundo-wrapper" id="mundo-wrapper">
+        <div class="mundo" id="mundo"></div>
+      </div>
+    </main>
+
+  </div>
 
   <script src="../js/core/config.js"></script>
   <script src="../js/core/tiles.js"></script>
   <script src="../js/core/rng.js"></script>
   <script src="../js/world/biomas.js"></script>
   <script src="../js/world/mundo.js"></script>
+  <script src="../js/world/chunks.js"></script>
+  <script src="../js/entities/items.js"></script>
   <script src="auditor.js"></script>
 </body>
 </html>

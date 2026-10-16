@@ -16,7 +16,9 @@ const teclas = {
 
 // Dirección que se está intentando mover
 function obtenerDireccionActual() {
-  // Prioridad vertical si ambas están apretadas
+  // Si el juego está pausado, no devolver dirección
+  if (estado.pausado) return null;
+
   if (teclas.arriba)    return { dx: 0, dy: -1 };
   if (teclas.abajo)     return { dx: 0, dy: +1 };
   if (teclas.izquierda) return { dx: -1, dy: 0 };
@@ -27,6 +29,7 @@ function obtenerDireccionActual() {
 // ─── Teclado ───
 document.addEventListener("keydown", (e) => {
   if (e.repeat) return;   // ignorar repetición del teclado
+  if (estado.pausado) return;   // ← NUEVO: ignorar input si está pausado
   const k = e.key.toLowerCase();
   if (k === "w" || k === "arrowup")    { teclas.arriba = true;    e.preventDefault(); }
   if (k === "s" || k === "arrowdown")  { teclas.abajo = true;     e.preventDefault(); }
@@ -46,8 +49,9 @@ document.addEventListener("keyup", (e) => {
 document.querySelectorAll(".btn-mover").forEach((boton) => {
   const dir = boton.dataset.dir;
 
-  const iniciar = (e) => {
+    const iniciar = (e) => {
     e.preventDefault();
+    if (estado.pausado) return;   // ← NUEVO
     if (dir === "arriba")    teclas.arriba = true;
     if (dir === "abajo")     teclas.abajo = true;
     if (dir === "izquierda") teclas.izquierda = true;

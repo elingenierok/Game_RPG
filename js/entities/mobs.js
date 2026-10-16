@@ -25,13 +25,14 @@ const MOBS = {
     velocidadAtaque: 2,
 
     spawn: {
-      porChunk: [0, 2],
+      porChunk: [2, 3],
       porMapa: null,
       biomas: {
         bosque:   true,
         pradera:  false,
-        costa:    false,
+        costa:    true,
         ruina:    true,
+        nieve:    true,
       },
       tipoAparicion: "ambos",
       forzarEnEstructura: null,

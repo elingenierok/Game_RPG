@@ -34,6 +34,7 @@ const estado = {
   // ─── Estado del juego ───
   transicionando: false,
   ganado: false,
+  pausado: false,   // ← NUEVO: pausa global (batalla, menú, etc.)
 };
 
 // Caché de chunks: clave "cx,cy" → chunk generado

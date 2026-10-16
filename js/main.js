@@ -81,11 +81,3 @@ if (inputSem) inputSem.addEventListener("keydown", (e) => {
     if (s.length > 0) reiniciarMundo(s);
   }
 });
-
-// ═══════════════════════════════════════════════════════════════
-//  BLOQUE 18 · CONFIGURACIÓN DE LÍMITE
-// ═══════════════════════════════════════════════════════════════
-function funLimiteChunk(N) {
-  LIMITE_CHUNKS = N;
-  console.log("📏 Límite de chunks:", N);
-}

@@ -57,6 +57,12 @@ for (let vy = 0; vy < ALTO_GRID; vy++) {
 let _esquinaGridX = null;
 let _esquinaGridY = null;
 
+// ─── Forzar el redibujado del grid en el próximo render ───
+function forzarRedibujadoGrid() {
+  _esquinaGridX = null;
+  _esquinaGridY = null;
+}
+
 // ─── Dibuja el contenido de UNA celda del mundo ───
 function dibujarCeldaEnGrid(celda, wx, wy) {
   celda.style.transform = "";
@@ -151,13 +157,6 @@ function render() {
   const offsetPxY = -((esquinaY - _esquinaGridY) * TAMANO_CELDA);
 
   divMapa.style.transform = `translate(${offsetPxX}px, ${offsetPxY}px)`;
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  BARRA DE ZONAS · ELIMINADA
-// ═══════════════════════════════════════════════════════════════
-function renderBarraZonas() {
-  // No hace nada.
 }
 
 // ═══════════════════════════════════════════════════════════════

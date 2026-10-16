@@ -55,14 +55,6 @@ function generarPantalla(semillaBase, cx, cy) {
     mapa.push(new Array(ANCHO_CHUNK).fill(GRASS));
   }
 
-  // ─── Bordes N-S: muros (por ahora, para todas las direcciones) ───
-  //  TODO (futuro): quitar estos bordes cuando implementemos
-  //  fronteras compartidas en 2D.
-  for (let x = 0; x < ANCHO_CHUNK; x++) {
-    mapa[0][x] = WALL;
-    mapa[ALTO_CHUNK - 1][x] = WALL;
-  }
-
   // ─── Elegir bioma del chunk ───
   const bioma = obtenerBiomaDeChunk(semillaBase, cx, cy);
   const datosBioma = BIOMAS[bioma];

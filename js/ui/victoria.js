@@ -1,29 +1,34 @@
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE 13 · VICTORIA
+//  BLOQUE 13 · VICTORIA (chunks 2D)
 // ═══════════════════════════════════════════════════════════════
 function ganar() {
   estado.ganado = true;
   const overlay = document.getElementById("overlay");
   document.getElementById("ovTitulo").textContent = "🔑 ¡Ganaste!";
   document.getElementById("ovSubtitulo").textContent =
-    `Encontraste la llave en la zona ${estado.llave.zona}. Refrescá (F5) para jugar de nuevo.`;
+    `Encontraste la llave en ${Math.floor(estado.llave.wx)},${Math.floor(estado.llave.wy)}. Refrescá (F5) para jugar de nuevo.`;
   overlay.classList.add("visible");
 }
+
 // ═══════════════════════════════════════════════════════════════
 //  BLOQUE 13.5 · BATALLA · Simulación simple
 // ─────────────────────────────────────────────────────────────────
 //  Muestra un cartel que simula el módulo de combate.
 //  Al cerrarse, elimina el mob.
 // ═══════════════════════════════════════════════════════════════
-let batallaActiva = null;   // { zona, x, y, mob }
+let batallaActiva = null;   // { wx, wy, tipo }
 
 function iniciarBatalla(mob) {
   batallaActiva = {
-    zona: estado.zona,
-    x: mob.x,
-    y: mob.y,
+    wx: mob.wx,
+    wy: mob.wy,
     tipo: mob.tipo,
   };
+  estado.pausado = true;
+  if (typeof pausarTicks === "function") pausarTicks();
+  if (typeof cancelarRotura === "function" && rotura.activa) cancelarRotura();
+  if (typeof cancelarColocacionBarco === "function" && barco.colocando) cancelarColocacionBarco();
+  if (typeof cancelarDesembarco === "function" && desembarco.activo) cancelarDesembarco();
 
   const datos = MOBS[mob.tipo];
 
@@ -38,15 +43,15 @@ function iniciarBatalla(mob) {
     ">Continuar</button>`;
   overlay.classList.add("visible");
 
-  // El botón elimina al mob y cierra el overlay
   setTimeout(() => {
     const btn = document.getElementById("btn-continuar-batalla");
     if (btn) {
-            btn.addEventListener("click", () => {
-        derrotarMobEn(batallaActiva.zona, batallaActiva.x, batallaActiva.y);
+      btn.addEventListener("click", () => {
+        derrotarMobEn(batallaActiva.wx, batallaActiva.wy);
         overlay.classList.remove("visible");
         batallaActiva = null;
-        reanudarTicks();
+        estado.pausado = false;   // ← NUEVO
+        if (typeof reanudarTicks === "function") reanudarTicks();
         render();
       });
     }
