@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.1-alpha · auditor 2D + refactor items.js con semillas opcionales |
+| **Versión actual** | v2.2-alpha · fase 1: infraestructura de temas (tierra + espacio placeholder) |
 | **Última actualización** | 2026-10-16 |
 | **Estado global** | ✅ Jugable · Base del motor completa |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
@@ -96,6 +96,9 @@ Game_RPG/
     │   ├── tiles.js              ← BLOQUE 2: tiles, iconos, bloqueantes
     │   ├── estado.js             ← BLOQUE 7: estado global (coords del mundo)
     │   └── input.js              ← BLOQUE 14: listeners de teclado
+    │   └── temas/
+    │       ├── tema-tierra.js
+    │       └── tema-espacio.js
     │
     ├── world/                    ← Generación y gestión del mundo
     │   ├── biomas.js             ← BLOQUE 5.1: tabla de biomas (datos)
