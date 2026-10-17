@@ -402,3 +402,24 @@ body {
   color: #0a0a0a;
   box-shadow: 0 0 10px rgba(102, 204, 255, 0.6);
 }
+
+#btn-cheat {
+  position: fixed;
+  top: 12px;
+  right: 160px;
+  z-index: 1000;
+  background: #2a1a1a;
+  border: 1px solid #f66;
+  color: #f66;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#btn-cheat:hover {
+  background: #f66;
+  color: #0a0a0a;
+  box-shadow: 0 0 10px rgba(255, 102, 102, 0.6);
+}

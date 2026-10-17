@@ -137,3 +137,10 @@ Estos no son transformaciones visuales, pero son **muy útiles**:
 | ☄️ (meteorito) | rotación dinámica | Meteorito cayendo |
 
 ---
+
+¿Querés que probemos **algunos de estos** en el HTML de prueba? Yo sugiero empezar por los más útiles:
+
+1. **Rotación** (para direcciones).
+2. **Pulse** (para objetos vivos).
+3. **Glow** (para destacar ítems).
+

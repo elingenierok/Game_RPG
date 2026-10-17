@@ -25,6 +25,7 @@
 
 // Inicializar el jugador (busca spawn en el chunk 0,0)
 inicializarJugador();
+iniciarTicks();   // ← NUEVO
 
 // Flag para no duplicar el loop
 let _loopIniciado = false;

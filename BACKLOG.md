@@ -29,7 +29,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F21 · Migración a chunks 2D + cámara fluida · ✅ IMPLEMENTADO (base) en v2.0
 - F22 · Limitar generación de equipables
 - F23 · Transformaciones visuales de tiles y mobs
-- F24 · Bugs conocidos de v2.4-alpha (biomas por celda)
+- F24 · Bugs conocidos de v2.4-alpha · ✅ TODOS RESUELTOS en v2.4.1
 
 ---
 
@@ -536,22 +536,20 @@ mundo = función(semilla, chunk) + deltas
 | 5 | Ítems y mobs en 2D | ✅ |
 | 6 | Rotura y barco en coordenadas del mundo | ✅ |
 | 7 | Victoria y pausa global en batalla | ✅ |
-| 8 | Fronteras compartidas en 2D | ⏸️ Pendiente |
+| 8 | Fronteras compartidas en 2D | ✅ Resuelto por v2.4-alpha (biomas por celda) |
 | 9 | Limpieza de código muerto | ✅ (parcial) |
 
 ### Lo que falta
 
 **Fronteras compartidas en 2D:**
 
-- Los cortes entre chunks se ven (cambio brusco de tiles).
-- **Nota (v2.4-alpha):** con biomas por celda, este problema **desaparece solo**. Ya no hay "cortes" porque el bioma de cada celda depende del ruido, no del chunk.
-- **Estado:** ✅ Resuelto indirectamente por F24 (biomas por celda).
+- Los cortes entre chunks se veían (cambio brusco de tiles).
+- **Nota (v2.4-alpha):** con biomas por celda, el problema **desapareció**. Cada celda consulta su bioma por ruido, no por chunk.
 
 **Otras mejoras posibles:**
 
 - Barco: si un mob bloquea la única celda de tierra, no se puede desembarcar.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
-- Overlays de transición: ya no aplican (eliminados).
 
 ### Ubicación de trabajo
 
@@ -588,6 +586,8 @@ mundo = función(semilla, chunk) + deltas
 
 **Regla clave:** los emojis son caracteres, no imágenes. Algunas transformaciones son triviales (flip, rotación, escala, opacidad) y otras son imposibles (color interno, transparencia parcial).
 
+---
+
 ### 1 · Transformaciones geométricas (CSS `transform`)
 
 | Transformación | CSS | Utilidad |
@@ -601,6 +601,8 @@ mundo = función(semilla, chunk) + deltas
 
 **Ejemplo:** una flecha `➡️` puede apuntar a las 8 direcciones combinando `scaleX(-1)` + `rotate(Ndeg)`.
 
+---
+
 ### 2 · Tamaño en la grilla (layout, no transform)
 
 | Cambio | Cómo | Utilidad |
@@ -612,6 +614,8 @@ mundo = función(semilla, chunk) + deltas
 | 2×1 (ancho) | Dos columnas, una fila | Tronco caído, valla |
 
 **Nota:** requiere tocar el sistema de colisiones y el render. Cambio medio.
+
+---
 
 ### 3 · Color / apariencia
 
@@ -627,6 +631,8 @@ mundo = función(semilla, chunk) + deltas
 
 **Truco:** un 👽 con `filter: hue-rotate(120deg)` se ve verde. Útil para "variantes" del mismo mob.
 
+---
+
 ### 4 · Efectos visuales (CSS animations)
 
 | Efecto | CSS | Utilidad |
@@ -637,6 +643,8 @@ mundo = función(semilla, chunk) + deltas
 | Vibración | `animation: shake` | Objeto "vivo", combate |
 | Latido (pulse) | `animation: pulse` | Corazón, recuperación, orbe |
 | Rotación continua | `animation: spin` | Portal, energía, engranaje |
+
+---
 
 ### 5 · Animación de tiles (secuencia)
 
@@ -651,6 +659,8 @@ mundo = función(semilla, chunk) + deltas
 
 **Ya probado en `pruebas/animaciones.html`:** el fuego 🔥 con flip horizontal y las fases lunares 🌑🌒🌓🌔🌕🌖🌗🌘 funcionan muy bien.
 
+---
+
 ### 6 · Cambios de "estado" (lógica, no CSS)
 
 | Cambio | Ejemplo |
@@ -660,6 +670,8 @@ mundo = función(semilla, chunk) + deltas
 | Emoji por vida | ❤️❤️❤️ → ❤️❤️🖤 → ❤️🖤🖤 |
 | Emoji por bioma | 🌳 en bosque, 🌵 en desierto |
 | Emoji por hora | ☀️ de día, 🌙 de noche |
+
+---
 
 ### Prioridades sugeridas
 
@@ -681,11 +693,15 @@ mundo = función(semilla, chunk) + deltas
 - Mobs 2×2 (sistema de colisiones multi-celda).
 - Sprites reales (PNG) — ver F20.
 
+---
+
 ### Lo que NO se puede
 
 - ❌ Cambiar el color interno de un emoji.
 - ❌ Hacer transparente una parte del emoji (requiere PNG).
 - ❌ Usar un emoji "con fondo transparente".
+
+---
 
 ### Ideas concretas para el tema espacio
 
@@ -700,48 +716,60 @@ mundo = función(semilla, chunk) + deltas
 | 🪐 (anillo) | rotación estática | Anillo inclinado |
 | ☄️ (meteorito) | rotación dinámica | Meteorito cayendo |
 
+---
+
 **Estado:** ⏸️ Anotado. Se puede implementar por partes cuando haya tiempo.
 
 ---
 
-## 🐛 F24 · Bugs conocidos de v2.4-alpha (biomas por celda)
+## 🐛 F24 · Bugs conocidos de v2.4-alpha · ✅ TODOS RESUELTOS en v2.4.1
 
-Bugs detectados al implementar biomas por celda (v2.4-alpha). Se arreglan por partes.
+Bugs detectados al implementar biomas por celda (v2.4-alpha). Todos fueron arreglados en v2.4.1-alpha.
 
-### B1 · Romper un tile usa el bioma del chunk en vez de la celda
+### B1 · Romper un tile usa el bioma del chunk en vez de la celda · ✅ ARREGLADO
 
 **Síntoma:** rompés una roca en el desierto y aparece hielo abajo.
-**Causa:** `rotura.js` consulta `chunk.bioma` (dominante) en vez de `obtenerBiomaDeCelda(wx, wy)`.
-**Solución:** usar el bioma de la celda para elegir el `tileBase`.
+**Causa:** `rotura.js` consultaba `chunk.bioma` (dominante) en vez de `obtenerBiomaDeCelda(wx, wy)`.
+**Solución:** `intentarIniciarRotura` ahora usa `obtenerBiomaDeCelda(SEMILLA, wx, wy)`.
 **Prioridad:** 🔥 Alta.
+**Estado:** ✅ Arreglado en v2.4.1-alpha.
 
-### B2 · Filas horizontales de pasto entre chunks
+### B2 · Filas horizontales de pasto entre chunks · ✅ ARREGLADO
 
-**Síntoma:** las filas en los bordes de cada chunk (y=0, y=31, y=63, etc.) quedan con pasto por defecto.
-**Causa:** `generarPantalla` solo pinta `yMin=1` a `yMax=ALTO_CHUNK-2`. Las filas 0 y 31 quedan sin pintar.
-**Solución:** pintar todas las filas o rellenar correctamente.
+**Síntoma:** las filas en los bordes de cada chunk (y=0, y=31, y=63, etc.) quedaban con pasto por defecto.
+**Causa:** `generarPantalla` solo pintaba `yMin=1` a `yMax=ALTO_CHUNK-2`. Las filas 0 y 31 quedaban sin pintar.
+**Solución:** `yMin = 0`, `yMax = ALTO_CHUNK - 1`.
 **Prioridad:** 🔥 Alta.
-**Estado:** ✅ Arreglado (cambio de `yMin`/`yMax` a 0 y ALTO_CHUNK-1).
+**Estado:** ✅ Arreglado en v2.4.1-alpha.
 
-### B3 · Mobs de tierra aparecen en el agua
+### B3 · Mobs de tierra aparecen en el agua · ✅ ARREGLADO
 
-**Síntoma:** tigres / cerdos / alienígenas aparecen sobre agua.
-**Causa:** `enemigos.js` decide por bioma del chunk, no de la celda del spawn.
-**Solución:** verificar el tile de la celda antes de spawnear. Si es agua y el mob no es acuático, no spawnear.
+**Síntoma:** tigres / cerdos / alienígenas aparecían sobre agua.
+**Causa:** `ia.js` seguía usando coordenadas 1D (`mob.x`, `estado.pantalla`, `estado.zona`). Nunca funcionó en 2D.
+**Solución:** `ia.js` reescrito completo para 2D. Ahora `moverMob` verifica el tile destino con `tileEnMundo` y respeta `BLOQUEANTES`.
 **Prioridad:** 🟡 Media.
+**Estado:** ✅ Arreglado en v2.4.1-alpha.
 
-### B4 · Atravesar un mob no dispara animación de pelea
+### B4 · Atravesar un mob no dispara animación de pelea · ✅ ARREGLADO
 
-**Síntoma:** el jugador camina sobre un mob no sólido y no pasa nada.
-**Causa:** por investigar.
+**Síntoma:** el jugador caminaba sobre un mob no sólido y no pasaba nada.
+**Causa:** mismo problema que B3. `ia.js` no funcionaba, los mobs quedaban estáticos.
+**Solución:** con `ia.js` reescrito, `moverMob` verifica si el jugador está en la celda destino y dispara `iniciarBatalla` si corresponde.
 **Prioridad:** 🟡 Media.
+**Estado:** ✅ Arreglado en v2.4.1-alpha.
 
-### B5 · Romper roca en agua genera arena
+### B5 · Romper roca en agua genera arena · ✅ ARREGLADO
 
 **Síntoma:** rompés una roca en el agua y aparece arena (SAND) en vez de agua.
 **Causa:** mismo problema que B1.
-**Solución:** al romper, usar `obtenerBiomaDeCelda(wx, wy)` para saber el `tileBase` correcto.
+**Solución:** mismo fix. `intentarIniciarRotura` usa `obtenerBiomaDeCelda(wx, wy)`.
 **Prioridad:** 🔥 Alta.
+**Estado:** ✅ Arreglado en v2.4.1-alpha.
+
+### Notas adicionales de v2.4.1-alpha
+
+- **`js/main.js`:** se agregó `iniciarTicks()` después de `inicializarJugador()`. Los ticks de IA nunca se estaban arrancando.
+- **`js/systems/cheats.js` (temporal):** botón 🎁 arriba a la derecha para cargar/limpiar equipables en test. **Borrar antes de producción.**
 
 ---
 

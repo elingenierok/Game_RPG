@@ -4,6 +4,60 @@ Historial completo de versiones del proyecto. Para el estado actual, ver [README
 
 ---
 
+## v2.4.1-alpha · 2026-10-17 (fix bugs de v2.4-alpha)
+
+### 🎯 Objetivo
+
+Arreglar los 5 bugs detectados al implementar biomas por celda en v2.4-alpha.
+
+### 🐛 Arreglados
+
+- **B1 (romper tile usa bioma del chunk):** `rotura.js` ahora usa `obtenerBiomaDeCelda(wx, wy)` en vez de `obtenerBiomaDeChunk`. Romper una roca en el desierto deja `DESERT_SAND`, no hielo.
+- **B2 (filas de pasto entre chunks):** `generarPantalla` ahora pinta de `yMin = 0` a `yMax = ALTO_CHUNK - 1`. Antes dejaba filas vacías en los bordes.
+- **B3 (mobs de tierra en agua):** `ia.js` reescrito completo para 2D. Los mobs ahora se mueven correctamente y respetan el terreno. El bug era que `ia.js` seguía usando coordenadas 1D (`mob.x`, `estado.pantalla`) y no funcionaba en absoluto.
+- **B4 (atravesar mob no dispara pelea):** resuelto por el mismo fix de `ia.js`. Ahora `moverMob` verifica si el jugador está en la celda destino y dispara batalla correctamente.
+- **B5 (romper roca en agua genera arena):** mismo fix que B1.
+
+### 🔧 Cambios técnicos
+
+**`js/systems/ia.js` reescrito completo:**
+
+- Uso de coordenadas del mundo `(wx, wy)`.
+- `tickMobs` procesa los mobs del chunk del jugador.
+- `moverMob` verifica colisiones con terreno, mobs y jugador.
+- `moverMob` dispara batalla si el mob hostil llega al jugador.
+- `alejarMobsDelJugador` adaptado a 2D.
+- `distancia` calcula con `wx, wy`.
+
+**`js/main.js`:**
+
+- Se agregó `iniciarTicks()` después de `inicializarJugador()`. Los ticks de IA nunca se estaban arrancando.
+
+**`js/systems/rotura.js`:**
+
+- `intentarIniciarRotura` usa `obtenerBiomaDeCelda(wx, wy)`.
+
+### 🎁 Extras
+
+**Cheats temporales (`js/systems/cheats.js`):**
+
+- Botón 🎁 arriba a la derecha.
+- Carga / limpia todos los equipables (hacha, pico, linterna, barco).
+- **Para test. Se borra antes de producción.**
+
+### 📖 Documentación
+
+- BACKLOG: F24 marcada como resuelta.
+- CHANGELOG: esta entrada.
+- README: tabla de bugs actualizada.
+
+### ⚠️ Estado
+
+- **v2.4.1-alpha estable.** Los 5 bugs de F24 están cerrados.
+- Todos los mobs se mueven, persiguen, huyen y disparan batalla.
+
+---
+
 ## v2.4-alpha · 2026-10-16 (biomas por celda + ruido)
 
 ### 🎯 Objetivo
@@ -44,13 +98,13 @@ Reemplazar el sistema de "bioma por chunk" (cuadrados pegados) por un sistema de
 - La costa (`forma: "franja"`) sigue usando su lógica especial por ahora.
 - El chunk guarda su `bioma` dominante (calculado por `obtenerBiomaDeChunk`) para spawns de mobs e ítems.
 
-### 🐛 Bugs conocidos (ver BACKLOG · F24)
+### 🐛 Bugs conocidos (ver BACKLOG · F24) · ✅ TODOS RESUELTOS en v2.4.1
 
-- **B1:** romper un tile usa el bioma del chunk en vez de la celda (ej: roca en desierto → hielo abajo).
-- **B2:** filas horizontales de pasto entre chunks (y=0, y=31) — arreglado: `yMin` y `yMax` ahora cubren todo el chunk.
+- **B1:** romper un tile usa el bioma del chunk en vez de la celda.
+- **B2:** filas horizontales de pasto entre chunks.
 - **B3:** mobs de tierra aparecen en el agua.
 - **B4:** atravesar un mob no dispara animación de pelea.
-- **B5:** romper roca en agua genera arena (mismo caso que B1).
+- **B5:** romper roca en agua genera arena.
 
 ### 📖 Documentación
 
@@ -61,7 +115,7 @@ Reemplazar el sistema de "bioma por chunk" (cuadrados pegados) por un sistema de
 ### ⚠️ Estado
 
 - **v2.4-alpha funcional con bugs.** El mundo se ve orgánico y jugable.
-- Los bugs se arreglan por partes.
+- Los bugs se arreglan por partes (hecho en v2.4.1).
 
 ---
 
@@ -289,7 +343,7 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 ### ⏸️ Pendiente
 
-- **Fronteras compartidas en 2D:** suavizar cortes entre chunks.
+- **Fronteras compartidas en 2D:** suavizar cortes entre chunks (resuelto por v2.4-alpha).
 - Barco: mob bloqueando la única celda de tierra.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
 

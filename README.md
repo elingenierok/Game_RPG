@@ -10,9 +10,9 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.4-alpha · biomas por celda (ruido) |
-| **Última actualización** | 2026-10-16 |
-| **Estado global** | ✅ Jugable · Base del motor completa · 5 bugs conocidos (F24) |
+| **Versión actual** | v2.4.1-alpha · biomas por celda + bugs cerrados |
+| **Última actualización** | 2026-10-17 |
+| **Estado global** | ✅ Jugable · Base del motor completa · 0 bugs conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
 | **Ejecución local** | Live Server en VS Code |
@@ -68,6 +68,7 @@ Se actualiza automáticamente al hacer `git push`.
 - Botón 🎲 → semilla aleatoria.
 - Click en el mundo → romper (con objeto equipado) / colocar barco / desembarcar.
 - Botón 🌍 / 🚀 (arriba a la derecha) → cambiar tema (tierra ↔ espacio).
+- Botón 🎁 (arriba a la derecha, junto al de tema) → **cheat de test** (carga/limpia equipables).
 
 **⚠️ Recarga forzada:** usar `Ctrl+Shift+R` al modificar `.js` o `.css`.
 
@@ -99,7 +100,7 @@ Game_RPG/
     ├── core/                     ← Base del motor
     │   ├── config.js             ← BLOQUE 1: constantes globales
     │   ├── rng.js                ← BLOQUE 3: hash, PRNG, randInt
-    │   ├── ruido.js              ← BLOQUE 3.5: Value Noise + fBm (NUEVO v2.4)
+    │   ├── ruido.js              ← BLOQUE 3.5: Value Noise + fBm
     │   ├── tiles.js              ← BLOQUE 2: tiles, iconos, bloqueantes
     │   ├── estado.js             ← BLOQUE 7: estado global (coords del mundo)
     │   ├── input.js              ← BLOQUE 14: listeners de teclado
@@ -126,7 +127,8 @@ Game_RPG/
         ├── camara.js             ← BLOQUE 20: cámara fluida
         ├── ia.js                 ← BLOQUE 7.9: IA de mobs en tiempo real
         ├── rotura.js             ← BLOQUE 7.10: sistema de rotura
-        └── barco.js              ← BLOQUE 7.11: sistema del barco
+        ├── barco.js              ← BLOQUE 7.11: sistema del barco
+        └── cheats.js             ← BLOQUE 99: CHEATS TEMPORALES (borrar antes de producción)
 ```
 
 **Orden de carga en `index.html` (importante respetar):**
@@ -134,7 +136,7 @@ Game_RPG/
 ```text
 tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas → mundo
 → camara → estado → chunks → items → mobs → enemigos → render → ia
-→ jugador → victoria → input → rotura → barco → main
+→ jugador → victoria → input → rotura → barco → cheats → main
 ```
 
 **Criterio de organización en carpetas:**
@@ -145,7 +147,7 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 | `world/` | Generación y gestión del terreno: chunks 2D, biomas |
 | `entities/` | Todo lo que "vive" en el mundo: jugador, mobs, ítems |
 | `ui/` | Render visual, pantallas y overlays |
-| `systems/` | Sistemas transversales: cámara, IA, rotura, barco |
+| `systems/` | Sistemas transversales: cámara, IA, rotura, barco, cheats |
 | `pruebas/` | Archivos HTML aislados para experimentar (no se cargan desde el juego) |
 
 **Dependencias críticas:**
@@ -158,6 +160,7 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 - `estado.js` **antes** de `chunks.js`, `items.js`, `mobs.js`, `enemigos.js`.
 - `render.js` **antes** de `ia.js`.
 - `ia.js` **antes** de `jugador.js`.
+- `cheats.js` **antes** de `main.js`.
 
 ---
 
@@ -239,7 +242,7 @@ cd Game_RPG
 | M18 | Bioma inicial | 🟢 | pradera (chunk 0,0) | v1.6 |
 | M19 | Costa con forma de franja | 🟢 | Agua + arena + pasto con bordes irregulares | v1.7.1 |
 | M20 | Sistema de temas | 🟢 | `tema-tierra` / `tema-espacio` (datos) | v2.2-alpha |
-| M21 | Biomas por celda (ruido) | 🧪 | `obtenerBiomaDeCelda` con temp/humedad + `ESCALA_BIOMA = 0.01` | v2.4-alpha |
+| M21 | Biomas por celda (ruido) | 🟢 | `obtenerBiomaDeCelda` con temp/humedad + `ESCALA_BIOMA = 0.01` | v2.4.1-alpha |
 | M22 | Bioma dominante del chunk | 🟢 | Se usa para spawns (mobs e ítems) | v2.4-alpha |
 
 ---
@@ -402,7 +405,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | desierto | 🟧 DESERT_SAND |
 | nieve | ❄️ SNOW |
 
-**Bug conocido (v2.4-alpha):** al romper, se usa el bioma del **chunk** en vez del bioma de la **celda**. Ver BACKLOG · F24 · B1 y B5.
+**Nota (v2.4.1-alpha):** desde el fix de B1/B5, el `tileBase` se calcula con `obtenerBiomaDeCelda(wx, wy)`. Romper una roca en el agua deja agua, romper en desierto deja `DESERT_SAND`.
 
 **Idea futura:** objetos de mejor nivel (hacha de hierro, pico de diamante) que reduzcan el tiempo de rotura. Ver BACKLOG · F12.
 
@@ -445,6 +448,14 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 3. Agregar el emoji en **ambos** temas (`tema-tierra.js` y `tema-espacio.js`).
 4. Agregar el nombre en `tipoEquipableANombre` (`items.js`).
 5. Agregar el slot correspondiente en `index.html` y en `actualizarSlotsEquipados` (`render.js`).
+
+### Cheats de test (temporal)
+
+`js/systems/cheats.js` agrega un botón 🎁 arriba a la derecha.
+
+- Click → carga los 4 equipables (hacha, pico, linterna, barco) de una.
+- Click de nuevo → limpia esos 4.
+- **Solo para test.** Borrar `cheats.js`, su `<script>` y el botón antes de producción.
 
 ---
 
@@ -495,6 +506,7 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 | U12 | Layout 3 columnas | 🟢 | 20% flechas · 60% mapa · 20% panel | v1.6.1 |
 | U13 | Barra de stamina | 🟢 | Arriba del mapa, visible en rotura | v1.7 |
 | U14 | Botón de cambio de tema | 🟢 | Arriba a la derecha, fixed | v2.3-alpha |
+| U15 | Botón de cheat (temporal) | 🧪 | Arriba a la derecha, junto al de tema | v2.4.1-alpha |
 
 ---
 
@@ -507,7 +519,7 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 | R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server / Pages) | CORS |
 | R4 | CSS separado | 🟢 | `css/estilo.css` | v1.0 |
 | R5 | Bloques referenciables | 🟢 | `// ═══ BLOQUE N ═══` | v1.0 |
-| R6 | Orden de carga | 🟢 | temas → config → ruido → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → render → ia → jugador → victoria → input → rotura → barco → main | v2.4-alpha |
+| R6 | Orden de carga | 🟢 | temas → config → ruido → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → render → ia → jugador → victoria → input → rotura → barco → cheats → main | v2.4.1-alpha |
 | R7 | Versionado | 🟢 | Git + GitHub | v1.0 |
 | R8 | Deploy público | 🟢 | GitHub Pages | v1.0 |
 | R9 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
@@ -524,6 +536,8 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 | R20 | Sistema de temas | 🟢 | Datos en `js/core/temas/` | v2.2-alpha |
 | R21 | Emojis del jugador por tema | 🟢 | `_temaActivo.jugador` | v2.3-alpha |
 | R22 | Ruido autocontenido | 🟢 | `js/core/ruido.js` (sin dependencias) | v2.4-alpha |
+| R23 | IA reescrita para 2D | 🟢 | `ia.js` con `wx, wy`, sin `estado.pantalla` | v2.4.1-alpha |
+| R24 | Cheats de test temporales | 🧪 | `js/systems/cheats.js` (borrar antes de producción) | v2.4.1-alpha |
 
 ---
 
@@ -544,6 +558,7 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 | Color de fondo por bioma | Tinte sutil por bioma | v2.3-alpha |
 | Animación del jugador | Emojis alternados al caminar | v2.3-alpha |
 | Botón de cambio de tema | Glow celeste, arriba a la derecha | v2.3-alpha |
+| Botón de cheat | Rojo, arriba a la derecha | v2.4.1-alpha |
 | **Biomas orgánicos** | Manchas sin bordes rectos (ruido) | v2.4-alpha |
 
 **Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
@@ -596,7 +611,7 @@ El jugador tiene 4 estados visuales, definidos en cada tema:
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v2.4-alpha)
+## 🧪 MARCO 9 · Sistema de Test (v2.4.1-alpha)
 
 ### Lo que hay ahora
 
@@ -618,30 +633,41 @@ El jugador tiene 4 estados visuales, definidos en cada tema:
 - **Control de semilla en UI** (input + botones + Enter).
 - **Botones de movimiento** en pantalla.
 - **Botón de cambio de tema** (arriba a la derecha).
+- **Botón de cheat** (arriba a la derecha, temporal).
 - **Color de fondo por bioma**.
 - **Animación del jugador** (quieto, corriendo, en barco).
 - **Ruido (Value Noise)** para generación de biomas.
 
-### Bugs conocidos (v2.4-alpha)
+### Bugs conocidos
 
-| ID | Bug | Prioridad | Estado |
-|:--:|-----|:---------:|:------:|
-| B1 | Romper tile usa bioma del chunk (no de la celda) | 🔥 Alta | ⏸️ Pendiente |
-| B2 | Filas de pasto entre chunks (y=0, y=31) | 🔥 Alta | ✅ Arreglado |
-| B3 | Mobs de tierra aparecen en el agua | 🟡 Media | ⏸️ Pendiente |
-| B4 | Atravesar mob no dispara pelea | 🟡 Media | ⏸️ Pendiente |
-| B5 | Romper roca en agua genera arena | 🔥 Alta | ⏸️ Pendiente |
+Todos los bugs de v2.4-alpha fueron resueltos en v2.4.1-alpha:
 
-**Ver detalle completo en [BACKLOG.md](BACKLOG.md) · F24.**
+| ID | Bug | Estado |
+|:--:|-----|:------:|
+| B1 | Romper tile usa bioma del chunk | ✅ Arreglado |
+| B2 | Filas de pasto entre chunks | ✅ Arreglado |
+| B3 | Mobs de tierra aparecen en el agua | ✅ Arreglado |
+| B4 | Atravesar mob no dispara pelea | ✅ Arreglado |
+| B5 | Romper roca en agua genera arena | ✅ Arreglado |
+
+**Ver detalle en [BACKLOG.md](BACKLOG.md) · F24.**
 
 ### Lo que falta
 
-- Arreglar los bugs B1, B3, B4, B5 (ver F24).
 - Pulir emojis y nombres del tema espacio.
 - Adaptar `auditor/` al sistema de temas.
 - Adaptar `victoria.js` con mensaje temático.
 - Barco: mob bloqueando la única celda de tierra → no se puede desembarcar.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
+
+### ⚠️ Recordatorio: borrar cheats antes de producción
+
+Al cerrar la fase de test:
+
+1. Borrar `js/systems/cheats.js`.
+2. Borrar `<script src="js/systems/cheats.js"></script>` de `index.html`.
+3. Borrar `<button id="btn-cheat">🎁</button>` de `index.html`.
+4. Borrar el bloque CSS `#btn-cheat` de `css/estilo.css`.
 
 ---
 
@@ -739,12 +765,12 @@ Ideas futuras: F1-F24.
 - [x] **Infraestructura de temas** ← v2.2-alpha
 - [x] **Tema espacio + color bioma + animación** ← v2.3-alpha
 - [x] **Biomas por celda con ruido (F24)** ← v2.4-alpha
+- [x] **Bugs de biomas por celda (F24)** ← v2.4.1-alpha
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | Arreglar bugs B1, B3, B4, B5 (F24) | ⏸️ | Ver BACKLOG |
 | 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
 | 🟡 Media | Prototipo 2 del módulo de combate | ⏸️ | SVG radial |
 | 🟡 Media | Loot y XP de mobs | ⏸️ | Campos ya definidos |
@@ -798,6 +824,7 @@ Ideas futuras: F1-F24.
 | 17 | Reinicio con nueva semilla | `js/main.js` |
 | 18 | (Eliminado en v2.0 — límite de chunks) | — |
 | 20 | Cámara fluida | `js/systems/camara.js` |
+| 99 | Cheats temporales (borrar antes de producción) | `js/systems/cheats.js` |
 
 ---
 
@@ -824,7 +851,7 @@ Ideas futuras: F1-F24.
 
 ### Al cambiar de versión
 
-1. Bump en el encabezado (`v2.4-alpha` → `v2.5-alpha`).
+1. Bump en el encabezado (`v2.4.1-alpha` → `v2.5-alpha`).
 2. Agregar entrada en `CHANGELOG.md`.
 3. Actualizar la fecha.
 
@@ -859,6 +886,7 @@ Ideas futuras: F1-F24.
 - **Tema activo**: se guarda en `localStorage` y se lee en `config.js`.
 - **Biomas por celda**: `obtenerBiomaDeCelda(wx, wy)` reemplaza al viejo `obtenerBiomaDeChunk` para el render. El chunk mantiene un "bioma dominante" para spawns.
 - **Ruido autocontenido**: `ruido.js` no depende de nada más.
+- **Cheats temporales**: `cheats.js` es un archivo aparte. **Borrar antes de producción.**
 
 ---
 
@@ -867,10 +895,10 @@ Ideas futuras: F1-F24.
 - Este README se actualiza **cada vez que se agrega o cambia algo relevante**.
 - Las decisiones 🧪 pueden cambiar. Las decisiones 🟢 se mantienen salvo razón fuerte.
 - Los IDs (M1, J1, R1, X1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
-- Los bloques del código (BLOQUE 1 a 20) son referenciables para modificaciones puntuales.
+- Los bloques del código (BLOQUE 1 a 99) son referenciables para modificaciones puntuales.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
 - Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)**.
 
 ---
 
-**Fin del README · Última revisión: 2026-10-16**
+**Fin del README · Última revisión: 2026-10-17**

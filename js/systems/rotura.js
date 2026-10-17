@@ -85,9 +85,8 @@ function intentarIniciarRotura(wx, wy) {
   rotura.wy = wy;
   rotura.tileOriginal = tile;
 
-  // Tile base según el bioma del chunk
-  const info = coordsMundoATile(wx, wy);
-  const bioma = obtenerBiomaDeChunk(SEMILLA, info.cx, info.cy);
+    // Tile base según el bioma de la celda
+  const bioma = obtenerBiomaDeCelda(SEMILLA, wx, wy);
   rotura.tileBase = NOMBRE_A_TILE[BIOMAS[bioma].tileBase];
 
   rotura.tiempoInicio = Date.now();
