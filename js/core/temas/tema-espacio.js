@@ -41,6 +41,8 @@ const TEMA_ESPACIO = {
       nombre: "Llanura lunar",
       emoji: "🌑",
       color: "#141414",
+      temperatura: 0.5,
+      humedad: 0.5,
       tileBase: "GRASS",
       vecinos: [
         { id: "bosque",   peso: 35 },
@@ -56,10 +58,13 @@ const TEMA_ESPACIO = {
         { tile: "ROCK",      peso: 5  },
       ],
     },
+
     bosque: {
       nombre: "Zona de naves",
       emoji: "🛸",
       color: "#101820",
+      temperatura: 0.4,
+      humedad: 0.75,
       tileBase: "GRASS",
       vecinos: [
         { id: "bosque",   peso: 30 },
@@ -74,10 +79,13 @@ const TEMA_ESPACIO = {
         { tile: "TALLGRASS", peso: 10 },
       ],
     },
+
     costa: {
       nombre: "Borde de cráter",
       emoji: "🏜️",
       color: "#1a0f0f",
+      temperatura: 0.6,
+      humedad: 0.85,
       tileBase: "SAND",
       forma: "franja",
       vecinos: [
@@ -92,10 +100,13 @@ const TEMA_ESPACIO = {
         { tile: "BUSH",  peso: 5  },
       ],
     },
+
     ruina: {
       nombre: "Ruinas alienígenas",
       emoji: "🔩",
       color: "#1a1410",
+      temperatura: 0.5,
+      humedad: 0.25,
       tileBase: "GRASS",
       vecinos: [
         { id: "ruina",    peso: 25 },
@@ -110,10 +121,13 @@ const TEMA_ESPACIO = {
         { tile: "TALLGRASS", peso: 10 },
       ],
     },
+
     oceano: {
       nombre: "Mar de metano",
       emoji: "🟪",
       color: "#150a1a",
+      temperatura: 0.5,
+      humedad: 0.98,
       tileBase: "WATER",
       vecinos: [
         { id: "oceano", peso: 45 },
@@ -124,10 +138,13 @@ const TEMA_ESPACIO = {
         { tile: "ROCK",  peso: 7  },
       ],
     },
+
     desierto: {
       nombre: "Dunas rojas",
       emoji: "🟥",
       color: "#1a0a0a",
+      temperatura: 0.9,
+      humedad: 0.1,
       tileBase: "DESERT_SAND",
       vecinos: [
         { id: "desierto", peso: 35 },
@@ -142,10 +159,13 @@ const TEMA_ESPACIO = {
         { tile: "DESERT_SAND", peso: 5  },
       ],
     },
+
     nieve: {
       nombre: "Campo de hielo",
       emoji: "⬜",
       color: "#101a1a",
+      temperatura: 0.1,
+      humedad: 0.35,
       tileBase: "SNOW",
       vecinos: [
         { id: "nieve",   peso: 35 },
@@ -188,6 +208,7 @@ const TEMA_ESPACIO = {
       eliminacion: { seEliminaSi: "alGanarBatalla", reaparece: false, tiempoRespawn: 0 },
       loot: { dropea: false, probabilidad: 0, objetos: [], xp: 5 },
     },
+
     gallina: {
       id: "gallina",
       nombre: "Dron pacífico",
@@ -211,6 +232,7 @@ const TEMA_ESPACIO = {
       eliminacion: { seEliminaSi: "alMatarlo", reaparece: false, tiempoRespawn: 0 },
       loot: { dropea: true, probabilidad: 0.8, objetos: [{ id: "pluma", prob: 1.0 }], xp: 1 },
     },
+
     cerdo: {
       id: "cerdo",
       nombre: "Reptiliano neutral",
@@ -235,7 +257,9 @@ const TEMA_ESPACIO = {
       loot: { dropea: true, probabilidad: 0.6, objetos: [{ id: "carne", prob: 1.0 }], xp: 3 },
     },
   },
-    jugador: {
+
+  // ─── Jugador ───
+  jugador: {
     quieto:  "👨‍🚀",
     correrA: "🏍️",
     correrB: "🏎️",

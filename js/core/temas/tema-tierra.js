@@ -42,6 +42,8 @@ const TEMA_TIERRA = {
       nombre: "Pradera",
       emoji: "🌿",
       color: "#0d1a0d",
+      temperatura: 0.5,
+      humedad: 0.5,
       tileBase: "GRASS",
       vecinos: [
         { id: "bosque",   peso: 35 },
@@ -62,6 +64,8 @@ const TEMA_TIERRA = {
       nombre: "Bosque",
       emoji: "🌳",
       color: "#0d1f0d",
+      temperatura: 0.4,
+      humedad: 0.75,
       tileBase: "GRASS",
       vecinos: [
         { id: "bosque",   peso: 30 },
@@ -81,6 +85,8 @@ const TEMA_TIERRA = {
       nombre: "Costa",
       emoji: "🏖️",
       color: "#1a1a0d",
+      temperatura: 0.6,
+      humedad: 0.85,
       tileBase: "SAND",
       forma: "franja",
       vecinos: [
@@ -100,6 +106,8 @@ const TEMA_TIERRA = {
       nombre: "Ruina",
       emoji: "🧱",
       color: "#1a1a1a",
+      temperatura: 0.5,
+      humedad: 0.25,
       tileBase: "GRASS",
       vecinos: [
         { id: "ruina",    peso: 25 },
@@ -119,6 +127,8 @@ const TEMA_TIERRA = {
       nombre: "Océano",
       emoji: "🌊",
       color: "#0a1420",
+      temperatura: 0.5,
+      humedad: 0.98,
       tileBase: "WATER",
       vecinos: [
         { id: "oceano", peso: 45 },
@@ -134,6 +144,8 @@ const TEMA_TIERRA = {
       nombre: "Desierto",
       emoji: "🏜️",
       color: "#1a150d",
+      temperatura: 0.9,
+      humedad: 0.1,
       tileBase: "DESERT_SAND",
       vecinos: [
         { id: "desierto", peso: 35 },
@@ -153,6 +165,8 @@ const TEMA_TIERRA = {
       nombre: "Nieve",
       emoji: "❄️",
       color: "#0d1520",
+      temperatura: 0.1,
+      humedad: 0.35,
       tileBase: "SNOW",
       vecinos: [
         { id: "nieve",   peso: 35 },
@@ -244,7 +258,9 @@ const TEMA_TIERRA = {
       loot: { dropea: true, probabilidad: 0.6, objetos: [{ id: "carne", prob: 1.0 }], xp: 3 },
     },
   },
-    jugador: {
+
+  // ─── Jugador ───
+  jugador: {
     quieto:  "🧍‍♂️",
     correrA: "🏃‍♂️",
     correrB: "🚶‍♂️",

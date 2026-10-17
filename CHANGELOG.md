@@ -4,6 +4,67 @@ Historial completo de versiones del proyecto. Para el estado actual, ver [README
 
 ---
 
+## v2.4-alpha · 2026-10-16 (biomas por celda + ruido)
+
+### 🎯 Objetivo
+
+Reemplazar el sistema de "bioma por chunk" (cuadrados pegados) por un sistema de "bioma por celda" usando ruido (temperatura + humedad). El mundo pasa de verse como cuadritos a verse como manchas orgánicas.
+
+### ✅ Completado
+
+**Nuevo sistema de ruido (`js/core/ruido.js` — NUEVO)**
+
+- `ruido2D(x, y, seed)` — Value Noise 2D con interpolación smoothstep.
+- `ruidoFBM(x, y, seed, octavas, persistencia)` — ruido fractal con varias capas.
+- Autocontenido, sin dependencias.
+- Cargado en `index.html` después de `config.js`.
+
+**Biomas con temperatura y humedad**
+
+- Cada bioma (en ambos temas) tiene `temperatura` y `humedad` entre 0 y 1.
+- Valores:
+  - pradera: 0.5 / 0.5
+  - bosque: 0.4 / 0.75
+  - costa: 0.6 / 0.85
+  - ruina: 0.5 / 0.25
+  - oceano: 0.5 / 0.98
+  - desierto: 0.9 / 0.1
+  - nieve: 0.1 / 0.35
+
+**`obtenerBiomaDeCelda(semilla, wx, wy)` en `mundo.js`**
+
+- Consulta `ruido2D` para temperatura y humedad de la celda.
+- Elige el bioma cuyo `(temp, hum)` esté más cerca (distancia euclídea).
+- Determinista por semilla.
+- `ESCALA_BIOMA = 0.01` → 1 bioma ≈ 100 celdas ≈ 3 chunks.
+
+**`generarPantalla` reescrita**
+
+- Pinta el chunk **celda por celda**, consultando el bioma de cada una.
+- La costa (`forma: "franja"`) sigue usando su lógica especial por ahora.
+- El chunk guarda su `bioma` dominante (calculado por `obtenerBiomaDeChunk`) para spawns de mobs e ítems.
+
+### 🐛 Bugs conocidos (ver BACKLOG · F24)
+
+- **B1:** romper un tile usa el bioma del chunk en vez de la celda (ej: roca en desierto → hielo abajo).
+- **B2:** filas horizontales de pasto entre chunks (y=0, y=31) — arreglado: `yMin` y `yMax` ahora cubren todo el chunk.
+- **B3:** mobs de tierra aparecen en el agua.
+- **B4:** atravesar un mob no dispara animación de pelea.
+- **B5:** romper roca en agua genera arena (mismo caso que B1).
+
+### 📖 Documentación
+
+- BACKLOG: F24 con los 5 bugs.
+- CHANGELOG: esta entrada.
+- README: pendiente de actualizar con M21 (biomas por celda).
+
+### ⚠️ Estado
+
+- **v2.4-alpha funcional con bugs.** El mundo se ve orgánico y jugable.
+- Los bugs se arreglan por partes.
+
+---
+
 ## v2.3-alpha · 2026-10-16 (tema espacio + color bioma + animación)
 
 ### 🎯 Objetivo

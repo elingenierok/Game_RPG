@@ -28,6 +28,8 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F20 · Sistema de sprites animados (atlas + animaciones)
 - F21 · Migración a chunks 2D + cámara fluida · ✅ IMPLEMENTADO (base) en v2.0
 - F22 · Limitar generación de equipables
+- F23 · Transformaciones visuales de tiles y mobs
+- F24 · Bugs conocidos de v2.4-alpha (biomas por celda)
 
 ---
 
@@ -542,8 +544,8 @@ mundo = función(semilla, chunk) + deltas
 **Fronteras compartidas en 2D:**
 
 - Los cortes entre chunks se ven (cambio brusco de tiles).
-- Solución: que cada chunk nuevo consulte el borde del vecino y arranque con tiles similares.
-- **Estado:** ⏸️ Pendiente. Es la parte más "estética" y se puede postergar.
+- **Nota (v2.4-alpha):** con biomas por celda, este problema **desaparece solo**. Ya no hay "cortes" porque el bioma de cada celda depende del ruido, no del chunk.
+- **Estado:** ✅ Resuelto indirectamente por F24 (biomas por celda).
 
 **Otras mejoras posibles:**
 
@@ -577,6 +579,169 @@ mundo = función(semilla, chunk) + deltas
 - Documentar bien el flag en `items.js`.
 
 **Estado:** ⏸️ Anotado. Se define cuando el sistema base esté estable.
+
+---
+
+## 🎨 F23 · Transformaciones visuales de tiles y mobs
+
+**Idea:** aprovechar el hecho de que los tiles y mobs son **emojis** (glifos de fuente) para aplicarles transformaciones CSS sin cambiar el emoji en sí. Permite dar vida al mundo, marcar estados, orientar objetos y diferenciar entidades con muy poco código.
+
+**Regla clave:** los emojis son caracteres, no imágenes. Algunas transformaciones son triviales (flip, rotación, escala, opacidad) y otras son imposibles (color interno, transparencia parcial).
+
+### 1 · Transformaciones geométricas (CSS `transform`)
+
+| Transformación | CSS | Utilidad |
+|----------------|-----|----------|
+| Flip horizontal | `scaleX(-1)` | Jugador, mobs (ya implementado) |
+| Flip vertical | `scaleY(-1)` | Fuego 🔥, flechas ↑↓, hojas 🍃 |
+| Rotación arbitraria | `rotate(45deg)` | Flechas a NE, NW, SE, SW |
+| Rotación animada | `rotate()` + `transition` | Reloj, brújula, engranaje |
+| Escala | `scale(2)` | Mobs grandes, objetos destacados |
+| Espejo diagonal | `scale(-1, 1)` + `rotate()` | Efectos ópticos |
+
+**Ejemplo:** una flecha `➡️` puede apuntar a las 8 direcciones combinando `scaleX(-1)` + `rotate(Ndeg)`.
+
+### 2 · Tamaño en la grilla (layout, no transform)
+
+| Cambio | Cómo | Utilidad |
+|--------|------|----------|
+| 1×1 normal | Actual | Mobs comunes |
+| 2×2 (mob grande) | Ocupa 4 celdas, emoji con `font-size` doble | Jefe, tigre alfa, estructura |
+| 3×3 (estructura) | Ídem | Árbol grande, roca, altar |
+| 1×2 (alto) | Una columna, dos filas | Puerta, antorcha alta |
+| 2×1 (ancho) | Dos columnas, una fila | Tronco caído, valla |
+
+**Nota:** requiere tocar el sistema de colisiones y el render. Cambio medio.
+
+### 3 · Color / apariencia
+
+| Cosa | ¿Se puede? | Cómo |
+|------|:----------:|------|
+| Cambiar el color del emoji en sí | ❌ No | El emoji trae su color incorporado |
+| Filtro de color | ✅ Parcial | `filter: hue-rotate(90deg)` (varía por SO) |
+| Opacidad | ✅ Sí | `opacity: 0.5` |
+| Brillo / saturación | ✅ Sí | `filter: brightness(1.5)` |
+| Color de fondo de la celda | ✅ Sí | Ya implementado (color por bioma) |
+| Halo / glow | ✅ Sí | `text-shadow: 0 0 6px cyan` |
+| Borde de color | ✅ Sí | `border: 1px solid red` en la celda |
+
+**Truco:** un 👽 con `filter: hue-rotate(120deg)` se ve verde. Útil para "variantes" del mismo mob.
+
+### 4 · Efectos visuales (CSS animations)
+
+| Efecto | CSS | Utilidad |
+|--------|-----|----------|
+| Glow (halo) | `text-shadow: 0 0 8px cyan` | Ya usado en la identidad visual |
+| Sombra proyectada | `filter: drop-shadow(...)` | Profundidad |
+| Parpadeo | `animation: parpadeo` | Objeto brillante, daño recibido |
+| Vibración | `animation: shake` | Objeto "vivo", combate |
+| Latido (pulse) | `animation: pulse` | Corazón, recuperación, orbe |
+| Rotación continua | `animation: spin` | Portal, energía, engranaje |
+
+### 5 · Animación de tiles (secuencia)
+
+| Técnica | Cómo | Ejemplo |
+|---------|------|---------|
+| Flip alternado | `scaleX(1)` ↔ `scaleX(-1)` | Fuego, hoja |
+| Secuencia de emojis | Ciclar array | 🌍🌎🌏, 🌑🌒🌓... |
+| Rotación alternada | `rotate(0)` ↔ `rotate(180deg)` | ⛓️, reloj |
+| Cambio de opacidad | `opacity: 1` ↔ `opacity: 0.5` | Antorcha, faro |
+| Cambio de escala | `scale(1)` ↔ `scale(1.2)` | Latido, respiración |
+| Filtro de color | `hue-rotate(0)` ↔ `hue-rotate(180deg)` | Cristales, energía |
+
+**Ya probado en `pruebas/animaciones.html`:** el fuego 🔥 con flip horizontal y las fases lunares 🌑🌒🌓🌔🌕🌖🌗🌘 funcionan muy bien.
+
+### 6 · Cambios de "estado" (lógica, no CSS)
+
+| Cambio | Ejemplo |
+|--------|---------|
+| Emoji por estado | Jugador: 🧍 quieto, 🏃 corriendo, 🚣 en barco |
+| Emoji por orientación | Flecha: ➡️⬅️⬆️⬇️ |
+| Emoji por vida | ❤️❤️❤️ → ❤️❤️🖤 → ❤️🖤🖤 |
+| Emoji por bioma | 🌳 en bosque, 🌵 en desierto |
+| Emoji por hora | ☀️ de día, 🌙 de noche |
+
+### Prioridades sugeridas
+
+**Fácil (agregar ya):**
+
+- Flip vertical para fuego / antorchas.
+- Glow (`text-shadow`) para ítems destacados (ej: la llave).
+- Pulse para orbes / recuperación.
+- Rotación estática para flechas direccionales.
+
+**Medio (requiere planificación):**
+
+- Rotación animada continua (portal, engranaje).
+- Filtros de color (`hue-rotate`) para variantes.
+- Cambio de emoji por estado (tigre herido vs sano).
+
+**Complejo (fases posteriores):**
+
+- Mobs 2×2 (sistema de colisiones multi-celda).
+- Sprites reales (PNG) — ver F20.
+
+### Lo que NO se puede
+
+- ❌ Cambiar el color interno de un emoji.
+- ❌ Hacer transparente una parte del emoji (requiere PNG).
+- ❌ Usar un emoji "con fondo transparente".
+
+### Ideas concretas para el tema espacio
+
+| Cosa | Transformación | Resultado |
+|------|----------------|-----------|
+| 🔥 (llama) | flip vertical a 300ms | Llama viva |
+| 🌪️ (tornado) | rotación alternada | Tornado activo |
+| 🛸 (nave) | pulse lento | Nave flotando |
+| 🔮 (orbe) | pulse + hue-rotate | Orbe mágico |
+| ⚡ (sable) | parpadeo | Energía activa |
+| 🗼 (torre) | pulse de brillo | Antena activa |
+| 🪐 (anillo) | rotación estática | Anillo inclinado |
+| ☄️ (meteorito) | rotación dinámica | Meteorito cayendo |
+
+**Estado:** ⏸️ Anotado. Se puede implementar por partes cuando haya tiempo.
+
+---
+
+## 🐛 F24 · Bugs conocidos de v2.4-alpha (biomas por celda)
+
+Bugs detectados al implementar biomas por celda (v2.4-alpha). Se arreglan por partes.
+
+### B1 · Romper un tile usa el bioma del chunk en vez de la celda
+
+**Síntoma:** rompés una roca en el desierto y aparece hielo abajo.
+**Causa:** `rotura.js` consulta `chunk.bioma` (dominante) en vez de `obtenerBiomaDeCelda(wx, wy)`.
+**Solución:** usar el bioma de la celda para elegir el `tileBase`.
+**Prioridad:** 🔥 Alta.
+
+### B2 · Filas horizontales de pasto entre chunks
+
+**Síntoma:** las filas en los bordes de cada chunk (y=0, y=31, y=63, etc.) quedan con pasto por defecto.
+**Causa:** `generarPantalla` solo pinta `yMin=1` a `yMax=ALTO_CHUNK-2`. Las filas 0 y 31 quedan sin pintar.
+**Solución:** pintar todas las filas o rellenar correctamente.
+**Prioridad:** 🔥 Alta.
+**Estado:** ✅ Arreglado (cambio de `yMin`/`yMax` a 0 y ALTO_CHUNK-1).
+
+### B3 · Mobs de tierra aparecen en el agua
+
+**Síntoma:** tigres / cerdos / alienígenas aparecen sobre agua.
+**Causa:** `enemigos.js` decide por bioma del chunk, no de la celda del spawn.
+**Solución:** verificar el tile de la celda antes de spawnear. Si es agua y el mob no es acuático, no spawnear.
+**Prioridad:** 🟡 Media.
+
+### B4 · Atravesar un mob no dispara animación de pelea
+
+**Síntoma:** el jugador camina sobre un mob no sólido y no pasa nada.
+**Causa:** por investigar.
+**Prioridad:** 🟡 Media.
+
+### B5 · Romper roca en agua genera arena
+
+**Síntoma:** rompés una roca en el agua y aparece arena (SAND) en vez de agua.
+**Causa:** mismo problema que B1.
+**Solución:** al romper, usar `obtenerBiomaDeCelda(wx, wy)` para saber el `tileBase` correcto.
+**Prioridad:** 🔥 Alta.
 
 ---
 
