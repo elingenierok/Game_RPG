@@ -254,7 +254,24 @@ function actualizarHUD() {
       entradas.map(([nombre, cant]) => `${iconoPorNombre(nombre)} x${cant}`).join(" · ");
   }
 
+  // ─── Barra de HP (F28) ───
+  actualizarBarraHP();
+
   actualizarSlotsEquipados();
+}
+
+// ─── Barra de HP ───
+function actualizarBarraHP() {
+  const relleno = document.getElementById("barra-hp-relleno");
+  const texto = document.getElementById("barra-hp-texto");
+  if (!relleno || !texto) return;
+
+  const hp = estado.jugador.hp;
+  const hpMax = estado.jugador.hpMax;
+  const pct = Math.max(0, Math.min(100, (hp / hpMax) * 100));
+
+  relleno.style.width = pct + "%";
+  texto.textContent = `${Math.ceil(hp)} / ${hpMax}`;
 }
 
 function actualizarSlotsEquipados() {

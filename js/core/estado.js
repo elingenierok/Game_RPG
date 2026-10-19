@@ -16,6 +16,11 @@ const estado = {
     inicializado: false,
     corriendo: false,
     enBarco: false,
+    hp: 20,
+    hpMax: 20,
+    ataque: 3,
+    defensa: 1,
+    velocidad: 1,
     // Animación en curso
     animando: false,
     animInicioX: 0,

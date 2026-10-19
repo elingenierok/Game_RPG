@@ -53,6 +53,8 @@ function generarMobsDeChunk(cx, cy) {
           tipo: id,
           wx: wx,
           wy: wy,
+          hpActual: mob.hp,   // ← NUEVO
+          hpMax: mob.hp,      // ← NUEVO
           estado: "DEAMBULANDO",
           tickContador: 0,
           mirandoIzquierda: false,

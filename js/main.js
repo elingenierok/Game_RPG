@@ -70,6 +70,7 @@ function reiniciarMundo(nuevaSemilla) {
   estado.jugador.inicializado = false;
   estado.jugador.animando = false;
   estado.jugador.mirandoIzquierda = false;
+  estado.jugador.hp = estado.jugador.hpMax;
   estado.ganado = false;
   estado.inventario = {};
   estado.itemsRecogidos = new Set();
