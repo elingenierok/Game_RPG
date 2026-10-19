@@ -12,7 +12,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Versión actual** | v2.4.2-alpha · sistema de efectos visuales genéricos |
-| **Última actualización** | 2026-10-19 |
+| **Última actualización** | 2026-10-19 (docs: F1 reescrita, F12 expandida, F26 y F27 agregadas) |
 | **Estado global** | ✅ Jugable · Base del motor completa · 0 bugs conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -25,7 +25,7 @@
 📖 **Documentos complementarios:**
 
 - [CHANGELOG.md](CHANGELOG.md) — Historial completo de versiones
-- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F25)
+- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F27)
 
 ---
 
@@ -91,7 +91,7 @@ Game_RPG/
 ├── index.html                    ← Solo HTML (estructura + <script src>)
 ├── README.md                     ← Este documento
 ├── CHANGELOG.md                  ← Historial de versiones
-├── BACKLOG.md                    ← Ideas futuras (F1-F25)
+├── BACKLOG.md                    ← Ideas futuras (F1-F27)
 ├── .gitignore                    ← Archivos ignorados por Git
 ├── css/
 │   └── estilo.css                ← Todo el CSS del juego
@@ -250,6 +250,7 @@ cd Game_RPG
 | M20 | Sistema de temas | 🟢 | `tema-tierra` / `tema-espacio` (datos) | v2.2-alpha |
 | M21 | Biomas por celda (ruido) | 🟢 | `obtenerBiomaDeCelda` con temp/humedad + `ESCALA_BIOMA = 0.01` | v2.4.1-alpha |
 | M22 | Bioma dominante del chunk | 🟢 | Se usa para spawns (mobs e ítems) | v2.4-alpha |
+| M23 | Ciclo día-noche | ⏸️ | Fases: día → transición → noche → transición. Pausable. Ver BACKLOG · F1 | Pendiente |
 
 ---
 
@@ -353,10 +354,11 @@ Cada mob es un **objeto de datos** con una estructura común.
 | E6 | Huida del combate | ⏸️ | No | Fase futura |
 | E7 | Loot y XP | ⏸️ | No | Campos definidos |
 | E8 | Combate grupal (1vN) | ⏸️ | No | Fase avanzada |
-| E9 | Jefes (bosses) | ⏸️ | No | Fase futura |
+| E9 | Jefes (bosses) | ⏸️ | No | Ver BACKLOG · F27 |
 | E10 | Tamaño de enemigos | 🟢 | 1×1 | v1.1 |
 | E11 | Separación de semillas | 🟢 | `SEMILLA` + `SEMILLA_MOBS` | v1.3 |
 | E12 | Pausa global en batalla | 🟢 | Todo se detiene durante el combate | v2.0 |
+| E13 | Categorías de mobs | ⏸️ | 1: normales. 2: especiales (drops únicos, quests). 3: bosses (fases). Ver BACKLOG · F26 y F27 | Pendiente |
 
 ---
 
@@ -411,11 +413,11 @@ Cada mob es un **objeto de datos** con una estructura común.
 | desierto | 🟧 DESERT_SAND |
 | nieve | ❄️ SNOW |
 
-**Nota (v2.4.1-alpha):** el `tileBase` se calcula con `obtenerBiomaDeCelda(wx, wy)`. Romper una roca en el agua deja agua, romper en desierto deja `DESERT_SAND`.
+**Nota (v2.4.1-alpha):** el `tileBase` se calcula con `obtenerBiomaDeCelda(wx, wy)`.
 
-**Nota (v2.4.2-alpha):** mientras se rompe un tile, la celda vibra y parpadea en bucle (efecto `.efecto-golpe-loop`). Al llegar la barra a 0, la animación y el cambio de tile terminan **exactamente juntos**.
+**Nota (v2.4.2-alpha):** mientras se rompe un tile, la celda vibra y parpadea en bucle (`.efecto-golpe-loop`). Al llegar la barra a 0, la animación y el cambio de tile terminan exactamente juntos.
 
-**Idea futura:** objetos de mejor nivel (hacha de hierro, pico de diamante) que reduzcan el tiempo de rotura. Ver BACKLOG · F12.
+**Idea futura:** objetos de mejor nivel. Ver BACKLOG · F12.
 
 ### Sistema del barco
 
@@ -444,6 +446,34 @@ Los objetos equipables se muestran según el **tema activo**:
 - La elección se guarda en `localStorage`.
 - Los datos de cada tema viven en `js/core/temas/tema-tierra.js` y `js/core/temas/tema-espacio.js`.
 
+### Mejoras futuras (BACKLOG · F12)
+
+Los equipables tendrán versiones de mejor nivel:
+
+**Hachas y picos:**
+
+| Nivel | Objeto | Velocidad | Duración efectiva |
+|:-----:|--------|:---------:|:-----------------:|
+| 1 | Madera | 1.0× | 3.0s (base) |
+| 2 | Hierro | 0.6× | 1.8s |
+| 3 | Diamante | 0.3× | 0.9s |
+
+**Linteras (con radio de luz, vinculado a F1):**
+
+| Nivel | Objeto | Radio |
+|:-----:|--------|:-----:|
+| 1 | Vela | 6×6 |
+| 2 | Linterna de mano | 10×10 |
+| 3 | Linterna militar | 13×13 |
+| 4 | Farol mágico | 16×16 |
+
+Los mejorados pueden aparecer:
+- En el mundo natural (biomas específicos).
+- Únicos por mundo (determinista por semilla).
+- Como drop de mobs especiales o bosses.
+
+Ver BACKLOG · F12 para el detalle completo.
+
 ### Cómo agregar un objeto equipable nuevo
 
 1. Agregarlo al array `EQUIPABLES` de `items.js`:
@@ -451,17 +481,17 @@ Los objetos equipables se muestran según el **tema activo**:
    { tipo: NOMBRE_TILE, bioma: "biomaDestino", porChunk: true }
    ```
 2. Agregar la constante del tile en `tiles.js`.
-3. Agregar el emoji en **ambos** temas (`tema-tierra.js` y `tema-espacio.js`).
-4. Agregar el nombre en `tipoEquipableANombre` (`items.js`).
-5. Agregar el slot correspondiente en `index.html` y en `actualizarSlotsEquipados` (`render.js`).
+3. Agregar el emoji en **ambos** temas.
+4. Agregar el nombre en `tipoEquipableANombre`.
+5. Agregar el slot correspondiente en `index.html` y en `actualizarSlotsEquipados`.
 
 ### Cheats de test (temporal)
 
 `js/systems/cheats.js` agrega un botón 🎁 arriba a la derecha.
 
-- Click → carga los 4 equipables (hacha, pico, linterna, barco) de una.
-- Click de nuevo → limpia esos 4.
-- **Solo para test.** Borrar `cheats.js`, su `<script>` y el botón antes de producción.
+- Click → carga los 4 equipables.
+- Click de nuevo → limpia.
+- **Solo para test.** Borrar antes de producción.
 
 ---
 
@@ -643,14 +673,14 @@ quitarEfecto(wx, wy, "efecto-glow");               // quitar
 
 **Render:** cada frame, el render consulta `obtenerEfectosDe(wx, wy)` y aplica las clases al `className` de la celda. Solo actualiza si cambió (para no reiniciar animaciones CSS).
 
-**Vibración:** orgánica, combinando `translateX` y `translateY` en secuencia irregular (no solo izq-der). Máximo 2px para no sacudir demasiado.
+**Vibración:** orgánica, combinando `translateX` y `translateY` en secuencia irregular. Máximo 2px.
 
 ### Herramientas de experimentación
 
 | Archivo | Función |
 |---------|---------|
-| `auditor/laboratorio-v1.html` | Laboratorio ejecutable en el navegador. Permite probar cualquier emoji con cualquier efecto (vibrar, glow, pulse, etc.). No afecta el proyecto. |
-| `pruebas/catalogo.html` | Catálogo comprimido de efectos con ejemplos prácticos. Sirve para elegir el efecto adecuado según la función. |
+| `auditor/laboratorio-v1.html` | Laboratorio ejecutable en el navegador. Permite probar cualquier emoji con cualquier efecto. No afecta el proyecto. |
+| `pruebas/catalogo.html` | Catálogo comprimido de efectos con ejemplos prácticos. Sirve para elegir el efecto adecuado. |
 | `js/core/tiles_muestrario.md` | Documento de referencia con el uso de tiles. |
 
 ---
@@ -674,14 +704,14 @@ quitarEfecto(wx, wy, "efecto-glow");               // quitar
 - **Mobs con IA** (deambular, perseguir, huir).
 - **Pausa global en batalla**.
 - **Inventario en HUD** con íconos correctos.
-- **Control de semilla en UI** (input + botones + Enter).
+- **Control de semilla en UI**.
 - **Botones de movimiento** en pantalla.
 - **Botón de cambio de tema** (arriba a la derecha).
 - **Botón de cheat** (arriba a la derecha, temporal).
 - **Color de fondo por bioma**.
 - **Animación del jugador** (quieto, corriendo, en barco).
 - **Ruido (Value Noise)** para generación de biomas.
-- **Sistema de efectos visuales genéricos** (vibrar, parpadear, destello, glow, pulse).
+- **Sistema de efectos visuales genéricos**.
 
 ### Bugs conocidos
 
@@ -699,15 +729,18 @@ Todos los bugs de v2.4-alpha fueron resueltos en v2.4.1-alpha:
 
 ### Lo que falta
 
-- Aplicar `efecto-ataque` al iniciar batalla (hoy la batalla es un overlay sin feedback visual del mob).
+- Aplicar `efecto-ataque` al iniciar batalla.
 - Aplicar `efecto-danio` al jugador cuando HP esté implementado.
 - Aplicar `efecto-recoger` al recoger ítems y equipables.
 - Reemplazar el glow hardcodeado de la llave por `aplicarEfecto(..., "efecto-glow")`.
 - Pulir emojis y nombres del tema espacio.
 - Adaptar `auditor/` al sistema de temas.
 - Adaptar `victoria.js` con mensaje temático.
-- Barco: mob bloqueando la única celda de tierra → no se puede desembarcar.
+- Barco: mob bloqueando la única celda de tierra.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
+- **Ciclo día-noche con sistema de luz (BACKLOG · F1).**
+- **Categorías de mobs: especiales y bosses (BACKLOG · F26 y F27).**
+- **Equipables mejorados con niveles (BACKLOG · F12).**
 
 ### ⚠️ Recordatorio: borrar cheats antes de producción
 
@@ -775,7 +808,7 @@ Interfaz radial con 6 sectores anidados. El jugador **bloquea** arrastrando el m
 
 **Movido a [BACKLOG.md](BACKLOG.md).**
 
-Ideas futuras: F1-F25.
+Ideas futuras: F1-F27.
 
 ---
 
@@ -821,12 +854,15 @@ Ideas futuras: F1-F25.
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada |
+| 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada. Base para F1, F26 y F27. |
 | 🟡 Media | Prototipo 2 del módulo de combate | ⏸️ | SVG radial |
 | 🟡 Media | Loot y XP de mobs | ⏸️ | Campos ya definidos |
 | 🟡 Media | Pulir tema espacio (emojis, nombres, biomas) | ⏸️ | Ver BACKLOG · F19 |
 | 🟡 Media | Más tipos de ítems | ⏸️ | Extender sistema actual |
 | 🟢 Baja | Aplicar F25 a otras features (combate, recoger, llave) | ⏸️ | Ver BACKLOG · F25 |
+| 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de HP |
+| 🟢 Baja | Mobs especiales (F26) | ⏸️ | Después de F1 + F15 + quests |
+| 🟢 Baja | Mobs bosses (F27) | ⏸️ | Fase tardía |
 | 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis pintadas |
 | 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
 | 🟢 Baja | Minimapa completo | ⏸️ | Fase futura |
@@ -838,7 +874,10 @@ Ideas futuras: F1-F25.
 - Refactorización a módulos ES
 - Entidades multi-tile (mobs 2×2)
 - Sprites reales (PNG) — ver F20
-- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F25)
+- Sistema de misiones / quests — ver BACKLOG · F26
+- Sistema de bosses con fases — ver BACKLOG · F27
+- Persistencia de progreso (localStorage) — ver BACKLOG · F8
+- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F27)
 
 ---
 
@@ -949,7 +988,8 @@ Ideas futuras: F1-F25.
 - Los IDs (M1, J1, R1, X1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
 - Los bloques del código (BLOQUE 1 a 99) son referenciables para modificaciones puntuales.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
-- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)**.
+- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F27).
+- **Prioridad actual:** HP + daño real. Es la base de F1, F26 y F27.
 
 ---
 

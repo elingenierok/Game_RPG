@@ -4,6 +4,58 @@ Historial completo de versiones del proyecto. Para el estado actual, ver [README
 
 ---
 
+## Docs · 2026-10-19 (anotaciones de diseño: día-noche, mobs especiales, bosses)
+
+### 📝 Documentación
+
+**BACKLOG reescrito y expandido:**
+
+- **F1 reescrita** — Ciclo día-noche completo:
+  - Día (20s en test): todo visible.
+  - Transición día→noche (5s): oscurecimiento gradual + aviso "Se hace de noche. Es peligroso."
+  - Noche (15s): oscuridad casi total. Solo se ven los tiles que emiten luz + radio de 5 celdas alrededor del jugador.
+  - Transición noche→día (5s): aclarado gradual.
+  - Pausable (se detiene en batalla de boss, menú, etc.).
+  - Mobs normales desaparecen de noche. Aparecen mobs especiales nocturnos.
+  - La linterna equipada ilumina un radio (ver F12).
+
+- **F12 actualizada** — Objetos equipables de mejor nivel + linterna por niveles:
+  - Hachas/picos: madera (1.0×), hierro (0.6×), diamante (0.3×) → reduce `duracionMs` de rotura.
+  - Linteras con radio: vela (6×6), mano (10×10), militar (13×13), farol mágico (16×16).
+  - Campo nuevo `nivel` y `velocidad` en `EQUIPABLES`.
+
+- **F26 nueva** — Sistema de mobs especiales (categoría 2):
+  - `MOBS_ESPECIALES` con drops únicos garantizados.
+  - Spawn condicional: por noche, por estructura, por nivel de jugador.
+  - Vinculación a misiones (`mision.questId`, `objetivo`, `cantidad`, `recompensa`).
+  - Requiere: F1, F15, sistema de misiones (nuevo archivo `js/systems/misiones.js`), persistencia.
+
+- **F27 nueva** — Sistema de mobs bosses (categoría 3):
+  - `MOBS_BOSS` con pelea por fases (`fases[].hpMin`, `ataques`, `efectosAlJugador`, `invocaEsbirros`, `furia`).
+  - Inmunidades y resistencias a tipos de daño.
+  - Drops legendarios garantizados.
+  - Requiere: combate real (HP + daño), sistema de estados, F15.
+
+**Relaciones anotadas entre ideas:**
+
+- F1 ↔ F12 (linterna).
+- F1 ↔ F26 (mobs nocturnos).
+- F15 ↔ F26 y F27 (spawn en estructuras).
+- F22 ↔ F12 (qué nivel usa `porChunk: true`).
+- F3 ↔ F1 (capa de iluminación).
+
+### ⏸️ Pendiente
+
+- Nada implementado. Todo queda anotado para cuando se decida avanzar.
+- Orden natural sugerido: HP + daño → F12 (velocidad) → F15 (estructuras) → F1 (día-noche) → F26 (especiales) → F27 (bosses).
+
+### ⚠️ Estado
+
+- **v2.4.2-alpha sigue estable.** Solo cambios en documentación.
+- El próximo hito técnico es **HP + daño real** (base para todo lo demás).
+
+---
+
 ## v2.4.2-alpha · 2026-10-19 (sistema de efectos visuales)
 
 ### 🎯 Objetivo
@@ -99,11 +151,11 @@ Con 3 mobs no dolía, pero al querer agregar vibrar/parpadear/destello a **cualq
 
 ### ⏸️ Pendiente (ver BACKLOG · F25)
 
-- Aplicar `efecto-ataque` al iniciar batalla (hoy la batalla es un overlay, no hay feedback visual del mob).
+- Aplicar `efecto-ataque` al iniciar batalla.
 - Aplicar `efecto-danio` al jugador cuando HP esté implementado.
 - Aplicar `efecto-recoger` al recoger ítems y equipables.
-- Efecto `efecto-glow` permanente a la llave (reemplazar el glow hardcodeado).
-- Sistema de efectos en la UI de HTML de prueba (`pruebas/efectos.html`).
+- Efecto `efecto-glow` permanente a la llave.
+- Sistema de efectos en la UI de HTML de prueba.
 
 ### 📖 Documentación
 
@@ -114,7 +166,6 @@ Con 3 mobs no dolía, pero al querer agregar vibrar/parpadear/destello a **cualq
 ### ⚠️ Estado
 
 - **v2.4.2-alpha estable.** El sistema de efectos funciona y la rotura es la primera en usarlo.
-- Todo el código existente sigue funcionando igual.
 
 ---
 
@@ -126,10 +177,10 @@ Arreglar los 5 bugs detectados al implementar biomas por celda en v2.4-alpha.
 
 ### 🐛 Arreglados
 
-- **B1 (romper tile usa bioma del chunk):** `rotura.js` ahora usa `obtenerBiomaDeCelda(wx, wy)` en vez de `obtenerBiomaDeChunk`. Romper una roca en el desierto deja `DESERT_SAND`, no hielo.
-- **B2 (filas de pasto entre chunks):** `generarPantalla` ahora pinta de `yMin = 0` a `yMax = ALTO_CHUNK - 1`. Antes dejaba filas vacías en los bordes.
-- **B3 (mobs de tierra en agua):** `ia.js` reescrito completo para 2D. Los mobs ahora se mueven correctamente y respetan el terreno. El bug era que `ia.js` seguía usando coordenadas 1D (`mob.x`, `estado.pantalla`) y no funcionaba en absoluto.
-- **B4 (atravesar mob no dispara pelea):** resuelto por el mismo fix de `ia.js`. Ahora `moverMob` verifica si el jugador está en la celda destino y dispara batalla correctamente.
+- **B1 (romper tile usa bioma del chunk):** `rotura.js` ahora usa `obtenerBiomaDeCelda(wx, wy)` en vez de `obtenerBiomaDeChunk`.
+- **B2 (filas de pasto entre chunks):** `generarPantalla` ahora pinta de `yMin = 0` a `yMax = ALTO_CHUNK - 1`.
+- **B3 (mobs de tierra en agua):** `ia.js` reescrito completo para 2D.
+- **B4 (atravesar mob no dispara pelea):** resuelto por el mismo fix de `ia.js`.
 - **B5 (romper roca en agua genera arena):** mismo fix que B1.
 
 ### 🔧 Cambios técnicos
@@ -145,7 +196,7 @@ Arreglar los 5 bugs detectados al implementar biomas por celda en v2.4-alpha.
 
 **`js/main.js`:**
 
-- Se agregó `iniciarTicks()` después de `inicializarJugador()`. Los ticks de IA nunca se estaban arrancando.
+- Se agregó `iniciarTicks()` después de `inicializarJugador()`.
 
 **`js/systems/rotura.js`:**
 
@@ -156,7 +207,7 @@ Arreglar los 5 bugs detectados al implementar biomas por celda en v2.4-alpha.
 **Cheats temporales (`js/systems/cheats.js`):**
 
 - Botón 🎁 arriba a la derecha.
-- Carga / limpia todos los equipables (hacha, pico, linterna, barco).
+- Carga / limpia todos los equipables.
 - **Para test. Se borra antes de producción.**
 
 ### 📖 Documentación
@@ -168,7 +219,6 @@ Arreglar los 5 bugs detectados al implementar biomas por celda en v2.4-alpha.
 ### ⚠️ Estado
 
 - **v2.4.1-alpha estable.** Los 5 bugs de F24 están cerrados.
-- Todos los mobs se mueven, persiguen, huyen y disparan batalla.
 
 ---
 
@@ -176,7 +226,7 @@ Arreglar los 5 bugs detectados al implementar biomas por celda en v2.4-alpha.
 
 ### 🎯 Objetivo
 
-Reemplazar el sistema de "bioma por chunk" (cuadrados pegados) por un sistema de "bioma por celda" usando ruido (temperatura + humedad). El mundo pasa de verse como cuadritos a verse como manchas orgánicas.
+Reemplazar el sistema de "bioma por chunk" (cuadrados pegados) por un sistema de "bioma por celda" usando ruido (temperatura + humedad).
 
 ### ✅ Completado
 
@@ -210,7 +260,7 @@ Reemplazar el sistema de "bioma por chunk" (cuadrados pegados) por un sistema de
 
 - Pinta el chunk **celda por celda**, consultando el bioma de cada una.
 - La costa (`forma: "franja"`) sigue usando su lógica especial por ahora.
-- El chunk guarda su `bioma` dominante (calculado por `obtenerBiomaDeChunk`) para spawns de mobs e ítems.
+- El chunk guarda su `bioma` dominante para spawns de mobs e ítems.
 
 ### 🐛 Bugs conocidos (ver BACKLOG · F24) · ✅ TODOS RESUELTOS en v2.4.1
 
@@ -224,12 +274,11 @@ Reemplazar el sistema de "bioma por chunk" (cuadrados pegados) por un sistema de
 
 - BACKLOG: F24 con los 5 bugs.
 - CHANGELOG: esta entrada.
-- README: pendiente de actualizar con M21 (biomas por celda).
+- README: pendiente de actualizar con M21.
 
 ### ⚠️ Estado
 
-- **v2.4-alpha funcional con bugs.** El mundo se ve orgánico y jugable.
-- Los bugs se arreglan por partes (hecho en v2.4.1).
+- **v2.4-alpha funcional con bugs.** Los bugs se arreglan por partes (hecho en v2.4.1).
 
 ---
 
@@ -250,9 +299,9 @@ Convertir el juego en un "explorador espacial" sin tocar el motor. Además, agre
 
 **Tema espacio completo (`tema-espacio.js`)**
 
-- 25 iconos espaciales: suelo lunar, nave alienígena, panel metálico, líquido alienígena, arena espacial, hongo alienígena, meteorito, anillo de polvo, camino de placas, núcleo de energía, astronauta, escáner, cápsula de energía, alien hostil, dron pacífico, reptiliano neutral, sable de energía, taladro, lámpara, arena roja, tentáculo alienígena, cristal blanco, hielo azul, torre/antena, módulo de escape.
-- 7 biomas espaciales: llanura lunar, zona de naves, borde de cráter, ruinas alienígenas, mar de metano, dunas rojas, campo de hielo.
-- 3 mobs espaciales: alien hostil, dron pacífico, reptiliano neutral.
+- 25 iconos espaciales.
+- 7 biomas espaciales.
+- 3 mobs espaciales.
 - 1 objeto jugador con 4 estados.
 
 **Botón de cambio de tema**
@@ -260,32 +309,32 @@ Convertir el juego en un "explorador espacial" sin tocar el motor. Además, agre
 - Botón arriba a la derecha de la pantalla.
 - Alterna entre "tierra" y "espacio".
 - Persistencia en `localStorage`.
-- Texto del botón dinámico (`🌍 Ir a Tierra` / `🚀 Ir a Espacio`).
-- Ayuda del HUD cambia de texto ("Buscá la 🔑" / "Buscá la 🔋").
+- Texto del botón dinámico.
+- Ayuda del HUD cambia de texto.
 
 **Color de fondo por bioma**
 
 - Campo `color` en cada bioma de ambos temas.
 - Se aplica al fondo de los tiles del mapa.
-- Colores sutiles, apenas diferenciados del fondo general.
+- Colores sutiles.
 
 **Animación del jugador**
 
-- Objeto `jugador` en cada tema: `{ quieto, correrA, correrB, barco }`.
+- Objeto `jugador` en cada tema.
 - Alternancia entre `correrA` y `correrB` cada 150ms mientras se mueve.
-- Orientación respetada (`scaleX(-1)`).
+- Orientación respetada.
 - Al detenerse, vuelve a `quieto`.
 - Al subir al barco, muestra `barco`.
 
 **Arreglos varios**
 
-- `items.js`: refactor completo con semillas opcionales (`semillaMundo`, `semillaObjetos`).
-- `items.js`: `obtenerChunk` reemplazado por `generarPantalla` para no depender del caché global.
-- `jugador.js`: bug de orientación corregido (invertido).
-- `jugador.js`: `alPisarCelda` usa `ICONOS` en vez de emojis hardcodeados.
+- `items.js`: refactor con semillas opcionales.
+- `items.js`: `obtenerChunk` reemplazado por `generarPantalla`.
+- `jugador.js`: bug de orientación corregido.
+- `jugador.js`: `alPisarCelda` usa `ICONOS`.
 - `render.js`: slots de equipados usan `ICONOS`.
 - `render.js`: HUD del inventario usa `ICONOS`.
-- `render.js`: `jugador-fijo` ya no tiene emoji hardcodeado, viene del tema.
+- `render.js`: `jugador-fijo` ya no tiene emoji hardcodeado.
 - `barco.js`: sincroniza `estado.jugador.enBarco`.
 - `estado.js`: nuevo flag `enBarco`.
 - `config.js`: `TEMA_ACTIVO` en lugar de `const` fijo.
@@ -296,18 +345,17 @@ Convertir el juego en un "explorador espacial" sin tocar el motor. Además, agre
 - Diseñar más biomas, mobs, ítems.
 - Adaptar `auditor/` al sistema de temas.
 - Adaptar `victoria.js` con mensaje temático.
-- Definir narrativa (por qué el astronauta busca las piezas).
+- Definir narrativa.
 
 ### 📖 Documentación
 
-- README: MARCO 4.5 (sistema de temas), MARCO 8 (colores + animación).
-- BACKLOG: F19 marcado como parcialmente implementado.
+- README: MARCO 4.5 y MARCO 8 actualizados.
+- BACKLOG: F19 parcialmente implementado.
 - CHANGELOG: esta entrada.
 
 ### ⚠️ Estado
 
 - **v2.3-alpha estable.** El juego es jugable en ambos temas.
-- El motor no cambió. Todo el cambio temático es por datos.
 
 ---
 
@@ -321,7 +369,7 @@ Preparar el motor para cambiar la temática visual (tierra ↔ espacio) sin toca
 
 - Nuevos archivos: `js/core/temas/tema-tierra.js` y `js/core/temas/tema-espacio.js`.
 - `TEMA_ACTIVO` en `config.js` (`"tierra"` por defecto).
-- `tiles.js`, `biomas.js`, `mobs.js` convertidos en wrappers que leen del tema activo.
+- `tiles.js`, `biomas.js`, `mobs.js` convertidos en wrappers.
 - El juego se ve idéntico. Los IDs numéricos no cambian.
 
 ### ⏸️ Pendiente
@@ -347,27 +395,26 @@ Adaptar el auditor de semillas al mundo 2D circular y hacer que `items.js` sea r
 **Auditor 2D (`auditor/`)**
 
 - Reescrito completo para chunks `{cx, cy}`.
-- Layout de 2 columnas: configuración + mapa de biomas (izq), mundo generado (der).
-- Vista unificada: matriz simplificada de biomas + mundo con tiles pegados.
+- Layout de 2 columnas.
 - Ejes X e Y con coordenadas.
 - Botón 🎲 de semilla aleatoria.
-- Íconos de equipables visibles sobre cada chunk del mapa.
-- Scroll horizontal y vertical en el mundo generado.
+- Íconos de equipables visibles sobre cada chunk.
+- Scroll horizontal y vertical.
 - Límite 10×10 chunks.
 
 **Refactor `items.js`**
 
-- `generarItemsDeChunk(cx, cy, semillaMundo, semillaObjetos)` — semillas opcionales.
-- `generarEquipablesDeChunk(cx, cy, semillaMundo, semillaObjetos)` — semillas opcionales.
-- `obtenerChunkDeEquipable(tipo, bioma, semillaMundo, semillaObjetos)` — semillas opcionales.
-- Reemplazado `obtenerChunk(cx, cy)` por `generarPantalla(semillaMundo, cx, cy)` para no depender del caché global.
-- Cachés separadas por semilla (`sObjetos + "|" + cx + "," + cy`).
-- **Compatibilidad:** si no se pasan semillas, usa las globales (`SEMILLA`, `SEMILLA_OBJETOS`). El juego sigue funcionando igual.
+- `generarItemsDeChunk(cx, cy, semillaMundo, semillaObjetos)`.
+- `generarEquipablesDeChunk(cx, cy, semillaMundo, semillaObjetos)`.
+- `obtenerChunkDeEquipable(tipo, bioma, semillaMundo, semillaObjetos)`.
+- Reemplazado `obtenerChunk(cx, cy)` por `generarPantalla(semillaMundo, cx, cy)`.
+- Cachés separadas por semilla.
+- **Compatibilidad:** si no se pasan semillas, usa las globales.
 
 ### ⏸️ Pendiente (anotado en BACKLOG · F22)
 
-- Limitar generación de equipables en producción (`porChunk: false`).
-- Condiciones más finas (adyacencia a bioma, distancia al spawn).
+- Limitar generación de equipables en producción.
+- Condiciones más finas.
 - Documentar el flag en `items.js`.
 
 ### 📖 Documentación
@@ -386,17 +433,17 @@ Adaptar el auditor de semillas al mundo 2D circular y hacer que `items.js` sea r
 
 ### 🎯 Objetivo
 
-Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con **cámara fluida**.
+Migrar de un mundo **1D** a un mundo **2D circular (360°)** con **cámara fluida**.
 
 ### ✅ Completado
 
 **Fase 1 · Constantes nuevas**
 
 - `ANCHO_CHUNK = 32`, `ALTO_CHUNK = 32`
-- `ANCHO_VENTANA = 25`, `ALTO_VENTANA = 17`
-- `TAMANO_CELDA = 16`
+- `ANCHO_VENTANA = 25`, `ALTO_VENTANA = 17` (luego 32×24)
+- `TAMANO_CELDA = 16` (luego 24)
 - `LIMITE_CHUNKS = 4`
-- `DURACION_MOVIMIENTO_MS = 200`
+- `DURACION_MOVIMIENTO_MS = 200` (luego 100)
 - Llave en chunk (2, 0)
 
 **Fase 2 · Sistema de cámara (`js/systems/camara.js` — NUEVO)**
@@ -408,58 +455,58 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 **Fase 3 · Chunks 2D**
 
 - `estado.js`: jugador vive en `(wx, wy)`.
-- `chunks.js`: caché `"cx,cy"` → chunk. `inicializarJugador()`, `inicializarLlave()`.
-- `mundo.js`: `generarPantalla(semilla, cx, cy)`. `obtenerBiomaDeChunk()`.
+- `chunks.js`: caché `"cx,cy"` → chunk.
+- `mundo.js`: `generarPantalla(semilla, cx, cy)`.
 
 **Fase 4 · Render + movimiento 360°**
 
-- `render.js`: grid extendido, contenido recalculado, `translate` para el desplazamiento.
-- `jugador.js`: movimiento 360° con interpolación. `alPisarCelda()`.
-- `input.js`: input continuo (teclas + botones).
+- `render.js`: grid extendido, `translate` para el desplazamiento.
+- `jugador.js`: movimiento 360° con interpolación.
+- `input.js`: input continuo.
 - `main.js`: loop con `requestAnimationFrame`.
 
 **Fase 5 · Ítems y mobs 2D**
 
-- `items.js` reescrito: ítems y equipables en coordenadas del mundo.
-- `enemigos.js` reescrito: mobs por chunk 2D.
+- `items.js` reescrito.
+- `enemigos.js` reescrito.
 - Fix: manzanas no se generan sobre agua.
 - Fix: mobs no se generan sobre ítems.
 - Fix: ítems no se generan sobre mobs.
 
 **Fase 6 · Rotura y barco 2D**
 
-- `rotura.js`: click → coordenadas del mundo. Rotura instantánea.
-- `barco.js`: click → coordenadas del mundo. Desembarco funcional.
+- `rotura.js`: click → coordenadas del mundo.
+- `barco.js`: click → coordenadas del mundo.
 - Romper rocas del agua desde el barco.
 - Navegación entre chunks en barco.
 
 **Fase 7 · Victoria y pausa**
 
 - `victoria.js`: adaptado a `estado.llave.wx, wy`.
-- Pausa global (`estado.pausado`) durante batalla.
+- Pausa global durante batalla.
 - Se cancela rotura/barco al iniciar batalla.
 
 ### 🎨 Ajustes visuales
 
 - Jugador fijo en el centro exacto del viewport.
-- Jugador y mapa no seleccionables (`user-select: none`).
-- Cámara y mapa sincronizados (sin desfase).
+- Jugador y mapa no seleccionables.
+- Cámara y mapa sincronizados.
 - Barra de stamina no mueve el layout.
 
 ### 🔧 Fixes adicionales
 
-- Muros N-S eliminados (sin bloqueo vertical).
-- Colisión con mobs restaurada (cerdos/gallinas bloquean, tigres inician batalla).
-- Equipables en cada chunk de su bioma (porChunk: true).
+- Muros N-S eliminados.
+- Colisión con mobs restaurada.
+- Equipables en cada chunk de su bioma.
 - Tigres aparecen en nieve.
 - Barco no se puede colocar sobre mobs.
 - `limite.js` y `funLimiteChunk()` eliminados.
 
 ### ⏸️ Pendiente
 
-- **Fronteras compartidas en 2D:** suavizar cortes entre chunks (resuelto por v2.4-alpha).
+- Fronteras compartidas en 2D (resuelto por v2.4-alpha).
 - Barco: mob bloqueando la única celda de tierra.
-- Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
+- Mobs de chunks vecinos.
 
 ### 📖 Documentación
 
@@ -470,7 +517,6 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 ### ⚠️ Estado
 
 - **v2.0 estable.** El juego es 100% jugable.
-- Todas las mecánicas funcionan: exploración, ítems, mobs, rotura, barco, batalla, victoria.
 
 ---
 
@@ -478,25 +524,23 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 ### 🎨 Prototipo · Chunks 2D con cámara fluida (APROBADO)
 
-- Archivo nuevo: `chunks-2d.html` (independiente, para pruebas).
+- Archivo nuevo: `chunks-2d.html`.
 - **Sistema probado y aprobado:**
-  - Chunks de **32×32 celdas** (potencia de 2).
-  - Celdas de **32px** en el prototipo (para ver bien; en el juego real puede ser otra).
+  - Chunks de **32×32 celdas**.
+  - Celdas de **32px** en el prototipo.
   - Ventana visible de **32×24 celdas**.
-  - **Cámara fluida** (jugador fijo en el centro, mundo se desplaza).
+  - **Cámara fluida**.
   - **Movimiento 360°** con WASD.
   - **Mundo circular** en X e Y (tipo Pac-Man).
-  - **Límite de ±5 chunks** (aunque con wrap es circular).
+  - **Límite de ±5 chunks**.
   - **Zona (0,0) segura** (pradera).
-  - **Render de ventana** que consulta varios chunks a la vez.
+  - **Render de ventana** que consulta varios chunks.
   - **Movimiento fluido** (200ms por celda).
 
 ### ✅ Observaciones del test
 
 1. Se ve bien con chunk 32×32 y celda 32px. ✅
-2. **Los cortes entre chunks se notan** (cambio brusco de tiles). ⚠️
-   - **Solución propuesta:** fronteras compartidas en 2D (el chunk nuevo consulta el borde del anterior y arranca con tiles similares).
-   - Se implementará después de la migración base.
+2. **Los cortes entre chunks se notan**. ⚠️ (resuelto en v2.4-alpha)
 3. El wrap circular funciona bien. ✅
 4. El movimiento es fluido. ✅
 5. El jugador está correctamente centrado. ✅
@@ -505,12 +549,9 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 **Migración al juego real** (ver BACKLOG · F21).
 
-- Trabajar en un **branch `2d`** para no romper `main`.
-- 4-6 sesiones estimadas.
-
 ### 📖 Documentación
 
-- BACKLOG: F21 ampliado con plan de migración completo.
+- BACKLOG: F21 ampliado.
 - README: R17, R18 agregados.
 
 ---
@@ -519,23 +560,21 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 ### 🎨 Cambios
 
-- **Costa con forma de franja**: el bioma "costa" ahora pinta agua + arena + pasto en franjas con bordes irregulares (antes eran charcos salpicados).
-- **Nuevo campo `forma` en biomas**: `forma: "franja"` activa el motor especial de pintado.
+- **Costa con forma de franja**: agua + arena + pasto en franjas con bordes irregulares.
+- **Nuevo campo `forma` en biomas**: `forma: "franja"`.
 - **Nueva función `pintarCosta()`** en `mundo.js`.
-- **Tile del desierto** cambiado a 🟧 (naranja) para no confundirse con el cactus 🌵.
-- **Fix**: barra de stamina ya no mueve el mapa al aparecer (usa `visibility` en lugar de `display: none`).
-- **Ice** ahora se rompe con pico ⛏️.
+- **Tile del desierto** cambiado a 🟧.
+- **Fix**: barra de stamina ya no mueve el mapa.
+- **Ice** ahora se rompe con pico.
 
 ### 📖 Documentación
 
-- BACKLOG: F16 marcado como implementado, F18 (barco) anotado, F17 (biomas con forma) anotado.
-- README: M19 (costa franja), G18 (forma biomas), R16 (sistema forma).
+- BACKLOG: F16, F17, F18 anotados.
+- README: M19, G18, R16.
 
 ### 🌌 Idea anotada (futuro)
 
-- **Tema "espacio"**: el proyecto completo puede convertirse a un juego espacial (astronauta, planetas, meteoritos, ciencia ficción).
-- Solo requiere cambiar **datos**: íconos en `tiles.js`, nombres y tiles en `biomas.js`, mobs en `mobs.js`.
-- El motor no se toca.
+- **Tema "espacio"**: el proyecto completo puede convertirse a un juego espacial.
 
 ---
 
@@ -544,22 +583,22 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 ### ➕ Nuevo
 
 - **Sistema de rotura** (`js/systems/rotura.js`).
-- Click sostenido sobre un tile rompible (árbol, piedra, etc.).
+- Click sostenido sobre un tile rompible.
 - Barra de stamina arriba del mapa (100% → 0%).
-- Cartel "Necesitás un hacha/pico" al intentar romper sin objeto.
-- Al terminar la rotura: el tile se convierte al `tileBase` del bioma.
+- Cartel "Necesitás un hacha/pico".
+- Al terminar: el tile se convierte al `tileBase` del bioma.
 
 ### 🔧 Cambios
 
-- `js/core/tiles.js`: nuevo mapa `ROTURA_POR_TILE` (qué se rompe con qué).
-- `js/world/biomas.js`: cada bioma ahora tiene un campo `tileBase`.
-- `js/core/config.js`: `DURACION_ROTURA_MS` (3000) y `INTERVALO_ROTURA_MS` (50).
+- `js/core/tiles.js`: `ROTURA_POR_TILE`.
+- `js/world/biomas.js`: `tileBase` por bioma.
+- `js/core/config.js`: `DURACION_ROTURA_MS`, `INTERVALO_ROTURA_MS`.
 - `js/main.js`: `reiniciarMundo()` cancela rotura activa.
 
 ### 🎨 Diseño
 
-- Barra de stamina con `visibility` (no mueve el layout al aparecer).
-- Botón de cartel temporal (aparece y desaparece).
+- Barra de stamina con `visibility`.
+- Botón de cartel temporal.
 
 ### ✅ Condiciones para romper
 
@@ -567,23 +606,14 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 2. Jugador adyacente (4 direcciones).
 3. Objeto correcto equipado.
 
-### ✅ Cancelaciones
-
-- Al soltar el click.
-- Al moverse el jugador.
-- Al cambiar de zona.
-- Al perder el objeto.
-- Al reiniciar el mundo.
-
 ### 📖 Documentación
 
-- README: MARCO 4.5 actualizado con sistema de rotura completo.
-- BACKLOG: F11 marcado como completado.
+- README: MARCO 4.5.
+- BACKLOG: F11 completado.
 
 ### ⏸️ Pendiente futuro
 
-- Objetos de mejor nivel (hacha de diamante, etc.) — ver F12.
-- Más tiles rompibles — agregar a `ROTURA_POR_TILE`.
+- Objetos de mejor nivel — ver F12.
 
 ---
 
@@ -592,29 +622,17 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 ### ➕ Nuevo
 
 - 3 objetos equipables: 🪓 Hacha, ⛏️ Pico, 🕯️ Linterna.
-- Spawn único por mundo (1 de cada uno), determinista por semilla.
-- Recolección al pisarlos (se suman al inventario del HUD).
-- Sistema de forzar los 4 biomas por mundo (permutación por semilla).
-- Nuevas funciones en `items.js`: `obtenerZonaDeEquipable`, `obtenerEquipablesDeChunk`, `obtenerEquipableEn`, `recogerEquipableEn`.
-- Nueva función en `mundo.js`: `permutacionBiomas`.
+- Spawn único por mundo.
+- Recolección al pisarlos.
+- Sistema de forzar los 4 biomas por mundo.
 
-### 🐛 Bug pendiente (bloquea v1.6)
+### 🐛 Bug pendiente
 
 - **Permutación de biomas no funciona correctamente.**
-  - Con semilla `diagnostico`, la zona 2 repite el bioma de la zona 1.
-  - El bioma "costa" no aparece nunca.
-  - Los objetos 🕯️ Linterna no se generan.
-- **Próximo paso:** diagnosticar `permutacionBiomas()` con `console.log`.
-
-### 📖 Documentación
-
-- README: nuevo MARCO 4.5 · Objetos equipables.
-- CHANGELOG: esta entrada.
 
 ### ⚠️ Estado
 
-- **v1.6-alpha no es estable.** El juego funciona, pero los objetos pueden no aparecer correctamente.
-- La próxima sesión debe empezar retomando el bug de `permutacionBiomas`.
+- **v1.6-alpha no es estable.**
 
 ---
 
@@ -622,45 +640,39 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 ### 🐛 Fixes
 
-- **Mobs spawneaban cerca del jugador** → Zona 0 sin mobs (zona segura).
-- **Mobs atravesaban ítems (🍎)** → ahora colisionan con ítems.
-- **Orientación de mobs invertida** → corregido en `moverMob()`.
-- **Jugador aparecía encima de un mob al cruzar zona** → `alejarMobsDelJugador()` con radio de 3 tiles.
-- **El mob solo se alejaba 1 bloque** → ahora empuja repetidamente hasta estar fuera del radio.
-- **Tigre no atacaba al alcanzar al jugador** → `moverMob()` dispara batalla al pisar al jugador.
-- **`...` fantasma en `jugador.js`** → eliminado (bloqueaba toda la carga de scripts).
-- **`}` duplicado en `ia.js`** → eliminado.
+- Mobs spawneaban cerca del jugador → Zona 0 sin mobs.
+- Mobs atravesaban ítems → ahora colisionan.
+- Orientación de mobs invertida → corregido.
+- Jugador aparecía encima de un mob al cruzar zona → `alejarMobsDelJugador()`.
+- Tigre no atacaba → `moverMob()` dispara batalla.
+- Bug de `...` fantasma en `jugador.js`.
+- Bug de `}` duplicado en `ia.js`.
 
 ### 🔧 Nuevo
 
-- `RADIO_SEGURIDAD_SPAWN = 3` en `config.js`.
-- Función `alejarMobsDelJugador()` en `ia.js`.
-- Función `generarDireccionesDeEscape()` en `ia.js`.
+- `RADIO_SEGURIDAD_SPAWN = 3`.
+- `alejarMobsDelJugador()`, `generarDireccionesDeEscape()`.
 
 ### 📖 Documentación
 
 - Separación del historial en `CHANGELOG.md`.
 - Separación del backlog en `BACKLOG.md`.
-- README reducido de ~800 a ~400 líneas.
 
 ---
 
 ## v1.5 · 2026-10-11 (IA de mobs)
 
-- ➕ **IA de mobs en tiempo real** (`js/systems/ia.js`).
-- ➕ Sistema de ticks (400ms base, deambulación cada 2 ticks).
-- ➕ Comportamiento hostil / pacífico / neutral.
-- ➕ Deambulación aleatoria por el chunk.
-- ➕ Persecución (hostil) y huida (pacífico).
-- ➕ Mobs con orientación visual (espejado según dirección).
-- ➕ Colisiones: bloqueantes, mobs, jugador, ítems, barrera de chunk.
-- ➕ Pausa de ticks en overlays (batalla, transición).
-- ➕ Zona 0 sin mobs (zona segura de spawn).
-- 🔧 `config.js` agregado: `TICK_MS`, `TICK_DEAMBULAR_CADA`.
-- 🔧 `mobs.js` actualizado: `actitud.base` = `hostil`/`pacifico`/`neutral`.
-- 🔧 `enemigos.js`: estado mutable de cada mob (posición, IA).
-- 🔧 `jugador.js`, `victoria.js`, `chunks.js`, `main.js`: pausa/reanudación de ticks.
-- 📖 Backlog ampliado: F6 (pathfinding), F7 (deambulación realista), F8 (objetos equipables).
+- ➕ **IA de mobs en tiempo real**.
+- ➕ Sistema de ticks (400ms base).
+- ➕ Comportamiento hostil/pacífico/neutral.
+- ➕ Deambulación, persecución, huida.
+- ➕ Mobs con orientación visual.
+- ➕ Colisiones.
+- ➕ Pausa de ticks en overlays.
+- ➕ Zona 0 sin mobs.
+- 🔧 `config.js`: `TICK_MS`, `TICK_DEAMBULAR_CADA`.
+- 🔧 `mobs.js`: `actitud.base`.
+- 📖 Backlog ampliado: F6, F7, F8.
 
 ---
 
@@ -668,51 +680,48 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 - 🏗️ Reorganización en subcarpetas (`core/`, `world/`, `entities/`, `ui/`, `systems/`).
 - ➕ 5 carpetas nuevas en `js/`.
-- 🔧 15 archivos movidos a sus carpetas correspondientes.
-- 🔧 `<script src>` actualizados con las nuevas rutas.
-- 📌 `systems/` queda preparada para sistemas futuros.
+- 🔧 15 archivos movidos.
 
 ---
 
 ## v1.3 · 2026-10-11 (semillas separadas)
 
 - ➕ Semillas independientes por sistema (F4 implementado).
-- ➕ `SEMILLA_MOBS` = `Date.now()` → los mobs cambian en cada carga de página.
-- ➕ `SEMILLA_OBJETOS` = `SEMILLA` (preparada para separar en el futuro).
-- 🔧 `js/entities/enemigos.js` ahora usa `SEMILLA_MOBS`.
-- 🔧 `js/entities/items.js` ahora usa `SEMILLA_OBJETOS`.
+- ➕ `SEMILLA_MOBS` = `Date.now()`.
+- ➕ `SEMILLA_OBJETOS` = `SEMILLA`.
+- 🔧 `enemigos.js` usa `SEMILLA_MOBS`.
+- 🔧 `items.js` usa `SEMILLA_OBJETOS`.
 
 ---
 
 ## v1.2 · 2026-10-10 (sistema de mobs)
 
-- ➕ Sistema de mobs escalable (`js/entities/mobs.js`) — plantilla + 3 mobs.
-- ➕ Spawn de mobs (`js/entities/enemigos.js`) — por chunk, según bioma.
-- ➕ Batalla simulada al chocar con mob agresivo (overlay + botón).
-- ➕ 3 mobs iniciales: 🐅 Tigre (agresivo), 🐓 Gallina (pasivo), 🐖 Cerdo (neutral).
-- ➕ RNG separado para mobs (`@mobs`).
-- 🔧 Fix de orientación del jugador (invertido).
-- 📖 README reorganizado: 13 marcos + backlog de análisis futuros.
-- 📌 Anotadas 5 ideas futuras: día-noche, movimiento amortiguado, capas, semillas separadas, spawn forzado.
+- ➕ Sistema de mobs escalable.
+- ➕ Spawn de mobs por chunk.
+- ➕ Batalla simulada.
+- ➕ 3 mobs iniciales: 🐅 🐓 🐖.
+- ➕ RNG separado para mobs.
+- 🔧 Fix de orientación del jugador.
+- 📖 README reorganizado: 13 marcos + backlog.
+- 📌 5 ideas futuras anotadas.
 
 ---
 
 ## v1.1 · 2026-10-10 (grilla 50×34)
 
-- 🔧 Grilla cambiada a 50×34 (antes 25×17).
-- 🔧 Tamaño de celda reducido a 16×16 px (antes 30×30).
+- 🔧 Grilla cambiada a 50×34.
+- 🔧 Tamaño de celda reducido a 16×16 px.
 - ➕ Orientación del jugador con `scaleX(-1)`.
-- ➕ Centralización de tamaño: todo derivado de `config.js`.
-- 📌 Anotadas ideas: día-noche, movimiento amortiguado, capas.
-- 📌 Decisión: enemigos 1×1, estructuras grandes (Forma A) → fase futura.
+- ➕ Centralización de tamaño.
+- 📌 Ideas anotadas: día-noche, movimiento amortiguado, capas.
 
 ---
 
 ## v1.0 · 2026-10-09 (GitHub + Pages)
 
-- ☁️ Proyecto subido a GitHub: [elingenierok/Game_RPG](https://github.com/elingenierok/Game_RPG).
-- 🌐 GitHub Pages activado: [elingenierok.github.io/Game_RPG](https://elingenierok.github.io/Game_RPG/).
-- 📖 README con flujo de trabajo Git documentado.
+- ☁️ Proyecto subido a GitHub.
+- 🌐 GitHub Pages activado.
+- 📖 README con flujo de trabajo Git.
 - 🔧 `.gitignore` creado.
 - ➕ Prototipo 1 del módulo de combate.
 
@@ -720,9 +729,9 @@ Migrar de un mundo **1D (corredor E-O)** a un mundo **2D circular (360°)** con 
 
 ## v1.0-beta · 2026-10-09 (arquitectura modular)
 
-- 🏗️ Refactorización completa a múltiples archivos.
+- 🏗️ Refactorización completa.
 - ➕ 13 archivos `.js` + `css/estilo.css`.
-- ➕ Bloques 12-18 movidos a archivos individuales.
+- ➕ Bloques 12-18 movidos.
 
 ---
 

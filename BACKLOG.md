@@ -6,7 +6,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 
 **Contenido actual:**
 
-- F1 · Ciclo día-noche
+- F1 · Ciclo día-noche (con sistema de luz)
 - F2 · Movimiento amortiguado (Modelo 2 · Pokémon) · ✅ IMPLEMENTADO en v2.0
 - F3 · Sistema de capas del mundo
 - F4 · Semillas independientes por sistema · ✅ IMPLEMENTADO en v1.3
@@ -17,7 +17,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F9 · Sistema de mouse / interacción con click · 🧪 PARCIAL
 - F10 · Bioma "playa" como bioma separado
 - F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
-- F12 · Objetos equipables de mejor nivel
+- F12 · Objetos equipables de mejor nivel (+ linterna por niveles)
 - F13 · Drops alternativos de objetos
 - F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 - F15 · Biomas forzados + chunks de transición
@@ -31,24 +31,81 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F23 · Transformaciones visuales de tiles y mobs
 - F24 · Bugs conocidos de v2.4-alpha · ✅ TODOS RESUELTOS en v2.4.1
 - F25 · Sistema de efectos visuales genéricos · 🧪 PARCIAL en v2.4.2-alpha
+- F26 · Sistema de mobs especiales (categoría 2)
+- F27 · Sistema de mobs bosses (categoría 3)
 
 ---
 
-## 🌗 F1 · Ciclo día-noche
+## 🌗 F1 · Ciclo día-noche (con sistema de luz)
 
-**Idea:** visión variable según momento del día.
+**Idea:** el mundo pasa por fases de día, noche y transiciones. De noche la visibilidad se reduce drásticamente y aparecen mobs peligrosos. Solo los tiles que emiten luz y un radio alrededor del jugador quedan visibles.
 
-- **Día:** todas las celdas visibles.
-- **Noche:** visión limitada a ~5 celdas de radio, salvo iluminación artificial (farolas, fogatas, antorchas).
-- **Implementación:** celdas lejanas "apagadas" (opacidad reducida o no renderizadas).
+### Fases del ciclo
 
-**Preguntas pendientes:**
+| Fase | Duración (test) | Comportamiento |
+|------|:---------------:|----------------|
+| **Día** | 20s | Todo visible. Mobs normales activos. |
+| **Transición día→noche** | 5s | Oscurecimiento gradual. Aviso: *"Se hace de noche. Es peligroso."* |
+| **Noche** | 15s | Oscuridad casi total. Solo luces + radio del jugador. Mobs nocturnos/especiales. |
+| **Transición noche→día** | 5s | Aclarado gradual. |
 
-- ¿Duración del ciclo? ¿Turnos? ¿Tiempo real? ¿Fijo?
-- ¿Afecta gameplay (enemigos más agresivos de noche, eventos)?
-- Fuentes de luz: ¿ítems portables? ¿estructuras fijas? ¿ambas?
+**Regla de tiempos:** `X (día) > Z (noche) > Y (transición)`. En test: `20 > 15 > 5`. En versión final: minutos en lugar de segundos.
 
-**Estado:** ⏸️ Anotado.
+**Pausable:** el ciclo se detiene cuando hay batalla de boss, menú abierto, o cualquier estado que pause el juego (`estado.pausado`).
+
+### Visibilidad
+
+**De día:**
+- Todos los tiles visibles con sus colores normales.
+
+**De noche:**
+- **Oscuridad global:** todos los tiles se oscurecen (bajan saturación/brillo hasta casi negro).
+- **Excepciones:**
+  1. **Tiles que emiten luz** (fogatas, faroles, máquinas con luces): quedan visibles con su color normal.
+  2. **Radio de visión del jugador:** 5 celdas alrededor del jugador quedan visibles (aunque no haya luz). Centro en el jugador.
+
+**Durante la transición:** el oscurecimiento es **gradual** (interpolar entre 1.0 y 0.0 de brillo).
+
+### Avisos
+
+- Al entrar a la noche: cartel *"🌙 Se hace de noche. Es peligroso."*
+- Al entrar al día: cartel *"☀️ Amanece."* (opcional, para dar feedback)
+
+### Linterna (equipable)
+
+- La 🕯️ Linterna ilumina un radio alrededor del jugador mientras esté equipada.
+- **Radio según nivel** (ver F12):
+  - Vela: 6×6
+  - Linterna de mano: 10×10
+  - Linterna militar: 13×13
+- Se combina con el radio de visión base del jugador (5×5): el mayor gana.
+
+### Mobs de noche
+
+- **Mobs normales (categoría 1):** desaparecen al entrar la noche. Vuelven al amanecer.
+- **Mobs especiales nocturnos (categoría 2):** aparecen solo de noche. Más rápidos, más peligrosos, con mayor daño y drops únicos. Ver F26.
+- **Bosses (categoría 3):** independiente del ciclo. Ver F27.
+
+### Implementación técnica (futura)
+
+- Nueva variable global `estado.ciclo = { fase, tiempoRestante }`.
+- En `render.js`: aplicar `filter: brightness()` según fase + radio de visión + tiles de luz.
+- Tiles nuevos: propiedad `emiteLuz: true` y radio.
+- Nueva `js/systems/ciclo.js` (o dentro de `render.js`).
+- Pausa: `estado.pausado` detiene el avance del ciclo.
+
+### Preguntas pendientes
+
+- ¿Los efectos visuales (vibrar, glow) se ven de noche? ¿O quedan ocultos por la oscuridad?
+- ¿Los mobs especiales nocturnos reaparecen cada noche o solo aparecen una vez?
+- ¿El ciclo afecta el gameplay (regeneración de mobs normales, eventos)?
+- ¿Los tiles de luz consumen algo o son estáticos?
+
+### Herramientas de experimentación
+
+Hoy no hay prueba. Cuando se implemente, se puede empezar con un HTML de prueba (`pruebas/ciclo.html`) antes de meter al motor.
+
+**Estado:** ⏸️ Anotado. Depende de HP + daño para que "peligroso" tenga sentido.
 
 ---
 
@@ -81,13 +138,15 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 | 1 | Terreno base (pasto, agua, arena, árboles) |
 | 2 | Objetos estáticos (estructuras, cofres, letreros) |
 | 3 | Entidades móviles (jugador, mobs, NPCs) |
-| 4 | Iluminación / visión |
+| 4 | Iluminación / visión (vinculada a F1) |
 | 5 | Clima / ambiental (lluvia, nieve, niebla) |
 | 6 | Efectos especiales (visión infrarroja, detección mágica) |
 
 **Ventajas:** encender/apagar capas sin reescribir código. Cada capa tiene su lógica propia.
 
 **Preguntas pendientes:** ¿cómo se renderiza? ¿canvas múltiple? ¿puede una capa leer otra? ¿impacto en performance?
+
+**Relación con F1:** el sistema de iluminación (día-noche) podría ir en la capa 4.
 
 **Estado:** ⏸️ Anotado. Pendiente para después de HP + daño.
 
@@ -120,6 +179,8 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 **Campos ya definidos en la plantilla:** `spawn.forzarEnEstructura`, `spawn.tipoAparicion`, `spawn.porMapa`.
 
 **Falta:** lógica de detección de estructura, control de "veces que puede aparecer", condiciones especiales.
+
+**Relación con F26 y F27:** esta es la base técnica para spawnear mobs especiales y bosses.
 
 **Estado:** ⏸️ Anotado.
 
@@ -215,6 +276,8 @@ mundo = función(semilla, chunk) + deltas
 
 **Pendiente:** interacción con NPCs, cofres, cuevas.
 
+**Relación con F26:** los mobs especiales con quests requieren interacción por click (o algún mecanismo similar).
+
 ---
 
 ## 🏖️ F10 · Bioma "playa" como bioma separado
@@ -240,19 +303,57 @@ mundo = función(semilla, chunk) + deltas
 
 ---
 
-## ⚙️ F12 · Sistema de objetos equipables de mejor nivel
+## ⚙️ F12 · Objetos equipables de mejor nivel (+ linterna por niveles)
 
-**Idea:** a futuro, poder tener versiones de mejor nivel de cada objeto.
+**Idea:** cada equipable tiene versiones de mejor nivel. Reducen tiempos de rotura, aumentan radio de luz, etc.
 
-**Ejemplos:**
+### Hachas / Picos
 
-- Hacha de madera (5 seg), hacha de hierro (3 seg), hacha de diamante (1 seg).
-- Pico similar.
-- Linterna con más radio de luz.
+| Objeto | Nivel | Velocidad (multiplicador) | Duración efectiva |
+|--------|:-----:|:-------------------------:|:-----------------:|
+| Hacha de madera | 1 | 1.0 | 3.0s (base) |
+| Hacha de hierro | 2 | 0.6 | 1.8s |
+| Hacha de diamante | 3 | 0.3 | 0.9s |
+| Pico de madera | 1 | 1.0 | 3.0s (base) |
+| Pico de hierro | 2 | 0.6 | 1.8s |
+| Pico de diamante | 3 | 0.3 | 0.9s |
 
-**Sistema propuesto:** cada objeto tiene un `nivel` y `velocidad` que modifican el tiempo de rotura.
+**Campo nuevo en `EQUIPABLES` de `items.js`:**
+```js
+{ tipo: HACHA_HIERRO, bioma: "ruina", porChunk: false, nivel: 2, velocidad: 0.6 }
+```
 
-**Estado:** ⏸️ Anotado. Futuro lejano.
+`rotura.js` multiplica `duracionMs * velocidad`.
+
+### Linteras (con radio de luz)
+
+**Vinculado a F1 (ciclo día-noche).** La linterna ilumina un radio mientras está equipada:
+
+| Linterna | Nivel | Radio de luz | Cuándo aparece |
+|----------|:-----:|:------------:|----------------|
+| Vela | 1 | 6×6 | Spawn inicial (base) |
+| Linterna de mano | 2 | 10×10 | Chunk de costa (o drop) |
+| Linterna militar | 3 | 13×13 | Drop de mob especial |
+| Farol mágico | 4 | 16×16 | Drop de boss |
+
+**Se combina con el radio de visión base del jugador (5×5):** el mayor gana.
+
+### Dónde aparecen los mejorados
+
+| Modo | Cómo |
+|------|------|
+| Spawn natural | `porChunk: true` en biomas específicos (ruina, castillo) |
+| Único por mundo | `porChunk: false` (determinista por semilla) |
+| Drop de mob | Campo `dropDe: "id_mob"` (vinculado a F26 y F27) |
+
+### Pendiente
+
+- Definir qué nivel aparece dónde.
+- Definir si los mejorados son recogibles al pisar o solo por drop.
+- Balance: ¿cuánto cuesta cada nivel? ¿qué mobs lo dropean?
+- Verificar que `rotura.js` lea `velocidad` sin romper la compatibilidad actual.
+
+**Estado:** ⏸️ Anotado. Futuro medio. Se empieza por `velocidad` (simple) y después se agrega la linterna con radio.
 
 ---
 
@@ -266,6 +367,8 @@ mundo = función(semilla, chunk) + deltas
 - Al romper vehículos/piedras específicas.
 - Al abrir cofres.
 - Al completar misiones.
+
+**Relación con F26 y F27:** los drops únicos de mobs especiales y bosses se implementan en esta fase.
 
 **Estado:** ⏸️ Anotado. Futuro medio.
 
@@ -314,6 +417,8 @@ mundo = función(semilla, chunk) + deltas
 - ⚓ Puerto — reemplaza costa, requiere oceano cerca.
 - 🏝️ Isla — aparece dentro de océano.
 - 🏰 Castillo — reemplaza ruina.
+
+**Relación con F26 y F27:** los mobs especiales y bosses suelen spawnear en estructuras (castillo, cueva, ruina). F15 es requisito para eso.
 
 **Estado:** ⏸️ Planificado. Se implementará después de HP + daño.
 
@@ -545,7 +650,7 @@ mundo = función(semilla, chunk) + deltas
 **Fronteras compartidas en 2D:**
 
 - Los cortes entre chunks se veían (cambio brusco de tiles).
-- **Nota (v2.4-alpha):** con biomas por celda, el problema **desapareció**. Cada celda consulta su bioma por ruido, no por chunk.
+- **Nota (v2.4-alpha):** con biomas por celda, el problema **desapareció**.
 
 **Otras mejoras posibles:**
 
@@ -571,6 +676,8 @@ mundo = función(semilla, chunk) + deltas
 - `porChunk: true` → todos los chunks del bioma (modo test actual).
 - `porChunk: false` → un solo chunk del bioma, elegido por semilla (modo producción).
 
+**Relación con F12:** al agregar niveles, hay que decidir qué nivel usa `porChunk: true` y cuál `false`.
+
 **Falta:**
 
 - Decidir qué objetos van en cada modo.
@@ -583,95 +690,25 @@ mundo = función(semilla, chunk) + deltas
 
 ## 🎨 F23 · Transformaciones visuales de tiles y mobs
 
-**Idea:** aprovechar el hecho de que los tiles y mobs son **emojis** (glifos de fuente) para aplicarles transformaciones CSS sin cambiar el emoji en sí. Permite dar vida al mundo, marcar estados, orientar objetos y diferenciar entidades con muy poco código.
-
-**Regla clave:** los emojis son caracteres, no imágenes. Algunas transformaciones son triviales (flip, rotación, escala, opacidad) y otras son imposibles (color interno, transparencia parcial).
+**Idea:** aprovechar el hecho de que los tiles y mobs son **emojis** (glifos de fuente) para aplicarles transformaciones CSS sin cambiar el emoji en sí.
 
 **Nota:** gran parte de F23 fue implementada en v2.4.2-alpha como **F25 (sistema de efectos visuales)**. La rama de "sprites reales" sigue pendiente (ver F20).
 
-### 1 · Transformaciones geométricas (CSS `transform`)
+### Lo que sigue pendiente
 
-| Transformación | CSS | Utilidad |
-|----------------|-----|----------|
-| Flip horizontal | `scaleX(-1)` | Jugador, mobs (ya implementado) |
-| Flip vertical | `scaleY(-1)` | Fuego 🔥, flechas ↑↓, hojas 🍃 |
-| Rotación arbitraria | `rotate(45deg)` | Flechas a NE, NW, SE, SW |
-| Rotación animada | `rotate()` + `transition` | Reloj, brújula, engranaje |
-| Escala | `scale(2)` | Mobs grandes, objetos destacados |
-| Espejo diagonal | `scale(-1, 1)` + `rotate()` | Efectos ópticos |
-
-**Ejemplo:** una flecha `➡️` puede apuntar a las 8 direcciones combinando `scaleX(-1)` + `rotate(Ndeg)`.
-
-### 2 · Tamaño en la grilla (layout, no transform)
-
-| Cambio | Cómo | Utilidad |
-|--------|------|----------|
-| 1×1 normal | Actual | Mobs comunes |
-| 2×2 (mob grande) | Ocupa 4 celdas, emoji con `font-size` doble | Jefe, tigre alfa, estructura |
-| 3×3 (estructura) | Ídem | Árbol grande, roca, altar |
-| 1×2 (alto) | Una columna, dos filas | Puerta, antorcha alta |
-| 2×1 (ancho) | Dos columnas, una fila | Tronco caído, valla |
-
-**Nota:** requiere tocar el sistema de colisiones y el render. Cambio medio.
-
-### 3 · Color / apariencia
-
-| Cosa | ¿Se puede? | Cómo |
-|------|:----------:|------|
-| Cambiar el color del emoji en sí | ❌ No | El emoji trae su color incorporado |
-| Filtro de color | ✅ Parcial | `filter: hue-rotate(90deg)` (varía por SO) |
-| Opacidad | ✅ Sí | `opacity: 0.5` |
-| Brillo / saturación | ✅ Sí | `filter: brightness(1.5)` |
-| Color de fondo de la celda | ✅ Sí | Ya implementado (color por bioma) |
-| Halo / glow | ✅ Sí | `text-shadow: 0 0 6px cyan` |
-| Borde de color | ✅ Sí | `border: 1px solid red` en la celda |
-
-### 4 · Efectos visuales (CSS animations)
-
-✅ Implementado en v2.4.2-alpha (ver F25):
-
-- Glow (halo) permanente.
-- Parpadeo.
-- Vibración.
-- Latido (pulse).
-- Destello rojo.
-
-### 5 · Animación de tiles (secuencia)
-
-| Técnica | Cómo | Ejemplo |
-|---------|------|---------|
-| Flip alternado | `scaleX(1)` ↔ `scaleX(-1)` | Fuego, hoja |
-| Secuencia de emojis | Ciclar array | 🌍🌎🌏, 🌑🌒🌓... |
-| Rotación alternada | `rotate(0)` ↔ `rotate(180deg)` | ⛓️, reloj |
-| Cambio de opacidad | `opacity: 1` ↔ `opacity: 0.5` | Antorcha, faro |
-| Cambio de escala | `scale(1)` ↔ `scale(1.2)` | Latido, respiración |
-
-**Probado en `pruebas/catalogo.html`** y `auditor/laboratorio-v1.html`: fichas de ejemplo con cada efecto.
-
-### 6 · Cambios de "estado" (lógica, no CSS)
-
-| Cambio | Ejemplo |
-|--------|---------|
-| Emoji por estado | Jugador: 🧍 quieto, 🏃 corriendo, 🚣 en barco |
-| Emoji por orientación | Flecha: ➡️⬅️⬆️⬇️ |
-| Emoji por vida | ❤️❤️❤️ → ❤️❤️🖤 → ❤️🖤🖤 |
-| Emoji por bioma | 🌳 en bosque, 🌵 en desierto |
-| Emoji por hora | ☀️ de día, 🌙 de noche |
+- **Mobs 2×2** (sistema de colisiones multi-celda). Cambio medio-alto.
+- **Secuencias de emojis** (ciclar emojis como animación). Ejemplo: 🌍🌎🌏 girando, o 🌑🌒🌓🌔🌕🌖🌗🌘 (fases lunares).
+- **Rotación animada continua** (portal, engranaje).
+- **Flip vertical** para fuego, antorchas, flechas ↑↓.
 
 ### Herramientas de experimentación
 
 | Archivo | Función |
 |---------|---------|
-| `pruebas/catalogo.html` | Catálogo de efectos con ejemplos prácticos. Sirve para elegir el efecto adecuado. |
-| `auditor/laboratorio-v1.html` | Laboratorio libre para probar cualquier emoji con cualquier efecto (vibrar, glow, pulse, etc.). |
+| `pruebas/catalogo.html` | Catálogo de efectos con ejemplos prácticos. |
+| `auditor/laboratorio-v1.html` | Laboratorio libre para probar cualquier emoji con cualquier efecto. |
 
-### Lo que NO se puede
-
-- ❌ Cambiar el color interno de un emoji.
-- ❌ Hacer transparente una parte del emoji (requiere PNG).
-- ❌ Usar un emoji "con fondo transparente".
-
-**Estado:** 🧪 Parcialmente implementado en v2.4.2-alpha (los efectos visuales básicos). La parte de "secuencias de emojis" y "mobs 2×2" sigue pendiente.
+**Estado:** 🧪 Parcialmente implementado en v2.4.2-alpha (efectos básicos). Lo que queda (mobs 2×2, secuencias) sigue pendiente.
 
 ---
 
@@ -797,6 +834,204 @@ Bugs detectados al implementar biomas por celda (v2.4-alpha). Todos fueron arreg
 `js/systems/cheats.js` sigue siendo **temporal**. Borrar antes de producción.
 
 **Estado:** 🧪 Funcional. Solo la rotura lo usa hoy. Los demás hooks se agregarán a medida que se implementen esas features (HP, combate, recoger ítems).
+
+---
+
+## 🌟 F26 · Sistema de mobs especiales (categoría 2)
+
+**Idea:** separar los mobs en 3 categorías. Esta es la **categoría 2**: mobs especiales que dropean objetos raros, son parte de misiones, o tienen condiciones especiales de aparición.
+
+### Categorías de mobs
+
+| Categoría | Nombre | Spawn | Drops | Misiones |
+|:---------:|--------|-------|-------|:--------:|
+| 1 | Normales | Por chunk + bioma | Comunes (🍎, pluma, carne) | No |
+| **2** | **Especiales** | **Único por mundo, por estructura, o condicional** | **Únicos + comunes** | **Sí** |
+| 3 | Bosses | Único por mundo, en estructura | Legendarios | Sí (implícito) |
+
+### Estructura de datos propuesta
+
+Array nuevo `MOBS_ESPECIALES` (en archivo separado, ej: `js/entities/mobs-especiales.js`):
+
+```js
+{
+  id: "lobo_plateado",
+  categoria: "especial",
+  nombre: "Lobo plateado",
+  emoji: "🐺",
+  hp: 30, ataque: 8, defensa: 3,
+  
+  spawn: {
+    porMapa: 1,                    // 1 por mundo
+    biomas: { bosque: true },
+    forzarEnEstructura: "cueva",   // solo en cuevas (depende de F15)
+    nivelMinimoJugador: 3,         // solo si ya exploró
+    condicion: "noche",            // solo de noche (depende de F1)
+  },
+  
+  mision: {                        // ← sistema de misiones (futuro)
+    questId: "matar_lobo_5",
+    objetivo: "matar",
+    cantidad: 5,
+    recompensa: { item: "piel_plateada", cantidad: 5, xp: 100 },
+  },
+  
+  dropsUnicos: [                   // ← drops garantizados
+    { item: "colmillo_plateado", probabilidad: 1.0, cantidad: 1 },
+  ],
+  
+  loot: { dropea: true, probabilidad: 0.8, objetos: [...], xp: 50 },
+}
+```
+
+### Campos nuevos explicados
+
+| Campo | Qué permite |
+|-------|-------------|
+| `categoria` | Distinguir especiales de normales y bosses |
+| `spawn.condicion` | Spawnear solo de noche, solo de día, solo si llueve, etc. |
+| `spawn.forzarEnEstructura` | Solo aparece en cuevas/castillos/ruinas (ya previsto en F5) |
+| `mision.questId` | Atar el mob a una quest |
+| `mision.objetivo` | "matar", "recoger", "escoltar", etc. |
+| `mision.cantidad` | Cuántos matar/recoger |
+| `mision.recompensa` | Qué se obtiene al completar |
+| `dropsUnicos` | Drops garantizados (no probabilísticos) |
+
+### Requisitos técnicos
+
+| Requisito | Estado | Depende de |
+|-----------|:------:|------------|
+| Spawn condicional (noche, nivel) | ⏸️ | F1 (día-noche) |
+| Spawn por estructura | ⏸️ | F15 (biomas forzados) |
+| Drops únicos garantizados | ⏸️ | Extender `loot` en `enemigos.js` |
+| Sistema de misiones | ⏸️ | Archivo nuevo `js/systems/misiones.js` |
+| Persistencia de progreso | ⏸️ | F8 fase 3 (localStorage) |
+
+### Sistema de misiones (futuro)
+
+Necesita un archivo nuevo `js/systems/misiones.js` que rastree:
+
+- Quest activas (`estado.misiones = { matar_lobo_5: { progreso: 0, meta: 5 } }`).
+- Cómo progresa cada quest (matar, recoger, etc.).
+- Recompensas al completar.
+- UI para mostrar quests activas (HUD).
+
+### Ejemplos de mobs especiales (ideas)
+
+| Mob | Emoji | Condición | Drop único | Misión |
+|-----|:-----:|-----------|------------|--------|
+| Lobo plateado | 🐺 | Noche, bosque | Colmillo plateado | Matar 5 |
+| Fantasma | 👻 | Noche, ruina | Esencia espectral | Matar 3 |
+| Guardián de cueva | 🦇 | Cueva | Llave de cueva | Escoltar |
+| Sapo dorado | 🐸 | Día, río | Moneda de oro | Recoger 10 |
+
+**Estado:** ⏸️ Anotado. Depende de F1, F15, y sistema de misiones.
+
+---
+
+## 👑 F27 · Sistema de mobs bosses (categoría 3)
+
+**Idea:** mobs muy poderosos, únicos por mundo, con **pelea por fases**, efectos al jugador, inmunidades, y drops legendarios.
+
+### Estructura de datos propuesta
+
+Array nuevo `MOBS_BOSS` (en `js/entities/mobs-boss.js`):
+
+```js
+{
+  id: "rey_oscuro",
+  categoria: "boss",
+  nombre: "Rey Oscuro",
+  emoji: "👹",
+  hp: 200, ataque: 20, defensa: 10,
+  
+  spawn: {
+    porMapa: 1,
+    forzarEnEstructura: "castillo",
+    nivelMinimoJugador: 10,
+  },
+  
+  fases: [                         // ← pelea por fases según HP restante
+    { 
+      hpMin: 150,                  // HP mínimo para entrar a esta fase
+      ataques: ["basico", "embestida"],
+      efectosAlJugador: ["lentitud"],
+    },
+    { 
+      hpMin: 80, 
+      ataques: ["embestida", "fuego"],
+      efectosAlJugador: ["quemadura"],
+      invocaEsbirros: ["esqueleto"],   // ← invoca mobs menores
+    },
+    { 
+      hpMin: 0, 
+      ataques: ["fuego", "rayo"],
+      efectosAlJugador: ["veneno", "silencio"],
+      furia: true,                     // ← modo furia: más rápido y fuerte
+    },
+  ],
+  
+  inmunidades: ["veneno"],        // ← no le afecta cierto tipo de daño
+  resistencias: { fuego: 0.5 },   // ← recibe 50% del daño de fuego
+  
+  loot: {
+    dropea: true,
+    probabilidad: 1.0,
+    objetos: [
+      { item: "espada_legendaria", probabilidad: 1.0 },
+      { item: "armadura_rey", probabilidad: 0.5 },
+    ],
+    xp: 500,
+  },
+}
+```
+
+### Campos nuevos explicados
+
+| Campo | Qué permite |
+|-------|-------------|
+| `fases` | Pelea por etapas según HP restante |
+| `fases[].hpMin` | HP mínimo del jugador para entrar a esa fase |
+| `fases[].ataques` | Ataques disponibles en esa fase |
+| `fases[].efectosAlJugador` | Efectos negativos (lentitud, veneno, quemadura, silencio) |
+| `fases[].invocaEsbirros` | Invocar mobs menores durante la pelea |
+| `fases[].furia` | Enrage en última fase (más rápido, más daño) |
+| `inmunidades` | No recibe cierto tipo de daño |
+| `resistencias` | Recibe menos daño de ciertos tipos |
+
+### Requisitos técnicos
+
+| Requisito | Estado | Depende de |
+|-----------|:------:|------------|
+| Combate real (HP, daño) | ⏸️ | Tarea urgente del roadmap |
+| Efectos negativos al jugador | ⏸️ | Sistema de estados (nuevo) |
+| Fases según HP | ⏸️ | Lógica en combate |
+| Invocación de esbirros | ⏸️ | Spawn dinámico en combate |
+| Inmunidades / resistencias | ⏸️ | Sistema de tipos de daño |
+| Spawn por estructura | ⏸️ | F15 (biomas forzados) |
+
+### Sistema de combate (futuro)
+
+Requiere `js/systems/combate.js` con:
+
+- HP del jugador y del mob.
+- Turnos de ataque.
+- Efectos de estado (lentitud, veneno, quemadura, silencio).
+- Tipos de daño (fuego, veneno, físico, mágico).
+- Lógica de fases.
+
+**Nota:** el módulo de combate por reflejos (MARCO 11 del README) es **independiente** de este sistema. El combate por reflejos es la mecánica de timing. Este sistema de bosses es la lógica de stats + fases + estados.
+
+### Ejemplos de bosses (ideas)
+
+| Boss | Emoji | Estructura | Fases | Drops |
+|------|:-----:|------------|:-----:|-------|
+| Rey Oscuro | 👹 | Castillo | 3 | Espada legendaria |
+| Dragón Anciano | 🐉 | Montaña | 3 | Escama de dragón |
+| Dios del Mar | 🌊 | Océano profundo | 2 | Tridente |
+| Esqueleto Gigante | 💀 | Ruina | 4 | Hueso eterno |
+
+**Estado:** ⏸️ Anotado. Depende de combate real + F15 + sistema de estados. Fase tardía.
 
 ---
 
