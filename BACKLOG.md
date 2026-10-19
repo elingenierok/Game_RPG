@@ -30,6 +30,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F22 · Limitar generación de equipables
 - F23 · Transformaciones visuales de tiles y mobs
 - F24 · Bugs conocidos de v2.4-alpha · ✅ TODOS RESUELTOS en v2.4.1
+- F25 · Sistema de efectos visuales genéricos · 🧪 PARCIAL en v2.4.2-alpha
 
 ---
 
@@ -586,7 +587,7 @@ mundo = función(semilla, chunk) + deltas
 
 **Regla clave:** los emojis son caracteres, no imágenes. Algunas transformaciones son triviales (flip, rotación, escala, opacidad) y otras son imposibles (color interno, transparencia parcial).
 
----
+**Nota:** gran parte de F23 fue implementada en v2.4.2-alpha como **F25 (sistema de efectos visuales)**. La rama de "sprites reales" sigue pendiente (ver F20).
 
 ### 1 · Transformaciones geométricas (CSS `transform`)
 
@@ -601,8 +602,6 @@ mundo = función(semilla, chunk) + deltas
 
 **Ejemplo:** una flecha `➡️` puede apuntar a las 8 direcciones combinando `scaleX(-1)` + `rotate(Ndeg)`.
 
----
-
 ### 2 · Tamaño en la grilla (layout, no transform)
 
 | Cambio | Cómo | Utilidad |
@@ -614,8 +613,6 @@ mundo = función(semilla, chunk) + deltas
 | 2×1 (ancho) | Dos columnas, una fila | Tronco caído, valla |
 
 **Nota:** requiere tocar el sistema de colisiones y el render. Cambio medio.
-
----
 
 ### 3 · Color / apariencia
 
@@ -629,22 +626,15 @@ mundo = función(semilla, chunk) + deltas
 | Halo / glow | ✅ Sí | `text-shadow: 0 0 6px cyan` |
 | Borde de color | ✅ Sí | `border: 1px solid red` en la celda |
 
-**Truco:** un 👽 con `filter: hue-rotate(120deg)` se ve verde. Útil para "variantes" del mismo mob.
-
----
-
 ### 4 · Efectos visuales (CSS animations)
 
-| Efecto | CSS | Utilidad |
-|--------|-----|----------|
-| Glow (halo) | `text-shadow: 0 0 8px cyan` | Ya usado en la identidad visual |
-| Sombra proyectada | `filter: drop-shadow(...)` | Profundidad |
-| Parpadeo | `animation: parpadeo` | Objeto brillante, daño recibido |
-| Vibración | `animation: shake` | Objeto "vivo", combate |
-| Latido (pulse) | `animation: pulse` | Corazón, recuperación, orbe |
-| Rotación continua | `animation: spin` | Portal, energía, engranaje |
+✅ Implementado en v2.4.2-alpha (ver F25):
 
----
+- Glow (halo) permanente.
+- Parpadeo.
+- Vibración.
+- Latido (pulse).
+- Destello rojo.
 
 ### 5 · Animación de tiles (secuencia)
 
@@ -655,11 +645,8 @@ mundo = función(semilla, chunk) + deltas
 | Rotación alternada | `rotate(0)` ↔ `rotate(180deg)` | ⛓️, reloj |
 | Cambio de opacidad | `opacity: 1` ↔ `opacity: 0.5` | Antorcha, faro |
 | Cambio de escala | `scale(1)` ↔ `scale(1.2)` | Latido, respiración |
-| Filtro de color | `hue-rotate(0)` ↔ `hue-rotate(180deg)` | Cristales, energía |
 
-**Ya probado en `pruebas/animaciones.html`:** el fuego 🔥 con flip horizontal y las fases lunares 🌑🌒🌓🌔🌕🌖🌗🌘 funcionan muy bien.
-
----
+**Probado en `pruebas/catalogo.html`** y `auditor/laboratorio-v1.html`: fichas de ejemplo con cada efecto.
 
 ### 6 · Cambios de "estado" (lógica, no CSS)
 
@@ -671,29 +658,12 @@ mundo = función(semilla, chunk) + deltas
 | Emoji por bioma | 🌳 en bosque, 🌵 en desierto |
 | Emoji por hora | ☀️ de día, 🌙 de noche |
 
----
+### Herramientas de experimentación
 
-### Prioridades sugeridas
-
-**Fácil (agregar ya):**
-
-- Flip vertical para fuego / antorchas.
-- Glow (`text-shadow`) para ítems destacados (ej: la llave).
-- Pulse para orbes / recuperación.
-- Rotación estática para flechas direccionales.
-
-**Medio (requiere planificación):**
-
-- Rotación animada continua (portal, engranaje).
-- Filtros de color (`hue-rotate`) para variantes.
-- Cambio de emoji por estado (tigre herido vs sano).
-
-**Complejo (fases posteriores):**
-
-- Mobs 2×2 (sistema de colisiones multi-celda).
-- Sprites reales (PNG) — ver F20.
-
----
+| Archivo | Función |
+|---------|---------|
+| `pruebas/catalogo.html` | Catálogo de efectos con ejemplos prácticos. Sirve para elegir el efecto adecuado. |
+| `auditor/laboratorio-v1.html` | Laboratorio libre para probar cualquier emoji con cualquier efecto (vibrar, glow, pulse, etc.). |
 
 ### Lo que NO se puede
 
@@ -701,24 +671,7 @@ mundo = función(semilla, chunk) + deltas
 - ❌ Hacer transparente una parte del emoji (requiere PNG).
 - ❌ Usar un emoji "con fondo transparente".
 
----
-
-### Ideas concretas para el tema espacio
-
-| Cosa | Transformación | Resultado |
-|------|----------------|-----------|
-| 🔥 (llama) | flip vertical a 300ms | Llama viva |
-| 🌪️ (tornado) | rotación alternada | Tornado activo |
-| 🛸 (nave) | pulse lento | Nave flotando |
-| 🔮 (orbe) | pulse + hue-rotate | Orbe mágico |
-| ⚡ (sable) | parpadeo | Energía activa |
-| 🗼 (torre) | pulse de brillo | Antena activa |
-| 🪐 (anillo) | rotación estática | Anillo inclinado |
-| ☄️ (meteorito) | rotación dinámica | Meteorito cayendo |
-
----
-
-**Estado:** ⏸️ Anotado. Se puede implementar por partes cuando haya tiempo.
+**Estado:** 🧪 Parcialmente implementado en v2.4.2-alpha (los efectos visuales básicos). La parte de "secuencias de emojis" y "mobs 2×2" sigue pendiente.
 
 ---
 
@@ -770,6 +723,80 @@ Bugs detectados al implementar biomas por celda (v2.4-alpha). Todos fueron arreg
 
 - **`js/main.js`:** se agregó `iniciarTicks()` después de `inicializarJugador()`. Los ticks de IA nunca se estaban arrancando.
 - **`js/systems/cheats.js` (temporal):** botón 🎁 arriba a la derecha para cargar/limpiar equipables en test. **Borrar antes de producción.**
+
+---
+
+## ✨ F25 · Sistema de efectos visuales genéricos · 🧪 PARCIAL en v2.4.2-alpha
+
+**Idea:** unificar todos los efectos visuales en un sistema **desacoplado de las entidades**. Cualquier tile, mob, ítem o entidad puede "recibir" un efecto (vibrar, parpadear, glow, pulse, etc.) sin código específico por entidad.
+
+**Motivación:** antes de v2.4.2-alpha, agregar un efecto a una nueva entidad implicaba tocar `render.js`. Con muchos mobs, tiles y objetos interactivos futuros, eso no escala.
+
+### Estado actual (v2.4.2-alpha)
+
+**`js/systems/efectos.js` (NUEVO)**
+
+- `aplicarEfecto(wx, wy, clase, duracionMs?)` — temporal o permanente.
+- `quitarEfecto(wx, wy, clase)` — quitar uno puntual.
+- `quitarTodosLosEfectos(wx, wy)` — quitar todos de una celda.
+- `obtenerEfectosDe(wx, wy)` — devuelve las clases activas.
+- `limpiarEfectos()` — limpiar todo (al reiniciar mundo).
+- Los efectos viven en `Map<"wx,wy", [{ clase, hasta }]>`, indexados por coordenadas del mundo.
+
+**CSS (`css/estilo.css`)**
+
+- Keyframes: `vibrar-random` (orgánica, no solo izq-der), `parpadeo`, `destello-rojo`, `pulse`.
+- Clases: `.efecto-ataque`, `.efecto-golpe`, `.efecto-golpe-loop`, `.efecto-recoger`, `.efecto-danio`, `.efecto-glow`, `.efecto-pulse`.
+
+**`js/ui/render.js`**
+
+- `actualizarEfectosEnGrid()` se ejecuta **cada frame** (no solo cuando cambia la esquina).
+- Solo actualiza `className` si el valor cambió. Así las animaciones CSS no se reinician.
+- Se mantiene `dibujarCeldaEnGrid`, `llenarGrid`, HUD y orientación del jugador.
+
+**`js/systems/rotura.js`**
+
+- Al iniciar la rotura: `aplicarEfecto(wx, wy, "efecto-golpe-loop")` (sin duración, bucle infinito).
+- Al terminar la barra o al cancelar: `quitarEfecto(...)` exactamente en el mismo instante en que se cambia el tile.
+- La animación, la barra y el cambio de tile terminan **exactamente juntos**.
+
+**`index.html`**
+
+- Agregado `<script src="js/systems/efectos.js"></script>` justo antes de `render.js`.
+
+### Efectos disponibles
+
+| Clase | Efecto | Cuándo usarla |
+|-------|--------|---------------|
+| `.efecto-ataque` | Vibrar + parpadear + destello rojo (~0.5s) | Cuando un ente recibe un golpe (mob, jugador) |
+| `.efecto-golpe` | Vibrar + parpadear lentos (~1s) | Cuando se pica/tala algo (una sola vez) |
+| `.efecto-golpe-loop` | Vibrar + parpadear **infinitos** | Mientras dura la rotura de un tile |
+| `.efecto-recoger` | Parpadeo rápido (0.3s) | Al recoger un ítem |
+| `.efecto-danio` | Vibrar + parpadear + destello rojo (~0.5s) | Cuando el jugador recibe daño |
+| `.efecto-glow` | Halo celeste permanente | Ítem importante, llave |
+| `.efecto-pulse` | Pulsación permanente | Portal, orbe, objeto "vivo" |
+
+### Herramientas de experimentación
+
+| Archivo | Función |
+|---------|---------|
+| `pruebas/catalogo.html` | Catálogo de efectos con ejemplos prácticos. Sirve para elegir el adecuado. |
+| `auditor/laboratorio-v1.html` | Laboratorio libre para probar cualquier emoji con cualquier efecto. |
+
+### Falta
+
+- Aplicar `efecto-ataque` al iniciar batalla (hoy la batalla es un overlay sin feedback visual del mob).
+- Aplicar `efecto-danio` al jugador cuando HP esté implementado.
+- Aplicar `efecto-recoger` al recoger ítems y equipables.
+- Reemplazar el glow hardcodeado de la llave por `aplicarEfecto(..., "efecto-glow")`.
+- Aplicar `efecto-ataque` o `efecto-danio` a los mobs cuando se implemente el combate real.
+- Sistema de "secuencias de emojis" (ciclar emojis como animación) — pendiente (era parte de F23).
+
+### ⚠️ Recordatorio
+
+`js/systems/cheats.js` sigue siendo **temporal**. Borrar antes de producción.
+
+**Estado:** 🧪 Funcional. Solo la rotura lo usa hoy. Los demás hooks se agregarán a medida que se implementen esas features (HP, combate, recoger ítems).
 
 ---
 

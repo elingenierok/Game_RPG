@@ -4,160 +4,37 @@
 <meta charset="UTF-8">
 <title>📋 Catálogo maestro de efectos CSS sobre emojis</title>
 <style>
-  /* ═══════════════════════════════════════════════════════
-     ESTILOS GLOBALES DEL CATÁLOGO
-     ═══════════════════════════════════════════════════════ */
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #0a0a0a;
-    color: #ddd;
-    font-family: monospace;
-    padding: 24px;
-    line-height: 1.5;
-  }
-  h1 {
-    font-size: 22px;
-    color: #6cf;
-    margin-bottom: 6px;
-    text-shadow: 0 0 8px rgba(102, 204, 255, 0.4);
-  }
-  h2 {
-    font-size: 14px;
-    color: #6cf;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin: 40px 0 14px;
-    padding: 10px 14px;
-    background: #0f1a24;
-    border-left: 4px solid #6cf;
-    border-radius: 0 6px 6px 0;
-  }
-  h3 {
-    font-size: 12px;
-    color: #9cd;
-    margin: 24px 0 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .subtitulo {
-    font-size: 12px;
-    color: #777;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #1a1a1a;
-  }
+  body { background: #0a0a0a; color: #ddd; font-family: monospace; padding: 24px; line-height: 1.5; }
+  h1 { font-size: 22px; color: #6cf; margin-bottom: 6px; text-shadow: 0 0 8px rgba(102, 204, 255, 0.4); }
+  h2 { font-size: 14px; color: #6cf; text-transform: uppercase; letter-spacing: 2px; margin: 40px 0 14px; padding: 10px 14px; background: #0f1a24; border-left: 4px solid #6cf; border-radius: 0 6px 6px 0; }
+  h3 { font-size: 12px; color: #9cd; margin: 24px 0 10px; letter-spacing: 1px; text-transform: uppercase; }
+  .subtitulo { font-size: 12px; color: #777; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1a1a1a; }
+  .indice { background: #0f0f12; border: 1px solid #1e1e24; border-radius: 10px; padding: 18px 24px; margin-bottom: 30px; }
+  .indice h3 { color: #6cf; margin-top: 0; }
+  .indice ol { margin-left: 20px; font-size: 12px; color: #999; line-height: 1.8; }
+  .indice a { color: #6cf; text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .item { background: #111; border: 1px solid #222; border-radius: 10px; padding: 16px; margin-bottom: 14px; transition: border-color 0.15s; }
+  .item:hover { border-color: #2a4a6a; }
+  .item-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #1a1a1a; }
+  .check { font-size: 16px; color: #6cf; cursor: pointer; user-select: none; }
+  .item-title { font-size: 13px; color: #ddd; font-weight: bold; flex: 1; }
+  .item-badge { font-size: 9px; color: #6cf; background: #1a2a3a; border: 1px solid #2a4a6a; border-radius: 3px; padding: 2px 7px; }
+  .item-body { display: grid; grid-template-columns: 100px 1fr; gap: 16px; align-items: start; }
+  .demo { background: #0a0a0a; border: 1px solid #1e1e24; border-radius: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; font-size: 42px; line-height: 1; }
+  .info p { font-size: 11px; color: #aaa; margin-bottom: 6px; }
+  .info p strong { color: #6cf; }
+  .info pre { background: #08080a; border: 1px solid #1a1a1a; border-radius: 6px; padding: 10px 12px; margin-top: 8px; overflow-x: auto; font-size: 11px; color: #9cd; line-height: 1.5; }
+  .info code { font-family: monospace; }
 
-  /* ── Índice ── */
-  .indice {
-    background: #0f0f12;
-    border: 1px solid #1e1e24;
-    border-radius: 10px;
-    padding: 18px 24px;
-    margin-bottom: 30px;
-  }
-  .indice h3 {
-    color: #6cf;
-    margin-top: 0;
-  }
-  .indice ol {
-    margin-left: 20px;
-    font-size: 12px;
-    color: #999;
-    line-height: 1.8;
-  }
-  .indice a {
-    color: #6cf;
-    text-decoration: none;
-  }
-  .indice a:hover {
-    text-decoration: underline;
-  }
+  /* Variante mini */
+  .variante { display: flex; align-items: center; gap: 10px; margin: 8px 0; padding: 6px 10px; background: #0a0f14; border: 1px solid #1a2a3a; border-radius: 6px; font-size: 10px; }
+  .variante-label { color: #6cf; font-weight: bold; white-space: nowrap; }
+  .variante-desc { color: #888; font-size: 10px; }
+  .demo-mini { background: #080810; border: 1px solid #1a1a24; border-radius: 5px; min-width: 60px; min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
 
-  /* ── Item (cada efecto del catálogo) ── */
-  .item {
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 14px;
-    transition: border-color 0.15s;
-  }
-  .item:hover {
-    border-color: #2a4a6a;
-  }
-  .item-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #1a1a1a;
-  }
-  .check {
-    font-size: 16px;
-    color: #6cf;
-    cursor: pointer;
-    user-select: none;
-  }
-  .item-title {
-    font-size: 13px;
-    color: #ddd;
-    font-weight: bold;
-    flex: 1;
-  }
-  .item-badge {
-    font-size: 9px;
-    color: #6cf;
-    background: #1a2a3a;
-    border: 1px solid #2a4a6a;
-    border-radius: 3px;
-    padding: 2px 7px;
-  }
-  .item-body {
-    display: grid;
-    grid-template-columns: 100px 1fr;
-    gap: 16px;
-    align-items: start;
-  }
-  .demo {
-    background: #0a0a0a;
-    border: 1px solid #1e1e24;
-    border-radius: 8px;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 42px;
-    line-height: 1;
-  }
-  .info p {
-    font-size: 11px;
-    color: #aaa;
-    margin-bottom: 6px;
-  }
-  .info p strong {
-    color: #6cf;
-  }
-  .info pre {
-    background: #08080a;
-    border: 1px solid #1a1a1a;
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-top: 8px;
-    overflow-x: auto;
-    font-size: 11px;
-    color: #9cd;
-    line-height: 1.5;
-  }
-  .info code {
-    font-family: monospace;
-  }
-
-  /* ═══════════════════════════════════════════════════════
-     ESTILOS DE LOS EFECTOS (los "ingredientes")
-     ═══════════════════════════════════════════════════════ */
-
-  /* ── Sección 1: Transformaciones ── */
+  /* ═══ SECCIÓN 1: TRANSFORMACIONES ═══ */
   .fx-flip-h { transform: scaleX(-1); }
   .fx-flip-v { transform: scaleY(-1); }
   .fx-rot-45  { transform: rotate(45deg); }
@@ -168,51 +45,215 @@
   .fx-escala-2 { transform: scale(2); }
   .fx-espejo-diag { transform: scale(-1, 1) rotate(45deg); }
 
-  /* ── Sección 2: Grilla multi-celda ── */
-  .demo-grilla {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 50px);
-    gap: 5px;
-    background: #0d0d0d;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #1a1a1a;
-    margin-top: 8px;
-  }
-  .celda {
-    background: #151515;
-    border: 1px solid #222;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-  }
-  .celda.vacia {
-    background: #0f0f0f;
-    border-style: dashed;
-    border-color: #1a1a1a;
-  }
+  /* ═══ SECCIÓN 2: GRILLA ═══ */
+  .demo-grilla { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 50px); gap: 5px; background: #0d0d0d; padding: 8px; border-radius: 8px; border: 1px solid #1a1a1a; margin-top: 8px; }
+  .celda { background: #151515; border: 1px solid #222; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .celda.vacia { background: #0f0f0f; border-style: dashed; border-color: #1a1a1a; }
   .span-2x2 { grid-column: span 2; grid-row: span 2; font-size: 48px; }
   .span-3x3 { grid-column: span 3; grid-row: span 3; font-size: 62px; }
   .span-1x2 { grid-row: span 2; font-size: 34px; }
   .span-2x1 { grid-column: span 2; font-size: 34px; }
+
+  /* ═══ SECCIÓN 3: EFECTOS VISUALES ═══ */
+  .fx-glow { text-shadow: 0 0 8px cyan, 0 0 16px rgba(0, 255, 255, 0.5); }
+  .fx-sombra { filter: drop-shadow(3px 3px 3px black) drop-shadow(0 0 6px rgba(0,0,0,0.8)); }
+  @keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+  .fx-parpadeo { animation: parpadeo 0.8s infinite; }
+  @keyframes shake { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(-2px, 1px) rotate(-3deg); } 40% { transform: translate(2px, -1px) rotate(3deg); } 60% { transform: translate(-1px, 2px) rotate(-2deg); } 80% { transform: translate(1px, -2px) rotate(2deg); } }
+  .fx-vibracion { animation: shake 0.35s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+  .fx-latido { animation: pulse 0.9s ease-in-out infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .fx-spin { animation: spin 2s linear infinite; }
+
+  /* ═══ SECCIÓN 4: ANIMACIÓN DE TILES ═══ */
+  @keyframes flipAlternado { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
+  .fx-flip-alt { animation: flipAlternado 0.5s infinite; }
+  .fx-secuencia { display: flex; align-items: center; justify-content: center; font-size: 42px; }
+  @keyframes rotAlternada { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(180deg); } }
+  .fx-rot-alt { animation: rotAlternada 0.7s infinite; }
+  @keyframes opacidadAlt { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .fx-opacidad-alt { animation: opacidadAlt 1s infinite; }
+  @keyframes escalaAlt { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+  .fx-escala-alt { animation: escalaAlt 1.1s ease-in-out infinite; }
+  @keyframes hueAlt { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(180deg); } }
+  .fx-hue-alt { animation: hueAlt 1.5s infinite; }
+
+  /* ═══ SECCIÓN 5: COMBINACIONES ═══ */
+  @keyframes fuegoVivo { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.65; } }
+  .fx-combo-fuego { animation: fuegoVivo 0.6s ease-in-out infinite; }
+  .fx-combo-portal { animation: spin 2.5s linear infinite; text-shadow: 0 0 10px cyan, 0 0 22px rgba(0, 255, 255, 0.7); }
+  @keyframes coheteVuela { 0%, 100% { transform: rotate(45deg) translate(0, 0); } 25% { transform: rotate(45deg) translate(-2px, 1px); } 50% { transform: rotate(45deg) translate(2px, -1px); } 75% { transform: rotate(45deg) translate(-1px, 2px); } }
+  .fx-combo-cohete { animation: coheteVuela 0.4s infinite; }
+  @keyframes coheteAlterna { 0%, 100% { transform: rotate(45deg) translate(0, 0); } 25% { transform: rotate(45deg) translate(-3px, 1px); } 50% { transform: rotate(45deg) translate(3px, -1px); } 75% { transform: rotate(45deg) translate(-2px, 2px); } }
+  .fx-combo-cohete-alt { animation: coheteAlterna 0.4s infinite; }
+  @keyframes coheteAlternaFlip { 0%, 100% { transform: rotate(-45deg) scaleX(-1) translate(0, 0); } 25% { transform: rotate(-45deg) scaleX(-1) translate(-3px, 1px); } 50% { transform: rotate(-45deg) scaleX(-1) translate(3px, -1px); } 75% { transform: rotate(-45deg) scaleX(-1) translate(-2px, 2px); } }
+  .fx-combo-cohete-alt-b { animation: coheteAlternaFlip 0.4s infinite; }
+  @keyframes flotar { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
+  .fx-combo-nave-vibra { animation: flotar 0.5s ease-in-out infinite; }
+  @keyframes flotarLatido { 0%, 100% { transform: scale(1) translateY(0px); } 50% { transform: scale(1.08) translateY(-3px); } }
+  .fx-combo-nave-latido { animation: flotarLatido 1.2s ease-in-out infinite; }
+  @keyframes plantaAlien { 0% { filter: hue-rotate(0deg) brightness(1); } 25% { filter: hue-rotate(90deg) brightness(1.2); } 50% { filter: hue-rotate(180deg) brightness(1); } 75% { filter: hue-rotate(270deg) brightness(1.2); } 100% { filter: hue-rotate(360deg) brightness(1); } }
+  .fx-combo-planta-alien { animation: plantaAlien 4s linear infinite; }
+  .fx-combo-planta-alien-fija { filter: hue-rotate(120deg) brightness(1.3) saturate(1.5); }
+
+  /* ═══ SECCIÓN 6: FONDOS ═══ */
+  .fx-fondo-pasto { background: #2ecc40; border-color: #27ae38; }
+  .fx-fondo-pasto:hover { border-color: #6cff7a; box-shadow: 0 0 14px rgba(46, 204, 64, 0.6); }
+  .fx-fondo-arena { background: #f2c744; border-color: #d4a82e; background-image: radial-gradient(circle at 25% 35%, #c99a1f 1.2px, transparent 1.2px), radial-gradient(circle at 75% 65%, #c99a1f 1.2px, transparent 1.2px), radial-gradient(circle at 50% 90%, #c99a1f 1px, transparent 1px); background-size: 10px 10px, 14px 14px, 8px 8px; filter: hue-rotate(25deg) brightness(1.15) saturate(1.4); }
+  .fx-fondo-arena:hover { border-color: #ffe066; box-shadow: 0 0 14px rgba(242, 199, 68, 0.6); }
+  .fx-fondo-rocoso { background: #1f1f22; border-color: #3a3a3f; background-image: radial-gradient(circle at 30% 40%, #2e2e33 1.2px, transparent 1.2px), radial-gradient(circle at 70% 60%, #2e2e33 1.2px, transparent 1.2px), radial-gradient(circle at 50% 85%, #2a2a2e 1px, transparent 1px); background-size: 12px 12px, 16px 16px, 9px 9px; }
+  .fx-fondo-rocoso:hover { border-color: #7a7a8a; box-shadow: 0 0 14px rgba(122, 122, 138, 0.5); }
+  .fx-emoji-piedra { transform: rotate(45deg); filter: grayscale(1) brightness(0.9); }
+  .fx-fondo-alien { background: #1a2a1a; border-color: #2a5a3a; }
+  .fx-fondo-alien:hover { border-color: #4aff8a; box-shadow: 0 0 12px rgba(74, 255, 138, 0.3); }
+  @keyframes huevoAlien { 0% { filter: hue-rotate(0deg) brightness(1); transform: scale(1); } 25% { filter: hue-rotate(90deg) brightness(1.3); transform: scale(1.08); } 50% { filter: hue-rotate(180deg) brightness(1); transform: scale(1); } 75% { filter: hue-rotate(270deg) brightness(1.3); transform: scale(1.08); } 100% { filter: hue-rotate(360deg) brightness(1); transform: scale(1); } }
+  .fx-emoji-huevo-alien { animation: huevoAlien 3s linear infinite; }
+
+  /* ═══ SECCIÓN 7: CADENA ═══ */
+  .demo-cadena { flex-direction: column; gap: 4px; padding: 10px; font-size: 32px; }
+  .demo-cadena .bloque { font-size: 34px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; box-shadow: 0 0 10px rgba(102, 204, 255, 0.1); }
+  .cadena-anim { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; }
+  .eslabon { font-size: 26px; line-height: 1; display: block; transition: transform 0.08s linear; }
+
+  /* ═══ SECCIÓN 8: GOLPES ═══ */
+  @keyframes parpadeoGolpe { 0% { opacity: 1; transform: scale(1); filter: brightness(1); } 15% { opacity: 0.2; transform: scale(0.92); filter: brightness(2); } 30% { opacity: 1; transform: scale(1.04); filter: brightness(1); } 45% { opacity: 0.15; transform: scale(0.9); filter: brightness(2.5); } 60% { opacity: 1; transform: scale(1.02); filter: brightness(1); } 75% { opacity: 0.3; transform: scale(0.95); filter: brightness(1.8); } 100% { opacity: 1; transform: scale(1); filter: brightness(1); } }
+  .fx-golpe { animation: parpadeoGolpe 0.55s infinite; font-size: 42px; }
+  .fx-golpe-b { animation-delay: 0.15s; }
+  .fx-golpe-c { animation-delay: 0.32s; }
+
+  /* ═══ SECCIÓN 11: TILES ═══ */
+  #grid-flip, #grid-seq { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+  #grid-flip .card, #grid-seq .card { padding: 10px 6px; }
+  #grid-flip .anim, #grid-seq .anim { font-size: 36px; min-height: 48px; display: flex; align-items: center; justify-content: center; transition: transform 0.05s linear; }
+  #grid-flip .nombre, #grid-seq .nombre { font-size: 9px; margin-top: 6px; }
+  #grid-flip .badge, #grid-seq .badge { margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+  .card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 14px 8px; text-align: center; transition: border-color 0.15s; }
+  .card:hover { border-color: #6cf; box-shadow: 0 0 12px rgba(102, 204, 255, 0.2); }
+  .anim { font-size: 36px; line-height: 1; min-height: 48px; display: flex; align-items: center; justify-content: center; transition: transform 0.05s linear; }
+  .nombre { font-size: 9px; color: #777; margin-top: 6px; line-height: 1.3; }
+  .badge { display: inline-block; font-size: 8px; color: #6cf; background: #1a2a3a; border: 1px solid #2a4a6a; border-radius: 3px; padding: 1px 5px; margin-top: 4px; }
+  .pre-seccion11 { background: #08080a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 12px 14px; margin-top: 12px; overflow-x: auto; font-size: 11px; color: #9cd; line-height: 1.5; white-space: pre; }
+
+  /* ═══ SECCIÓN 12: ESPACIALES ═══ */
+  .space-demo { background: radial-gradient(circle at 20% 25%, #273b63 1px, transparent 2px), radial-gradient(circle at 75% 70%, #526c99 1px, transparent 2px), #050914; background-size: 28px 28px, 39px 39px, auto; border-color: #263b66; position: relative; overflow: hidden; gap: 2px; }
+  .space-planet { filter: drop-shadow(0 0 7px #48dfff); animation: pulsoPlaneta 2s ease-in-out infinite; }
+  @keyframes pulsoPlaneta { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .space-shield { position: absolute; font-size: 68px; opacity: 0.7; filter: drop-shadow(0 0 7px cyan); animation: escudo 0.9s ease-in-out infinite; }
+  .space-shield-core { z-index: 1; font-size: 32px; }
+  @keyframes escudo { 0%, 100% { opacity: 0.45; transform: scale(0.92); } 50% { opacity: 1; transform: scale(1.12); } }
+  .space-ship { font-size: 40px; }
+  .space-thrust { font-size: 24px; color: orange; filter: drop-shadow(0 0 6px orange); animation: motor 0.18s ease-in-out infinite alternate; }
+  @keyframes motor { from { transform: scaleY(0.7) scaleX(0.85); opacity: 0.7; } to { transform: scaleY(1.25) scaleX(1.1); opacity: 1; } }
+  .space-teleport { animation: aparecer 0.8s ease-out infinite; }
+  @keyframes aparecer { 0% { opacity: 0; transform: scale(0.2) rotate(-35deg); filter: blur(5px); } 70% { opacity: 1; transform: scale(1.15) rotate(8deg); filter: blur(0); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+  .orbit-planet { position: relative; display: inline-block; font-size: 44px; }
+  .orbit-moon { position: absolute; font-size: 22px; left: 35px; top: -20px; transform-origin: -12px 42px; animation: orbitar 2.8s linear infinite; }
+  @keyframes orbitar { to { transform: rotate(360deg); } }
+  .laser-trail { position: absolute; color: cyan; letter-spacing: -3px; font-size: 20px; text-shadow: 0 0 5px cyan, 0 0 14px #00aaff; animation: estela 0.6s linear infinite; }
+  .laser-bolt { position: absolute; font-size: 30px; filter: drop-shadow(0 0 8px cyan); animation: disparo 0.6s linear infinite; }
+  @keyframes estela { from { transform: translateX(-35px) scaleX(0.5); opacity: 0; } 25% { opacity: 1; } to { transform: translateX(25px) scaleX(1.2); opacity: 0; } }
+  @keyframes disparo { from { transform: translateX(-35px); opacity: 0; } 15% { opacity: 1; } to { transform: translateX(35px); opacity: 0; } }
+  .space-hit { animation: golpe 0.35s steps(2,end) infinite; }
+  @keyframes golpe { 0%, 100% { filter: brightness(1); transform: translateX(0); } 25%, 75% { filter: brightness(3) sepia(1); transform: translateX(-3px); } 50% { filter: brightness(2); transform: translateX(3px); } }
+  .space-ghost { opacity: 0.45; filter: hue-rotate(130deg) saturate(0.7) drop-shadow(0 0 6px #8cf); animation: fantasma 1.8s ease-in-out infinite; }
+  @keyframes fantasma { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.65; } }
+  .station-demo { display: grid; grid-template-columns: repeat(3, 1fr); padding: 8px; font-size: 28px; }
+  .station-demo span:nth-child(2) { transform: scale(1.25); }
+
+  /* ═══ SECCIÓN 13: COMPOSICIONES NUEVAS ═══ */
+
+  /* 13.1 Portal dimensional */
+  .demo-portal-nuevo { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .portal-giro { font-size: 56px; line-height: 1; animation: spinPortal 3s linear infinite; filter: drop-shadow(0 0 14px #a066ff) drop-shadow(0 0 30px #7a3fff); position: relative; z-index: 2; }
+  @keyframes spinPortal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .portal-particula { position: absolute; font-size: 14px; top: 50%; left: 50%; animation: alejarParticula 2.4s ease-out infinite; filter: drop-shadow(0 0 6px #c99aff); }
+  .portal-particula.pp1 { animation-delay: 0s; --dx: 45px; --dy: -40px; }
+  .portal-particula.pp2 { animation-delay: 0.6s; --dx: -50px; --dy: -30px; }
+  .portal-particula.pp3 { animation-delay: 1.2s; --dx: 40px; --dy: 45px; }
+  .portal-particula.pp4 { animation-delay: 1.8s; --dx: -45px; --dy: 40px; }
+  @keyframes alejarParticula { 0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2); opacity: 0; } }
+
+  /* 13.2 Vórtice oscuro */
+  .demo-vortice { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .vortice-base { font-size: 56px; line-height: 1; animation: spinVortice 4s linear infinite reverse; filter: drop-shadow(0 0 12px #00ffff) drop-shadow(0 0 25px #0088ff); position: relative; z-index: 2; }
+  @keyframes spinVortice { 0% { transform: rotate(0deg) scale(0.9); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(0.9); } }
+  .vortice-spark { position: absolute; font-size: 12px; animation: orbitaSpark 2s linear infinite; filter: drop-shadow(0 0 5px #0ff); }
+  .vortice-spark.vs1 { animation-delay: 0s; }
+  .vortice-spark.vs2 { animation-delay: 1s; }
+  @keyframes orbitaSpark { 0% { transform: rotate(0deg) translateX(35px) rotate(0deg); opacity: 0.2; } 50% { opacity: 1; } 100% { transform: rotate(360deg) translateX(35px) rotate(-360deg); opacity: 0.2; } }
+
+  /* 13.3 Nave abduciendo */
+  .demo-abduccion { position: relative; width: 100%; height: 100%; }
+  .abduccion-nave { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font-size: 34px; animation: flotarNave 1.6s ease-in-out infinite; filter: drop-shadow(0 0 8px #6cf); z-index: 3; }
+  @keyframes flotarNave { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-6px); } }
+  .abduccion-cono { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 60px solid rgba(74, 255, 138, 0.35); filter: blur(2px) drop-shadow(0 0 8px #4aff8a); animation: pulsoCono 1.6s ease-in-out infinite; z-index: 1; }
+  @keyframes pulsoCono { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+  .abduccion-objeto { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 22px; animation: ascender 2.4s ease-in infinite; filter: drop-shadow(0 0 4px #6cf); z-index: 2; }
+  @keyframes ascender { 0% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; } 80% { transform: translateX(-50%) translateY(-65px) scale(0.3); opacity: 0.6; } 100% { transform: translateX(-50%) translateY(-85px) scale(0.1); opacity: 0; } }
+
+  /* 13.4 Cristal alienígena */
+  .demo-cristal { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .cristal-base { font-size: 56px; animation: cristalColor 4s linear infinite, cristalFlota 2.2s ease-in-out infinite, cristalBrillo 1.8s ease-in-out infinite; z-index: 2; }
+  @keyframes cristalColor { 0% { filter: hue-rotate(0deg) brightness(1.1) drop-shadow(0 0 8px #6cf); } 25% { filter: hue-rotate(90deg) brightness(1.3) drop-shadow(0 0 12px #6cf); } 50% { filter: hue-rotate(180deg) brightness(1.1) drop-shadow(0 0 8px #6cf); } 75% { filter: hue-rotate(270deg) brightness(1.3) drop-shadow(0 0 12px #6cf); } 100% { filter: hue-rotate(360deg) brightness(1.1) drop-shadow(0 0 8px #6cf); } }
+  @keyframes cristalFlota { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes cristalBrillo { 0%, 100% { text-shadow: 0 0 6px #fff; } 50% { text-shadow: 0 0 16px #fff, 0 0 24px #6cf; } }
+  .cristal-destello { position: absolute; font-size: 12px; animation: destelloPulso 1.8s ease-in-out infinite; z-index: 1; }
+  .cristal-destello.cd1 { top: 15%; left: 15%; animation-delay: 0s; }
+  .cristal-destello.cd2 { top: 20%; right: 15%; animation-delay: 0.5s; }
+  .cristal-destello.cd3 { bottom: 20%; left: 18%; animation-delay: 1s; }
+  .cristal-destello.cd4 { bottom: 15%; right: 18%; animation-delay: 1.5s; }
+  @keyframes destelloPulso { 0%, 100% { opacity: 0.2; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1.2); } }
+
+  /* 13.5 Bioma alienígena */
+  .demo-bioma { position: relative; width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 8px; padding-bottom: 10px; background: radial-gradient(ellipse at 50% 100%, rgba(74, 255, 138, 0.08), transparent 70%); }
+  .bioma-planta { line-height: 1; animation: plantaPulso 2s ease-in-out infinite; transform-origin: bottom center; }
+  .bioma-planta.bp1 { font-size: 22px; animation-delay: 0s; }
+  .bioma-planta.bp2 { font-size: 32px; animation-delay: 0.4s; }
+  .bioma-planta.bp3 { font-size: 20px; animation-delay: 0.8s; }
+  .bioma-planta.bp4 { font-size: 26px; animation-delay: 1.2s; }
+  @keyframes plantaPulso { 0%, 100% { transform: scaleY(1) translateY(0); filter: hue-rotate(0deg) brightness(1); } 50% { transform: scaleY(1.1) translateY(-3px); filter: hue-rotate(40deg) brightness(1.3); } }
+  .bioma-luz { position: absolute; font-size: 10px; animation: luzFlota 3s ease-in-out infinite; filter: drop-shadow(0 0 6px #c9ff8a); }
+  .bioma-luz.bl1 { top: 20%; left: 22%; animation-delay: 0s; }
+  .bioma-luz.bl2 { top: 30%; left: 55%; animation-delay: 0.8s; }
+  .bioma-luz.bl3 { top: 15%; right: 20%; animation-delay: 1.6s; }
+  @keyframes luzFlota { 0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.3; } 50% { transform: translateY(-14px) scale(1.2); opacity: 1; } }
+
+  /* 13.6 Núcleo de energía */
+  .demo-energia { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+  .energia-base { font-size: 56px; animation: pulsoEnergia 0.8s ease-in-out infinite alternate; filter: drop-shadow(0 0 15px #ffeb3b); }
+  @keyframes pulsoEnergia { 0% { transform: scale(0.95); filter: drop-shadow(0 0 5px #ffeb3b); } 100% { transform: scale(1.15); filter: drop-shadow(0 0 25px #ffc107); } }
+
+  /* 13.7 Bomba por explotar */
+  .demo-bomba { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+  .bomba-base { font-size: 56px; animation: vibrarBomba 0.15s ease-in-out infinite; filter: drop-shadow(0 0 8px #ff3d00); }
+  @keyframes vibrarBomba { 0% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(-2px, 2px) rotate(-3deg); } 50% { transform: translate(2px, -2px) rotate(3deg); } 75% { transform: translate(-1px, -2px) rotate(-1deg); } 100% { transform: translate(1px, 2px) rotate(1deg); } }
+  .bomba-chispa { position: absolute; top: 22px; font-size: 16px; animation: chispaAnim 0.4s ease-out infinite alternate; }
+  @keyframes chispaAnim { 0% { transform: scale(0.8) translateY(0); opacity: 0.5; } 100% { transform: scale(1.4) translateY(-6px); opacity: 1; filter: drop-shadow(0 0 8px #ffeb3b); } }
+
+  /* 13.8 Volcán con humo */
+  .demo-volcan { position: relative; display: flex; align-items: flex-end; justify-content: center; width: 100%; height: 100%; padding-bottom: 10px; overflow: hidden; background: radial-gradient(circle at 50% 85%, rgba(255, 87, 34, 0.2), transparent 70%); }
+  .volcan-base { font-size: 56px; z-index: 2; animation: volcanLatir 1.5s ease-in-out infinite; filter: drop-shadow(0 0 10px #ff5722); }
+  @keyframes volcanLatir { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); filter: drop-shadow(0 0 20px #ff9800); } }
+  .humo-volcan { position: absolute; bottom: 50px; font-size: 16px; opacity: 0; animation: subirHumo 3s ease-out infinite; }
+  .humo-volcan.hv1 { left: 42%; animation-delay: 0s; }
+  .humo-volcan.hv2 { left: 50%; animation-delay: 1s; }
+  .humo-volcan.hv3 { left: 58%; animation-delay: 2s; }
+  @keyframes subirHumo { 0% { opacity: 0; transform: translateY(10px) scale(0.5); } 20% { opacity: 0.7; } 100% { opacity: 0; transform: translateY(-60px) scale(1.6) translateX(15px); } }
+  .chispa-volcan { position: absolute; bottom: 55px; font-size: 12px; animation: saltarChispa 1.8s ease-out infinite; }
+  .chispa-volcan.cv1 { left: 38%; animation-delay: 0s; }
+  .chispa-volcan.cv2 { right: 38%; animation-delay: 0.9s; }
+  @keyframes saltarChispa { 0% { opacity: 1; transform: translateY(0) scale(0.6); } 100% { opacity: 0; transform: translateY(-70px) scale(1.2); } }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- CABECERA                                                -->
-<!-- ═══════════════════════════════════════════════════════ -->
 <h1>📋 Catálogo maestro de efectos CSS sobre emojis</h1>
 <div class="subtitulo">
-  Planilla de referencia y check para el proyecto. Cada efecto tiene: demostración, fórmula, código y utilidad.
+  Planilla de referencia y check para el proyecto. Cada efecto tiene: demostración, fórmula, código y utilidad. Las secciones 13 tienen variantes con otro emoji para ver el efecto en sí.
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- ÍNDICE GENERAL                                          -->
-<!-- ═══════════════════════════════════════════════════════ -->
 <div class="indice">
   <h3>📑 Índice general</h3>
   <ol>
@@ -226,46 +267,35 @@
     <li><a href="#s8">Parpadeo de golpes</a> — árbol, montaña, ladrillo</li>
     <li><a href="#s9">Fórmulas y reglas generales</a> — cómo combinar sin conflictos</li>
     <li><a href="#s10">Planilla de check final</a> — tabla resumen</li>
+    <li><a href="#s11">Animaciones de tiles (flip + secuencia)</a> — 26 tiles</li>
+    <li><a href="#s12">Efectos espaciales</a> — escudo, propulsión, teletransporte, órbita, láser</li>
+    <li><a href="#s13">Composiciones multi-elemento y efectos adicionales</a> — portal con partículas, vórtice, abducción, cristal, bioma, energía, bomba, volcán</li>
   </ol>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 1 · TRANSFORMACIONES GEOMÉTRICAS                -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 1 ═══════════════ -->
 <h2 id="s1">1 · Transformaciones geométricas</h2>
-<p class="subtitulo">
-  Modifican la forma, orientación o tamaño del emoji sin cambiar su contenido. Todas usan la propiedad <code>transform</code>.
-</p>
+<p class="subtitulo">Modifican la forma, orientación o tamaño del emoji. Usan <code>transform</code>.</p>
 
-<!-- 1.1 Flip horizontal -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.1 · Flip horizontal</span>
-    <span class="item-badge">scaleX(-1)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.1 · Flip horizontal</span><span class="item-badge">scaleX(-1)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-flip-h">➡️</span></div>
     <div class="info">
       <p><strong>Qué hace:</strong> espeja el emoji de izquierda a derecha.</p>
       <p><strong>Fórmula:</strong> <code>transform: scaleX(-1);</code></p>
-      <p><strong>Uso:</strong> cambiar la dirección del jugador, mobs, flechas.</p>
+      <p><strong>Uso:</strong> dirección del jugador, mobs, flechas.</p>
       <pre><code>.flip-h { transform: scaleX(-1); }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 1.2 Flip vertical -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.2 · Flip vertical</span>
-    <span class="item-badge">scaleY(-1)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.2 · Flip vertical</span><span class="item-badge">scaleY(-1)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-flip-v">🔥</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> espeja el emoji de arriba a abajo.</p>
+      <p><strong>Qué hace:</strong> espeja de arriba a abajo.</p>
       <p><strong>Fórmula:</strong> <code>transform: scaleY(-1);</code></p>
       <p><strong>Uso:</strong> fuego animado, flechas ↑↓, hojas 🍃.</p>
       <pre><code>.flip-v { transform: scaleY(-1); }</code></pre>
@@ -273,53 +303,38 @@
   </div>
 </div>
 
-<!-- 1.3 Rotación 45° -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.3 · Rotación 45°</span>
-    <span class="item-badge">rotate(45deg)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.3 · Rotación 45°</span><span class="item-badge">rotate(45deg)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-rot-45">➡️</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> gira el emoji 45° en sentido horario.</p>
+      <p><strong>Qué hace:</strong> gira 45° en sentido horario.</p>
       <p><strong>Fórmula:</strong> <code>transform: rotate(45deg);</code></p>
-      <p><strong>Uso:</strong> flechas a NE, cohetes en diagonal, objetos rotados.</p>
+      <p><strong>Uso:</strong> flechas NE, cohetes, objetos rotados.</p>
       <pre><code>.rot-45 { transform: rotate(45deg); }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 1.4 Rotación 90° -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.4 · Rotación 90°</span>
-    <span class="item-badge">rotate(90deg)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.4 · Rotación 90°</span><span class="item-badge">rotate(90deg)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-rot-90">➡️</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> gira el emoji 90° (apunta hacia abajo).</p>
+      <p><strong>Qué hace:</strong> gira 90° (apunta hacia abajo).</p>
       <p><strong>Fórmula:</strong> <code>transform: rotate(90deg);</code></p>
-      <p><strong>Uso:</strong> flechas direccionales, tuberías, vigas.</p>
+      <p><strong>Uso:</strong> flechas, tuberías, vigas.</p>
       <pre><code>.rot-90 { transform: rotate(90deg); }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 1.5 Rotación 135° -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.5 · Rotación 135°</span>
-    <span class="item-badge">rotate(135deg)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.5 · Rotación 135°</span><span class="item-badge">rotate(135deg)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-rot-135">➡️</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> gira el emoji 135° (diagonal SO).</p>
+      <p><strong>Qué hace:</strong> gira 135° (diagonal SO).</p>
       <p><strong>Fórmula:</strong> <code>transform: rotate(135deg);</code></p>
       <p><strong>Uso:</strong> flechas SO, cohetes invertidos.</p>
       <pre><code>.rot-135 { transform: rotate(135deg); }</code></pre>
@@ -327,18 +342,12 @@
   </div>
 </div>
 
-<!-- 1.6 Rotación animada -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.6 · Rotación animada (hover)</span>
-    <span class="item-badge">transition + rotate</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.6 · Rotación animada (hover)</span><span class="item-badge">transition + rotate</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-rot-animada">🧭</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> al pasar el mouse, el emoji gira 360° suavemente.</p>
-      <p><strong>Fórmula:</strong> <code>transition: transform 0.8s;</code> + <code>:hover { rotate(360deg); }</code></p>
+      <p><strong>Qué hace:</strong> al pasar el mouse, gira 360° suavemente.</p>
       <p><strong>Uso:</strong> reloj, brújula, engranaje interactivo.</p>
       <pre><code>.rot-animada {
   transition: transform 0.8s ease-in-out;
@@ -350,37 +359,25 @@
   </div>
 </div>
 
-<!-- 1.7 Escala 2× -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.7 · Escala 2×</span>
-    <span class="item-badge">scale(2)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.7 · Escala 2×</span><span class="item-badge">scale(2)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-escala-2">🐯</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> duplica el tamaño del emoji.</p>
-      <p><strong>Fórmula:</strong> <code>transform: scale(2);</code></p>
+      <p><strong>Qué hace:</strong> duplica el tamaño.</p>
       <p><strong>Uso:</strong> mobs grandes, jefes, objetos destacados.</p>
       <pre><code>.escala-2 { transform: scale(2); }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 1.8 Espejo diagonal -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">1.8 · Espejo diagonal</span>
-    <span class="item-badge">scale(-1,1) + rotate</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">1.8 · Espejo diagonal</span><span class="item-badge">scale(-1,1) + rotate</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-espejo-diag">➡️</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> combina espejo horizontal + rotación 45°. Efecto óptico.</p>
-      <p><strong>Fórmula:</strong> <code>transform: scale(-1, 1) rotate(45deg);</code></p>
-      <p><strong>Uso:</strong> efectos visuales inusuales, simetrías.</p>
+      <p><strong>Qué hace:</strong> espejo horizontal + rotación 45°.</p>
+      <p><strong>Uso:</strong> efectos ópticos, simetrías.</p>
       <pre><code>.espejo-diag {
   transform: scale(-1, 1) rotate(45deg);
 }</code></pre>
@@ -388,20 +385,12 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 2 · TAMAÑO EN GRILLA                            -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 2 ═══════════════ -->
 <h2 id="s2">2 · Tamaño en grilla (layout multi-celda)</h2>
-<p class="subtitulo">
-  Permite que un emoji ocupe varias celdas del grid usando CSS Grid (<code>grid-column: span N</code>). Ideal para mobs grandes o estructuras.
-</p>
+<p class="subtitulo">Un emoji puede ocupar varias celdas con CSS Grid.</p>
 
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">2.1 · Layout completo 4×4 (demostración)</span>
-    <span class="item-badge">CSS Grid</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">2.1 · Layout completo 4×4</span><span class="item-badge">CSS Grid</span></div>
   <div class="item-body">
     <div class="demo-grilla" style="grid-column: span 1; width: 220px;">
       <div class="celda span-2x2">🐯</div>
@@ -415,106 +404,52 @@
       <div class="celda span-3x3">🌳</div>
     </div>
     <div class="info">
-      <p><strong>Qué hace:</strong> muestra las 5 variantes de tamaño en un solo layout.</p>
       <p><strong>Fórmula base:</strong> <code>grid-column: span N; grid-row: span M;</code></p>
-      <p><strong>Uso:</strong> mobs comunes (1×1), jefes (2×2), estructuras (3×3), puertas (1×2), troncos (2×1).</p>
-      <pre><code>/* 1×1 normal */
-.celda { }
-
-/* 2×2 (mob grande) */
-.span-2x2 {
-  grid-column: span 2;
-  grid-row: span 2;
-  font-size: 48px;
-}
-
-/* 3×3 (estructura) */
-.span-3x3 {
-  grid-column: span 3;
-  grid-row: span 3;
-  font-size: 62px;
-}
-
-/* 1×2 alto (puerta, antorcha) */
-.span-1x2 {
-  grid-row: span 2;
-  font-size: 34px;
-}
-
-/* 2×1 ancho (tronco caído) */
-.span-2x1 {
-  grid-column: span 2;
-  font-size: 34px;
-}</code></pre>
+      <pre><code>.span-2x2 { grid-column: span 2; grid-row: span 2; font-size: 48px; }
+.span-3x3 { grid-column: span 3; grid-row: span 3; font-size: 62px; }
+.span-1x2 { grid-row: span 2; font-size: 34px; }
+.span-2x1 { grid-column: span 2; font-size: 34px; }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 3 · EFECTOS VISUALES                            -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 3 ═══════════════ -->
 <h2 id="s3">3 · Efectos visuales</h2>
-<p class="subtitulo">
-  Añaden brillo, profundidad o movimiento continuo. Usan <code>text-shadow</code>, <code>filter</code> y <code>animation</code>.
-</p>
+<p class="subtitulo">Brillo, profundidad o movimiento continuo.</p>
 
-<!-- 3.1 Glow (halo) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">3.1 · Glow (halo)</span>
-    <span class="item-badge">text-shadow</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">3.1 · Glow (halo)</span><span class="item-badge">text-shadow</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-glow">🔑</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> añade un resplandor alrededor del emoji.</p>
-      <p><strong>Fórmula:</strong> <code>text-shadow: 0 0 Npx color;</code> (se pueden apilar varios).</p>
-      <p><strong>Uso:</strong> ítems importantes, llaves, objetos mágicos, identidad visual.</p>
+      <p><strong>Qué hace:</strong> resplandor alrededor del emoji.</p>
+      <p><strong>Uso:</strong> ítems importantes, llaves, objetos mágicos.</p>
       <pre><code>.glow {
-  text-shadow:
-    0 0 8px cyan,
-    0 0 16px rgba(0, 255, 255, 0.5);
+  text-shadow: 0 0 8px cyan, 0 0 16px rgba(0, 255, 255, 0.5);
 }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 3.2 Sombra proyectada -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">3.2 · Sombra proyectada</span>
-    <span class="item-badge">drop-shadow</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">3.2 · Sombra proyectada</span><span class="item-badge">drop-shadow</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-sombra">🗿</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> genera una sombra detrás del emoji, dándole profundidad.</p>
-      <p><strong>Fórmula:</strong> <code>filter: drop-shadow(Xpx Ypx blur color);</code></p>
       <p><strong>Uso:</strong> objetos en relieve, rocas, estructuras.</p>
       <pre><code>.sombra {
-  filter:
-    drop-shadow(3px 3px 3px black)
-    drop-shadow(0 0 6px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(3px 3px 3px black) drop-shadow(0 0 6px rgba(0,0,0,0.8));
 }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 3.3 Parpadeo -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">3.3 · Parpadeo</span>
-    <span class="item-badge">animation: parpadeo</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">3.3 · Parpadeo</span><span class="item-badge">animation: parpadeo</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-parpadeo">💡</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> la opacidad baja y sube cíclicamente.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes parpadeo { 0%,100% { opacity:1 } 50% { opacity:0.15 } }</code></p>
-      <p><strong>Uso:</strong> objetos brillantes, daño recibido, luces intermitentes.</p>
+      <p><strong>Uso:</strong> objetos brillantes, daño, luces intermitentes.</p>
       <pre><code>@keyframes parpadeo {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.15; }
@@ -524,18 +459,11 @@
   </div>
 </div>
 
-<!-- 3.4 Vibración -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">3.4 · Vibración</span>
-    <span class="item-badge">animation: shake</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">3.4 · Vibración</span><span class="item-badge">animation: shake</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-vibracion">👾</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> el emoji se sacude con traslación + rotación leve.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes shake</code> con <code>translate()</code> y <code>rotate()</code> alternados.</p>
       <p><strong>Uso:</strong> combate, mobs "vivos", objetos temblando.</p>
       <pre><code>@keyframes shake {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
@@ -549,18 +477,11 @@
   </div>
 </div>
 
-<!-- 3.5 Latido (pulse) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">3.5 · Latido (pulse)</span>
-    <span class="item-badge">animation: pulse</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">3.5 · Latido (pulse)</span><span class="item-badge">animation: pulse</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-latido">❤️</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> el emoji crece y decrece rítmicamente.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes pulse { 0%,100% { scale(1) } 50% { scale(1.18) } }</code></p>
       <p><strong>Uso:</strong> corazones, recuperación, objetos vivos.</p>
       <pre><code>@keyframes pulse {
   0%, 100% { transform: scale(1); }
@@ -571,18 +492,11 @@
   </div>
 </div>
 
-<!-- 3.6 Rotación continua -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">3.6 · Rotación continua</span>
-    <span class="item-badge">animation: spin</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">3.6 · Rotación continua</span><span class="item-badge">animation: spin</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-spin">🌀</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> el emoji gira constantemente 360°.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes spin { from { rotate(0) } to { rotate(360deg) } }</code></p>
       <p><strong>Uso:</strong> portales, energía, engranajes, tornados.</p>
       <pre><code>@keyframes spin {
   from { transform: rotate(0deg); }
@@ -593,26 +507,15 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 4 · TÉCNICAS DE ANIMACIÓN DE TILES              -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 4 ═══════════════ -->
 <h2 id="s4">4 · Técnicas de animación de tiles</h2>
-<p class="subtitulo">
-  Animaciones cíclicas cortas para simular "tiles animados": fuego, hojas, mundos girando, cadenas oscilando.
-</p>
+<p class="subtitulo">Animaciones cíclicas cortas: fuego, hojas, mundos girando.</p>
 
-<!-- 4.1 Flip alternado -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">4.1 · Flip alternado</span>
-    <span class="item-badge">scaleX ↔ scaleX(-1)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">4.1 · Flip alternado</span><span class="item-badge">scaleX ↔ scaleX(-1)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-flip-alt">🔥</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> el emoji se voltea horizontalmente una y otra vez.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes flipAlternado</code> con <code>scaleX(1)</code> ↔ <code>scaleX(-1)</code>.</p>
       <p><strong>Uso:</strong> fuego, hojas, banderas, llamas vivas.</p>
       <pre><code>@keyframes flipAlternado {
   0%, 100% { transform: scaleX(1); }
@@ -623,19 +526,12 @@
   </div>
 </div>
 
-<!-- 4.2 Secuencia de emojis -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">4.2 · Secuencia de emojis</span>
-    <span class="item-badge">JS + setInterval</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">4.2 · Secuencia de emojis</span><span class="item-badge">JS + setInterval</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-secuencia" id="sec-mundo">🌍</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> cicla entre varios emojis de un array.</p>
-      <p><strong>Fórmula:</strong> array + <code>setInterval</code> + actualizar <code>textContent</code>.</p>
-      <p><strong>Uso:</strong> 🌍🌎🌏 mundo girando, 🌑🌒🌓🌔🌕🌖🌗🌘 fases lunares, cometa.</p>
+      <p><strong>Uso:</strong> 🌍🌎🌏, fases lunares, cometa.</p>
       <pre><code>const mundos = ['🌍', '🌎', '🌏'];
 let idx = 0;
 setInterval(() => {
@@ -646,18 +542,11 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 4.3 Rotación alternada -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">4.3 · Rotación alternada</span>
-    <span class="item-badge">rotate(0) ↔ 180</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">4.3 · Rotación alternada</span><span class="item-badge">rotate(0) ↔ 180</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-rot-alt">⛓️</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> gira 180° y vuelve a 0° cíclicamente.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes rotAlternada</code> con <code>rotate(0)</code> ↔ <code>rotate(180deg)</code>.</p>
       <p><strong>Uso:</strong> cadenas, relojes, péndulos.</p>
       <pre><code>@keyframes rotAlternada {
   0%, 100% { transform: rotate(0deg); }
@@ -668,18 +557,11 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 4.4 Cambio de opacidad -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">4.4 · Cambio de opacidad</span>
-    <span class="item-badge">opacity 1 ↔ 0.35</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">4.4 · Cambio de opacidad</span><span class="item-badge">opacity 1 ↔ 0.35</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-opacidad-alt">🔥</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> el emoji aparece y desaparece parcialmente.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes opacidadAlt</code> con <code>opacity: 1</code> ↔ <code>0.35</code>.</p>
       <p><strong>Uso:</strong> antorchas, faros, luces titilando.</p>
       <pre><code>@keyframes opacidadAlt {
   0%, 100% { opacity: 1; }
@@ -690,19 +572,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 4.5 Cambio de escala (respiración) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">4.5 · Cambio de escala (respiración)</span>
-    <span class="item-badge">scale 1 ↔ 1.25</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">4.5 · Cambio de escala</span><span class="item-badge">scale 1 ↔ 1.25</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-escala-alt">💓</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> el emoji crece y decrece suavemente.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes escalaAlt</code> con <code>scale(1)</code> ↔ <code>scale(1.25)</code>.</p>
-      <p><strong>Uso:</strong> respiración, latido suave, objetos pulsantes.</p>
+      <p><strong>Uso:</strong> respiración, latido suave.</p>
       <pre><code>@keyframes escalaAlt {
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.25); }
@@ -712,19 +587,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 4.6 Cambio de color (hue-rotate) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">4.6 · Cambio de color (hue-rotate)</span>
-    <span class="item-badge">hue-rotate 0 ↔ 180</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">4.6 · Cambio de color (hue-rotate)</span><span class="item-badge">hue-rotate 0 ↔ 180</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-hue-alt">🔮</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> rota el tono de color del emoji cíclicamente.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes hueAlt</code> con <code>filter: hue-rotate(0)</code> ↔ <code>hue-rotate(180deg)</code>.</p>
-      <p><strong>Uso:</strong> cristales, energía, objetos mágicos cambiando de color.</p>
+      <p><strong>Uso:</strong> cristales, energía, objetos mágicos.</p>
       <pre><code>@keyframes hueAlt {
   0%, 100% { filter: hue-rotate(0deg); }
   50%      { filter: hue-rotate(180deg); }
@@ -734,165 +602,45 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- ESTILOS SECCIÓN 3 Y 4 (agregar en el <style> del head)  -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<style>
-  /* ── Sección 3: Efectos visuales ── */
-  .fx-glow {
-    text-shadow: 0 0 8px cyan, 0 0 16px rgba(0, 255, 255, 0.5);
-  }
-  .fx-sombra {
-    filter: drop-shadow(3px 3px 3px black) drop-shadow(0 0 6px rgba(0,0,0,0.8));
-  }
-  @keyframes parpadeo {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.15; }
-  }
-  .fx-parpadeo { animation: parpadeo 0.8s infinite; }
-
-  @keyframes shake {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    20%      { transform: translate(-2px, 1px) rotate(-3deg); }
-    40%      { transform: translate(2px, -1px) rotate(3deg); }
-    60%      { transform: translate(-1px, 2px) rotate(-2deg); }
-    80%      { transform: translate(1px, -2px) rotate(2deg); }
-  }
-  .fx-vibracion { animation: shake 0.35s infinite; }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.18); }
-  }
-  .fx-latido { animation: pulse 0.9s ease-in-out infinite; }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-  .fx-spin { animation: spin 2s linear infinite; }
-
-  /* ── Sección 4: Técnicas de animación ── */
-  @keyframes flipAlternado {
-    0%, 100% { transform: scaleX(1); }
-    50%      { transform: scaleX(-1); }
-  }
-  .fx-flip-alt { animation: flipAlternado 0.5s infinite; }
-
-  .fx-secuencia {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 42px;
-  }
-
-  @keyframes rotAlternada {
-    0%, 100% { transform: rotate(0deg); }
-    50%      { transform: rotate(180deg); }
-  }
-  .fx-rot-alt { animation: rotAlternada 0.7s infinite; }
-
-  @keyframes opacidadAlt {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.35; }
-  }
-  .fx-opacidad-alt { animation: opacidadAlt 1s infinite; }
-
-  @keyframes escalaAlt {
-    0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.25); }
-  }
-  .fx-escala-alt { animation: escalaAlt 1.1s ease-in-out infinite; }
-
-  @keyframes hueAlt {
-    0%, 100% { filter: hue-rotate(0deg); }
-    50%      { filter: hue-rotate(180deg); }
-  }
-  .fx-hue-alt { animation: hueAlt 1.5s infinite; }
-</style>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SCRIPT SECCIÓN 4 (secuencia de emojis)                  -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<script>
-  // Secuencia 🌍🌎🌏
-  const mundos = ['🌍', '🌎', '🌏'];
-  let idxMundo = 0;
-  const elMundo = document.getElementById('sec-mundo');
-  setInterval(() => {
-    idxMundo = (idxMundo + 1) % mundos.length;
-    elMundo.textContent = mundos[idxMundo];
-  }, 400);
-</script>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 5 · COMBINACIONES DE EFECTOS                    -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 5 ═══════════════ -->
 <h2 id="s5">5 · Combinaciones de efectos</h2>
-<p class="subtitulo">
-  Efectos apilados en una sola <code>@keyframes</code> o en propiedades distintas. Cada combinación simula un objeto concreto.
-</p>
+<p class="subtitulo">Efectos apilados. Cada combinación simula un objeto concreto.</p>
 
-<!-- 5.1 Fuego encendido -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.1 · Fuego encendido</span>
-    <span class="item-badge">pulse + opacidad</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.1 · Fuego encendido</span><span class="item-badge">pulse + opacidad</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-fuego">🔥</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> cambio de escala (latido) + cambio de opacidad en una sola animación.</p>
-      <p><strong>Simula:</strong> un fuego vivo que respira y titila.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes</code> que anima <code>transform: scale()</code> y <code>opacity</code> a la vez.</p>
+      <p><strong>Simula:</strong> fuego vivo que respira y titila.</p>
       <pre><code>@keyframes fuegoVivo {
   0%, 100% { transform: scale(1);   opacity: 1; }
   50%      { transform: scale(1.2); opacity: 0.65; }
 }
-.combo-fuego {
-  animation: fuegoVivo 0.6s ease-in-out infinite;
-}</code></pre>
+.combo-fuego { animation: fuegoVivo 0.6s ease-in-out infinite; }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 5.2 Portal encendido -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.2 · Portal encendido</span>
-    <span class="item-badge">glow + spin</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.2 · Portal encendido</span><span class="item-badge">glow + spin</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-portal">🌀</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> glow (text-shadow) + rotación continua (animation).</p>
-      <p><strong>Simula:</strong> un portal mágico que gira y brilla.</p>
-      <p><strong>Fórmula:</strong> <code>animation: spin</code> + <code>text-shadow</code> (propiedades distintas, sin conflicto).</p>
+      <p><strong>Simula:</strong> portal mágico que gira y brilla.</p>
       <pre><code>.combo-portal {
   animation: spin 2.5s linear infinite;
-  text-shadow:
-    0 0 10px cyan,
-    0 0 22px rgba(0, 255, 255, 0.7);
+  text-shadow: 0 0 10px cyan, 0 0 22px rgba(0, 255, 255, 0.7);
 }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 5.3 Cohete en diagonal -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.3 · Cohete en diagonal</span>
-    <span class="item-badge">vibración + rotate(45°)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.3 · Cohete en diagonal</span><span class="item-badge">vibración + rotate(45°)</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-cohete">🚀</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> vibración (traducción) con rotación 45° fija en cada frame.</p>
-      <p><strong>Simula:</strong> un cohete volando hacia el noreste.</p>
-      <p><strong>Fórmula:</strong> en cada keyframe combinamos <code>rotate(45deg)</code> + <code>translate(...)</code>.</p>
+      <p><strong>Simula:</strong> cohete volando hacia el NE.</p>
       <pre><code>@keyframes coheteVuela {
   0%, 100% { transform: rotate(45deg) translate(0, 0); }
   25%      { transform: rotate(45deg) translate(-2px, 1px); }
@@ -904,67 +652,44 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 5.4 Cohete alternando dirección -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.4 · Cohete alternando dirección</span>
-    <span class="item-badge">vibración + rotación variable</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.4 · Cohete alternando</span><span class="item-badge">vibración amplia</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-cohete-alt">🚀</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> la vibración es más amplia y alterna el eje, simulando zigzag.</p>
-      <p><strong>Simula:</strong> un cohete zigzagueando en diagonal.</p>
-      <p><strong>Fórmula:</strong> igual que 5.3 pero con desplazamientos más grandes en X.</p>
+      <p><strong>Simula:</strong> cohete zigzagueando.</p>
       <pre><code>@keyframes coheteAlterna {
   0%, 100% { transform: rotate(45deg) translate(0, 0); }
   25%      { transform: rotate(45deg) translate(-3px, 1px); }
   50%      { transform: rotate(45deg) translate(3px, -1px); }
   75%      { transform: rotate(45deg) translate(-2px, 2px); }
-}
-.combo-cohete-alt { animation: coheteAlterna 0.4s infinite; }</code></pre>
+}</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 5.5 Cohete espejado (NO) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.5 · Cohete espejado (hacia NO)</span>
-    <span class="item-badge">vibración + flip + rotate</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.5 · Cohete espejado (NO)</span><span class="item-badge">vibración + flip + rotate</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-cohete-alt-b">🚀</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> combinación de flip horizontal + rotación -45° + vibración.</p>
-      <p><strong>Simula:</strong> un cohete yendo hacia el noroeste (espejado).</p>
-      <p><strong>Fórmula:</strong> se antepone <code>scaleX(-1)</code> a toda la cadena de transformaciones.</p>
+      <p><strong>Simula:</strong> cohete yendo hacia el NO.</p>
       <pre><code>@keyframes coheteAlternaFlip {
   0%, 100% { transform: rotate(-45deg) scaleX(-1) translate(0, 0); }
   25%      { transform: rotate(-45deg) scaleX(-1) translate(-3px, 1px); }
   50%      { transform: rotate(-45deg) scaleX(-1) translate(3px, -1px); }
   75%      { transform: rotate(-45deg) scaleX(-1) translate(-2px, 2px); }
-}
-.combo-cohete-alt-b { animation: coheteAlternaFlip 0.4s infinite; }</code></pre>
+}</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 5.6 Nave alienígena (flotando) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.6 · Nave alienígena (flotando)</span>
-    <span class="item-badge">vibración suave (flotar)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.6 · Nave flotando</span><span class="item-badge">translateY suave</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-nave-vibra">🛸</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> traslación vertical suave hacia arriba y abajo.</p>
-      <p><strong>Simula:</strong> una nave alienígena flotando en el aire.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes flotar</code> con <code>translateY</code> entre 0 y -4px.</p>
+      <p><strong>Simula:</strong> nave alienígena flotando.</p>
       <pre><code>@keyframes flotar {
   0%, 100% { transform: translateY(0px); }
   50%      { transform: translateY(-4px); }
@@ -974,19 +699,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 5.7 Nave alienígena (latido) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.7 · Nave alienígena (latido)</span>
-    <span class="item-badge">latido + flotar</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.7 · Nave con latido</span><span class="item-badge">pulse + translateY</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-nave-latido">🛸</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> combina latido (scale) con flotación (translateY).</p>
-      <p><strong>Simula:</strong> una nave que respira mientras flota.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes</code> con <code>scale()</code> + <code>translateY()</code> simultáneos.</p>
+      <p><strong>Simula:</strong> nave que respira mientras flota.</p>
       <pre><code>@keyframes flotarLatido {
   0%, 100% { transform: scale(1)    translateY(0px); }
   50%      { transform: scale(1.08) translateY(-3px); }
@@ -996,19 +714,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 5.8 Planta alienígena (cíclica) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.8 · Planta alienígena (color cíclico)</span>
-    <span class="item-badge">hue-rotate cíclico</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.8 · Planta alien cíclica</span><span class="item-badge">hue-rotate cíclico</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-planta-alien">🍄</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> rota el tono de color del emoji en un ciclo completo.</p>
-      <p><strong>Simula:</strong> una planta alienígena que cambia de tonalidad.</p>
-      <p><strong>Fórmula:</strong> <code>hue-rotate</code> recorriendo 0 → 360° con saltos de 90°.</p>
+      <p><strong>Simula:</strong> planta alienígena que cambia de tonalidad.</p>
       <pre><code>@keyframes plantaAlien {
   0%   { filter: hue-rotate(0deg)   brightness(1); }
   25%  { filter: hue-rotate(90deg)  brightness(1.2); }
@@ -1021,96 +732,56 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 5.9 Planta alienígena (fija) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">5.9 · Planta alienígena (color fijo)</span>
-    <span class="item-badge">hue-rotate fijo</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">5.9 · Planta alien fija</span><span class="item-badge">hue-rotate estático</span></div>
   <div class="item-body">
     <div class="demo"><span class="fx-combo-planta-alien-fija">🌵</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> aplica un <code>hue-rotate</code> estático (no animado).</p>
-      <p><strong>Simula:</strong> una planta alienígena permanentemente teñida.</p>
-      <p><strong>Fórmula:</strong> <code>filter: hue-rotate(120deg) brightness(1.3) saturate(1.5);</code></p>
+      <p><strong>Simula:</strong> planta permanentemente teñida.</p>
       <pre><code>.combo-planta-alien-fija {
-  filter:
-    hue-rotate(120deg)
-    brightness(1.3)
-    saturate(1.5);
+  filter: hue-rotate(120deg) brightness(1.3) saturate(1.5);
 }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 6 · FONDOS PINTADOS + EFECTOS TEMÁTICOS         -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 6 ═══════════════ -->
 <h2 id="s6">6 · Fondos pintados + efectos temáticos</h2>
-<p class="subtitulo">
-  Combinan color de fondo + textura (radial-gradient) + tinte del emoji (filter). Simulan biomas o superficies.
-</p>
+<p class="subtitulo">Color de fondo + textura + tinte del emoji. Simulan biomas.</p>
 
-<!-- 6.1 Pasto verde vivo -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">6.1 · Pasto verde vivo</span>
-    <span class="item-badge">background-color</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">6.1 · Pasto verde vivo</span><span class="item-badge">background-color</span></div>
   <div class="item-body">
     <div class="demo fx-fondo-pasto">🌿</div>
     <div class="info">
-      <p><strong>Qué hace:</strong> fondo verde vivo saturado, casi igual al del emoji.</p>
       <p><strong>Simula:</strong> pasto fresco y brillante.</p>
-      <p><strong>Fórmula:</strong> <code>background: #2ecc40;</code> + borde del mismo tono.</p>
       <pre><code>.fondo-pasto {
   background: #2ecc40;
   border-color: #27ae38;
-}
-.fondo-pasto:hover {
-  border-color: #6cff7a;
-  box-shadow: 0 0 14px rgba(46, 204, 64, 0.6);
 }</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 6.2 Trigo / pastizal -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">6.2 · Trigo / pastizal</span>
-    <span class="item-badge">mismo verde vivo</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">6.2 · Trigo / pastizal</span><span class="item-badge">mismo verde</span></div>
   <div class="item-body">
     <div class="demo fx-fondo-pasto">🌾</div>
     <div class="info">
-      <p><strong>Qué hace:</strong> reusa la clase del pasto con otro emoji.</p>
-      <p><strong>Simula:</strong> un campo de trigo luminoso.</p>
-      <p><strong>Fórmula:</strong> misma clase <code>.fondo-pasto</code>, distinto emoji.</p>
+      <p><strong>Simula:</strong> campo de trigo luminoso.</p>
       <pre><code>&lt;div class="demo fondo-pasto"&gt;🌾&lt;/div&gt;</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 6.3 Arena del desierto -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">6.3 · Arena del desierto</span>
-    <span class="item-badge">amarillo + textura + tinte</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">6.3 · Arena del desierto</span><span class="item-badge">amarillo + textura + tinte</span></div>
   <div class="item-body">
     <div class="demo fx-fondo-arena">🌫️</div>
     <div class="info">
-      <p><strong>Qué hace:</strong> fondo amarillo fuerte + textura de puntos + tinte del emoji.</p>
       <p><strong>Simula:</strong> arena del desierto.</p>
-      <p><strong>Fórmula:</strong> color base + 3 <code>radial-gradient</code> repetidos + <code>hue-rotate</code> en el emoji.</p>
       <pre><code>.fondo-arena {
   background: #f2c744;
-  border-color: #d4a82e;
   background-image:
     radial-gradient(circle at 25% 35%, #c99a1f 1.2px, transparent 1.2px),
     radial-gradient(circle at 75% 65%, #c99a1f 1.2px, transparent 1.2px),
@@ -1124,22 +795,14 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 6.4 Textura rocosa -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">6.4 · Textura rocosa / lunar</span>
-    <span class="item-badge">gris + puntos</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">6.4 · Textura rocosa</span><span class="item-badge">gris + puntos</span></div>
   <div class="item-body">
     <div class="demo fx-fondo-rocoso">〰️</div>
     <div class="info">
-      <p><strong>Qué hace:</strong> fondo gris oscuro con 3 capas de puntos desplazados.</p>
-      <p><strong>Simula:</strong> superficie rocosa o suelo lunar.</p>
-      <p><strong>Fórmula:</strong> igual que arena pero con tonos grises.</p>
+      <p><strong>Simula:</strong> superficie rocosa o lunar.</p>
       <pre><code>.fondo-rocoso {
   background: #1f1f22;
-  border-color: #3a3a3f;
   background-image:
     radial-gradient(circle at 30% 40%, #2e2e33 1.2px, transparent 1.2px),
     radial-gradient(circle at 70% 60%, #2e2e33 1.2px, transparent 1.2px),
@@ -1150,37 +813,23 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 6.5 Cuadrado vacío sobre roca -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">6.5 · Emoji vacío sobre roca</span>
-    <span class="item-badge">deja ver la textura</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">6.5 · Emoji vacío sobre roca</span><span class="item-badge">deja ver textura</span></div>
   <div class="item-body">
     <div class="demo fx-fondo-rocoso">▫️</div>
     <div class="info">
-      <p><strong>Qué hace:</strong> usa el mismo fondo rocoso pero con un emoji casi vacío.</p>
-      <p><strong>Simula:</strong> una celda de suelo sin objeto, mostrando solo la textura.</p>
-      <p><strong>Fórmula:</strong> reusar <code>.fondo-rocoso</code> con otro emoji.</p>
+      <p><strong>Simula:</strong> celda de suelo sin objeto.</p>
       <pre><code>&lt;div class="demo fondo-rocoso"&gt;▫️&lt;/div&gt;</code></pre>
     </div>
   </div>
 </div>
 
-<!-- 6.6 Piedra (papa rotada) -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">6.6 · Piedra (papa rotada + gris)</span>
-    <span class="item-badge">rotate + grayscale</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">6.6 · Piedra (papa rotada)</span><span class="item-badge">rotate + grayscale</span></div>
   <div class="item-body">
     <div class="demo fx-fondo-rocoso"><span class="fx-emoji-piedra">🥔</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> rota 45° la papa y le quita saturación.</p>
-      <p><strong>Simula:</strong> una piedra suelta en el suelo.</p>
-      <p><strong>Fórmula:</strong> <code>transform: rotate(45deg);</code> + <code>filter: grayscale(1);</code></p>
+      <p><strong>Simula:</strong> piedra suelta en el suelo.</p>
       <pre><code>.emoji-piedra {
   transform: rotate(45deg);
   filter: grayscale(1) brightness(0.9);
@@ -1189,19 +838,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 6.7 Huevo alienígena -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">6.7 · Huevo alienígena</span>
-    <span class="item-badge">hue-rotate cíclico + pulse</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">6.7 · Huevo alienígena</span><span class="item-badge">hue-rotate + pulse</span></div>
   <div class="item-body">
     <div class="demo fx-fondo-alien"><span class="fx-emoji-huevo-alien">🥚</span></div>
     <div class="info">
-      <p><strong>Qué hace:</strong> cambio de color cíclico + latido (scale) en una sola animación.</p>
-      <p><strong>Simula:</strong> un huevo alienígena vivo que late y cambia de color.</p>
-      <p><strong>Fórmula:</strong> una sola <code>@keyframes</code> que anima <code>filter</code> + <code>transform</code> a la vez.</p>
+      <p><strong>Simula:</strong> huevo alienígena vivo.</p>
       <pre><code>@keyframes huevoAlien {
   0%   { filter: hue-rotate(0deg)   brightness(1);   transform: scale(1); }
   25%  { filter: hue-rotate(90deg)  brightness(1.3); transform: scale(1.08); }
@@ -1214,157 +856,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- ESTILOS SECCIÓN 5 Y 6                                   -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<style>
-  /* ── Sección 5: Combinaciones ── */
-  @keyframes fuegoVivo {
-    0%, 100% { transform: scale(1);   opacity: 1; }
-    50%      { transform: scale(1.2); opacity: 0.65; }
-  }
-  .fx-combo-fuego { animation: fuegoVivo 0.6s ease-in-out infinite; }
-
-  .fx-combo-portal {
-    animation: spin 2.5s linear infinite;
-    text-shadow: 0 0 10px cyan, 0 0 22px rgba(0, 255, 255, 0.7);
-  }
-
-  @keyframes coheteVuela {
-    0%, 100% { transform: rotate(45deg) translate(0, 0); }
-    25%      { transform: rotate(45deg) translate(-2px, 1px); }
-    50%      { transform: rotate(45deg) translate(2px, -1px); }
-    75%      { transform: rotate(45deg) translate(-1px, 2px); }
-  }
-  .fx-combo-cohete { animation: coheteVuela 0.4s infinite; }
-
-  @keyframes coheteAlterna {
-    0%, 100% { transform: rotate(45deg) translate(0, 0); }
-    25%      { transform: rotate(45deg) translate(-3px, 1px); }
-    50%      { transform: rotate(45deg) translate(3px, -1px); }
-    75%      { transform: rotate(45deg) translate(-2px, 2px); }
-  }
-  .fx-combo-cohete-alt { animation: coheteAlterna 0.4s infinite; }
-
-  @keyframes coheteAlternaFlip {
-    0%, 100% { transform: rotate(-45deg) scaleX(-1) translate(0, 0); }
-    25%      { transform: rotate(-45deg) scaleX(-1) translate(-3px, 1px); }
-    50%      { transform: rotate(-45deg) scaleX(-1) translate(3px, -1px); }
-    75%      { transform: rotate(-45deg) scaleX(-1) translate(-2px, 2px); }
-  }
-  .fx-combo-cohete-alt-b { animation: coheteAlternaFlip 0.4s infinite; }
-
-  @keyframes flotar {
-    0%, 100% { transform: translateY(0px); }
-    50%      { transform: translateY(-4px); }
-  }
-  .fx-combo-nave-vibra { animation: flotar 0.5s ease-in-out infinite; }
-
-  @keyframes flotarLatido {
-    0%, 100% { transform: scale(1)    translateY(0px); }
-    50%      { transform: scale(1.08) translateY(-3px); }
-  }
-  .fx-combo-nave-latido { animation: flotarLatido 1.2s ease-in-out infinite; }
-
-  @keyframes plantaAlien {
-    0%   { filter: hue-rotate(0deg)   brightness(1); }
-    25%  { filter: hue-rotate(90deg)  brightness(1.2); }
-    50%  { filter: hue-rotate(180deg) brightness(1); }
-    75%  { filter: hue-rotate(270deg) brightness(1.2); }
-    100% { filter: hue-rotate(360deg) brightness(1); }
-  }
-  .fx-combo-planta-alien { animation: plantaAlien 4s linear infinite; }
-
-  .fx-combo-planta-alien-fija {
-    filter: hue-rotate(120deg) brightness(1.3) saturate(1.5);
-  }
-
-  /* ── Sección 6: Fondos pintados ── */
-  .fx-fondo-pasto {
-    background: #2ecc40;
-    border-color: #27ae38;
-  }
-  .fx-fondo-pasto:hover {
-    border-color: #6cff7a;
-    box-shadow: 0 0 14px rgba(46, 204, 64, 0.6);
-  }
-
-  .fx-fondo-arena {
-    background: #f2c744;
-    border-color: #d4a82e;
-    background-image:
-      radial-gradient(circle at 25% 35%, #c99a1f 1.2px, transparent 1.2px),
-      radial-gradient(circle at 75% 65%, #c99a1f 1.2px, transparent 1.2px),
-      radial-gradient(circle at 50% 90%, #c99a1f 1px,   transparent 1px);
-    background-size: 10px 10px, 14px 14px, 8px 8px;
-    filter: hue-rotate(25deg) brightness(1.15) saturate(1.4);
-  }
-  .fx-fondo-arena:hover {
-    border-color: #ffe066;
-    box-shadow: 0 0 14px rgba(242, 199, 68, 0.6);
-  }
-
-  .fx-fondo-rocoso {
-    background: #1f1f22;
-    border-color: #3a3a3f;
-    background-image:
-      radial-gradient(circle at 30% 40%, #2e2e33 1.2px, transparent 1.2px),
-      radial-gradient(circle at 70% 60%, #2e2e33 1.2px, transparent 1.2px),
-      radial-gradient(circle at 50% 85%, #2a2a2e 1px,   transparent 1px);
-    background-size: 12px 12px, 16px 16px, 9px 9px;
-  }
-  .fx-fondo-rocoso:hover {
-    border-color: #7a7a8a;
-    box-shadow: 0 0 14px rgba(122, 122, 138, 0.5);
-  }
-
-  .fx-emoji-piedra {
-    transform: rotate(45deg);
-    filter: grayscale(1) brightness(0.9);
-  }
-
-  .fx-fondo-alien {
-    background: #1a2a1a;
-    border-color: #2a5a3a;
-  }
-  .fx-fondo-alien:hover {
-    border-color: #4aff8a;
-    box-shadow: 0 0 12px rgba(74, 255, 138, 0.3);
-  }
-
-  @keyframes huevoAlien {
-    0%   { filter: hue-rotate(0deg)   brightness(1);   transform: scale(1); }
-    25%  { filter: hue-rotate(90deg)  brightness(1.3); transform: scale(1.08); }
-    50%  { filter: hue-rotate(180deg) brightness(1);   transform: scale(1); }
-    75%  { filter: hue-rotate(270deg) brightness(1.3); transform: scale(1.08); }
-    100% { filter: hue-rotate(360deg) brightness(1);   transform: scale(1); }
-  }
-  .fx-emoji-huevo-alien { animation: huevoAlien 3s linear infinite; }
-
-  /* El .demo con fondo necesita que el emoji sea visible:
-     centramos, agrandamos, y aseguramos que tenga el mismo look que los demás */
-  .demo.fx-fondo-pasto,
-  .demo.fx-fondo-arena,
-  .demo.fx-fondo-rocoso,
-  .demo.fx-fondo-alien {
-    font-size: 42px;
-  }
-</style>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 7 · CADENA ANIMADA ENTRE BLOQUES                -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 7 ═══════════════ -->
 <h2 id="s7">7 · Cadena animada entre bloques</h2>
-<p class="subtitulo">
-  Simula una cadena (⛓️) que se mueve entre dos bloques fijos (🔲) que representan entrada y salida.
-</p>
+<p class="subtitulo">Cadena (⛓️) que se mueve entre dos bloques fijos (🔲).</p>
 
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">7.1 · Cadena sube/baja entre bloques</span>
-    <span class="item-badge">flip alternado con fase</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">7.1 · Cadena sube/baja entre bloques</span><span class="item-badge">flip alternado con fase</span></div>
   <div class="item-body" style="grid-template-columns: 140px 1fr;">
     <div class="demo demo-cadena">
       <div class="bloque">🔲</div>
@@ -1376,14 +873,11 @@ setInterval(() => {
       <div class="bloque">🔲</div>
     </div>
     <div class="info">
-      <p><strong>Qué hace:</strong> 3 eslabones ⛓️ entre dos bloques 🔲. Cada eslabón alterna su orientación con una fase distinta.</p>
-      <p><strong>Simula:</strong> cadena que sube y baja entre dos puntos (entrada/salida).</p>
-      <p><strong>Fórmula:</strong> <code>setInterval</code> + <code>scaleX(-1)</code> alternado según <code>(frame + fase) % 2</code>.</p>
+      <p><strong>Simula:</strong> cadena que sube y baja entre dos puntos.</p>
       <pre><code>.eslabon {
-  font-size: 32px;
+  font-size: 26px;
   transition: transform 0.08s linear;
 }
-
 // JS
 let frame = 0;
 setInterval(() => {
@@ -1398,20 +892,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 8 · PARPADEO DE GOLPES                          -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 8 ═══════════════ -->
 <h2 id="s8">8 · Parpadeo de golpes</h2>
-<p class="subtitulo">
-  Animación de parpadeo con cambio de escala, brillo y opacidad. Simula objetos que reciben golpes.
-</p>
+<p class="subtitulo">Parpadeo con escala, brillo y opacidad. Simula objetos golpeados.</p>
 
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">8.1 · Parpadeo de golpe (árbol, montaña, ladrillo)</span>
-    <span class="item-badge">keyframes + delays</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">8.1 · Parpadeo de golpe</span><span class="item-badge">keyframes + delays</span></div>
   <div class="item-body">
     <div class="demo" style="gap: 14px; display: flex;">
       <span class="fx-golpe">🌳</span>
@@ -1419,9 +905,7 @@ setInterval(() => {
       <span class="fx-golpe fx-golpe-c">🧱</span>
     </div>
     <div class="info">
-      <p><strong>Qué hace:</strong> combina cambios de opacidad, escala y brillo en una sola animación rápida.</p>
-      <p><strong>Simula:</strong> el objeto "cortado" por golpes sucesivos.</p>
-      <p><strong>Fórmula:</strong> <code>@keyframes parpadeoGolpe</code> + <code>animation-delay</code> distinto para desincronizar.</p>
+      <p><strong>Simula:</strong> objeto "cortado" por golpes sucesivos.</p>
       <pre><code>@keyframes parpadeoGolpe {
   0%   { opacity: 1;    transform: scale(1);    filter: brightness(1); }
   15%  { opacity: 0.2;  transform: scale(0.92); filter: brightness(2); }
@@ -1438,24 +922,15 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 9 · FÓRMULAS Y REGLAS GENERALES                 -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 9 ═══════════════ -->
 <h2 id="s9">9 · Fórmulas y reglas generales</h2>
-<p class="subtitulo">
-  Reglas para combinar efectos sin pisarse. Sirve como referencia rápida al diseñar nuevos tiles.
-</p>
+<p class="subtitulo">Reglas para combinar efectos sin pisarse.</p>
 
-<!-- 9.1 Regla de canales -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">9.1 · Regla de "un canal por propiedad"</span>
-    <span class="item-badge">evitar conflictos</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">9.1 · Regla "un canal por propiedad"</span><span class="item-badge">evitar conflictos</span></div>
   <div class="item-body" style="grid-template-columns: 1fr;">
     <div class="info">
-      <p><strong>Regla:</strong> solo una declaración por "canal". Si querés combinar, meté todo dentro de la misma propiedad.</p>
+      <p><strong>Regla:</strong> solo una declaración por "canal".</p>
       <p><strong>Canales:</strong> <code>transform</code>, <code>animation</code>, <code>filter</code>, <code>text-shadow</code>, <code>background</code>.</p>
       <pre><code>/* ❌ MAL: dos transforms, uno pisa al otro */
 .a { transform: scaleX(-1); }
@@ -1464,11 +939,11 @@ setInterval(() => {
 /* ✅ BIEN: un solo transform con todo */
 .c { transform: scaleX(-1) rotate(45deg); }
 
-/* ❌ MAL: dos animations, solo vale la última */
+/* ❌ MAL: dos animations */
 .a { animation: pulse 1s infinite; }
 .b { animation: spin 2s infinite; }
 
-/* ✅ BIEN: una sola keyframes que haga ambos */
+/* ✅ BIEN: una sola keyframes */
 @keyframes pulseSpin {
   0%, 100% { transform: scale(1)    rotate(0deg); }
   50%      { transform: scale(1.18) rotate(180deg); }
@@ -1477,20 +952,14 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 9.2 Fórmula: fondo temático -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">9.2 · Fórmula: fondo temático con textura</span>
-    <span class="item-badge">3 capas</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">9.2 · Fórmula: fondo temático</span><span class="item-badge">3 capas</span></div>
   <div class="item-body" style="grid-template-columns: 1fr;">
     <div class="info">
-      <p><strong>Fórmula general:</strong></p>
       <p>1. <code>background</code> → color dominante</p>
-      <p>2. <code>background-image</code> → 1-3 <code>radial-gradient()</code> repetidos = textura</p>
-      <p>3. <code>background-size</code> → tamaños distintos por capa (evita patrón obvio)</p>
-      <p>4. <code>filter</code> en el emoji → <code>hue-rotate + brightness + saturate</code> para integrarlo</p>
+      <p>2. <code>background-image</code> → 1-3 <code>radial-gradient()</code></p>
+      <p>3. <code>background-size</code> → tamaños distintos</p>
+      <p>4. <code>filter</code> en el emoji → <code>hue-rotate + brightness + saturate</code></p>
       <pre><code>.fondo-tematico {
   background: #COLOR_BASE;
   background-image:
@@ -1506,24 +975,12 @@ setInterval(() => {
   </div>
 </div>
 
-<!-- 9.3 Recetas rápidas -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">9.3 · Recetas rápidas por temática</span>
-    <span class="item-badge">copiar y pegar</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">9.3 · Recetas rápidas por temática</span><span class="item-badge">copiar</span></div>
   <div class="item-body" style="grid-template-columns: 1fr;">
     <div class="info">
       <table style="width:100%; font-size:11px; color:#aaa; border-collapse: collapse;">
-        <thead>
-          <tr style="color:#6cf; border-bottom:1px solid #333;">
-            <th style="text-align:left; padding:6px;">Temática</th>
-            <th style="text-align:left; padding:6px;">Fondo</th>
-            <th style="text-align:left; padding:6px;">Punto</th>
-            <th style="text-align:left; padding:6px;">hue-rotate</th>
-          </tr>
-        </thead>
+        <thead><tr style="color:#6cf; border-bottom:1px solid #333;"><th style="text-align:left; padding:6px;">Temática</th><th style="text-align:left; padding:6px;">Fondo</th><th style="text-align:left; padding:6px;">Punto</th><th style="text-align:left; padding:6px;">hue-rotate</th></tr></thead>
         <tbody>
           <tr><td style="padding:6px;">🌿 Pasto</td><td>#2ecc40</td><td>—</td><td>0deg</td></tr>
           <tr><td style="padding:6px;">🏜️ Arena</td><td>#f2c744</td><td>#c99a1f</td><td>25deg</td></tr>
@@ -1531,240 +988,120 @@ setInterval(() => {
           <tr><td style="padding:6px;">🌋 Lava</td><td>#ff4400</td><td>#aa2200</td><td>-30deg</td></tr>
           <tr><td style="padding:6px;">🌲 Bosque</td><td>#2ecc40</td><td>#1a8a2a</td><td>0deg</td></tr>
           <tr><td style="padding:6px;">☁️ Cielo</td><td>#4aa8ff</td><td>#2a78cc</td><td>200deg</td></tr>
-          <tr><td style="padding:6px;">🌑 Roca</td><td>#1f1f22</td><td>#2e2e33</td><td>0deg (grayscale)</td></tr>
+          <tr><td style="padding:6px;">🌑 Roca</td><td>#1f1f22</td><td>#2e2e33</td><td>grayscale</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- 9.4 Reglas de combinación -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">9.4 · Qué se combina bien y qué no</span>
-    <span class="item-badge">referencia</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">9.4 · Qué se combina y qué no</span><span class="item-badge">referencia</span></div>
   <div class="item-body" style="grid-template-columns: 1fr;">
     <div class="info">
-      <p><strong>✅ Se combinan bien (canales distintos):</strong></p>
-      <p>• glow (<code>text-shadow</code>) + sombra (<code>filter</code>) + parpadeo (<code>animation</code>)</p>
-      <p>• rotación + escala → dentro del mismo <code>transform</code>: <code>rotate(45deg) scale(1.5)</code></p>
-      <p>• flip + escala → <code>scaleX(-1) scale(1.5)</code></p>
-      <p>• animación + transición → una anima, la otra responde al hover</p>
+      <p><strong>✅ Se combinan bien:</strong></p>
+      <p>• glow + sombra + parpadeo (canales distintos)</p>
+      <p>• rotación + escala → <code>rotate(45deg) scale(1.5)</code></p>
       <p>• animación + filtro → <code>animation: pulse</code> + <code>filter: hue-rotate()</code></p>
-      <p style="margin-top:10px;"><strong>⚠️ Se pisan (mismo canal):</strong></p>
-      <p>• Dos <code>transform</code> distintos → solo vale el último</p>
-      <p>• Dos <code>animation</code> → solo vale la última (salvo comas)</p>
-      <p>• <code>transform</code> estático + <code>animation</code> con transform → la animación gana mientras corre</p>
-      <p style="margin-top:10px;"><strong>🔑 Solución:</strong> unificar todo dentro de una sola declaración.</p>
+      <p style="margin-top:10px;"><strong>⚠️ Se pisan:</strong></p>
+      <p>• Dos <code>transform</code> distintos</p>
+      <p>• Dos <code>animation</code> (salvo con comas)</p>
+      <p>• <code>transform</code> estático + <code>animation</code> con transform</p>
+      <p style="margin-top:10px;"><strong>🔑 Solución:</strong> unificar en una sola declaración.</p>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 10 · PLANILLA DE CHECK FINAL                    -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 10 ═══════════════ -->
 <h2 id="s10">10 · Planilla de check final</h2>
-<p class="subtitulo">
-  Tabla resumen con todos los efectos del catálogo. Marcá ☐ los que ya implementaste en tu proyecto.
-</p>
+<p class="subtitulo">Tabla resumen con todos los efectos.</p>
 
 <div class="item" style="padding: 0;">
   <table style="width:100%; font-size:11px; color:#aaa; border-collapse: collapse;">
-    <thead>
-      <tr style="color:#6cf; background:#0f1a24; border-bottom:1px solid #2a4a6a;">
-        <th style="text-align:left; padding:10px;">☑</th>
-        <th style="text-align:left; padding:10px;">#</th>
-        <th style="text-align:left; padding:10px;">Efecto</th>
-        <th style="text-align:left; padding:10px;">Propiedad CSS</th>
-        <th style="text-align:left; padding:10px;">Uso típico</th>
-      </tr>
-    </thead>
+    <thead><tr style="color:#6cf; background:#0f1a24; border-bottom:1px solid #2a4a6a;"><th style="text-align:left; padding:10px;">☑</th><th style="text-align:left; padding:10px;">#</th><th style="text-align:left; padding:10px;">Efecto</th><th style="text-align:left; padding:10px;">Propiedad CSS</th><th style="text-align:left; padding:10px;">Uso típico</th></tr></thead>
     <tbody>
-      <!-- Sección 1 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">1 · Transformaciones geométricas</td>
-      </tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.1</td><td>Flip horizontal</td><td>transform: scaleX(-1)</td><td>Dirección de personajes</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.2</td><td>Flip vertical</td><td>transform: scaleY(-1)</td><td>Fuego, flechas ↓, hojas</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.3</td><td>Rotación 45°</td><td>transform: rotate(45deg)</td><td>Flechas NE, cohetes</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.4</td><td>Rotación 90°</td><td>transform: rotate(90deg)</td><td>Flechas ↓, tuberías</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.5</td><td>Rotación 135°</td><td>transform: rotate(135deg)</td><td>Flechas SO</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.6</td><td>Rotación animada</td><td>transition + rotate</td><td>Brújula, reloj, engranaje</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.7</td><td>Escala 2×</td><td>transform: scale(2)</td><td>Mobs grandes, destacados</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>1.8</td><td>Espejo diagonal</td><td>scale(-1,1) + rotate</td><td>Efectos ópticos</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">1 · Transformaciones</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.1</td><td>Flip horizontal</td><td>scaleX(-1)</td><td>Dirección</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.2</td><td>Flip vertical</td><td>scaleY(-1)</td><td>Fuego, flechas</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.3</td><td>Rotación 45°</td><td>rotate(45deg)</td><td>Cohetes</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.4</td><td>Rotación 90°</td><td>rotate(90deg)</td><td>Flechas</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.5</td><td>Rotación 135°</td><td>rotate(135deg)</td><td>Diagonal SO</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.6</td><td>Rotación animada</td><td>transition</td><td>Brújula</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.7</td><td>Escala 2×</td><td>scale(2)</td><td>Jefes</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>1.8</td><td>Espejo diagonal</td><td>scale(-1,1)+rotate</td><td>Óptico</td></tr>
 
-      <!-- Sección 2 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">2 · Tamaño en grilla</td>
-      </tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>2.1</td><td>1×1 normal</td><td>grid (sin span)</td><td>Mobs comunes</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>2.2</td><td>2×2</td><td>grid-column/row: span 2</td><td>Jefes, tigre alfa</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>2.3</td><td>3×3</td><td>grid-column/row: span 3</td><td>Árbol grande, altar</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>2.4</td><td>1×2 alto</td><td>grid-row: span 2</td><td>Puerta, antorcha</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>2.5</td><td>2×1 ancho</td><td>grid-column: span 2</td><td>Tronco caído, valla</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">2 · Grilla</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>2.1</td><td>2×2</td><td>span 2</td><td>Jefes</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>2.2</td><td>3×3</td><td>span 3</td><td>Estructuras</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>2.3</td><td>1×2</td><td>span 2 rows</td><td>Puertas</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>2.4</td><td>2×1</td><td>span 2 cols</td><td>Troncos</td></tr>
 
-      <!-- Sección 3 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">3 · Efectos visuales</td>
-      </tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>3.1</td><td>Glow (halo)</td><td>text-shadow</td><td>Ítems importantes</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>3.2</td><td>Sombra proyectada</td><td>filter: drop-shadow</td><td>Profundidad</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>3.3</td><td>Parpadeo</td><td>animation: parpadeo</td><td>Luces, daño</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>3.4</td><td>Vibración</td><td>animation: shake</td><td>Combate, objetos vivos</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>3.5</td><td>Latido (pulse)</td><td>animation: pulse</td><td>Corazón, recuperación</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>3.6</td><td>Rotación continua</td><td>animation: spin</td><td>Portal, energía</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">3 · Efectos visuales</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>3.1</td><td>Glow</td><td>text-shadow</td><td>Ítems</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>3.2</td><td>Sombra</td><td>drop-shadow</td><td>Profundidad</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>3.3</td><td>Parpadeo</td><td>animation</td><td>Luces</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>3.4</td><td>Vibración</td><td>animation</td><td>Combate</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>3.5</td><td>Latido</td><td>animation</td><td>Corazón</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>3.6</td><td>Spin</td><td>animation</td><td>Portales</td></tr>
 
-      <!-- Sección 4 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">4 · Animación de tiles</td>
-      </tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>4.1</td><td>Flip alternado</td><td>scaleX ↔ scaleX(-1)</td><td>Fuego, hoja</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>4.2</td><td>Secuencia de emojis</td><td>JS + setInterval</td><td>🌍🌎🌏, fases lunares</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>4.3</td><td>Rotación alternada</td><td>rotate(0) ↔ 180</td><td>Cadena, reloj</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>4.4</td><td>Cambio de opacidad</td><td>opacity 1 ↔ 0.35</td><td>Antorcha, faro</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>4.5</td><td>Cambio de escala</td><td>scale 1 ↔ 1.25</td><td>Respiración</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>4.6</td><td>Cambio de color</td><td>hue-rotate 0 ↔ 180</td><td>Cristales, energía</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">4 · Animación de tiles</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>4.1</td><td>Flip alternado</td><td>scaleX ↔ scaleX(-1)</td><td>Fuego</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>4.2</td><td>Secuencia</td><td>JS setInterval</td><td>Mundo</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>4.3</td><td>Rotación alternada</td><td>rotate(0) ↔ 180</td><td>Cadena</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>4.4</td><td>Cambio opacidad</td><td>opacity</td><td>Antorcha</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>4.5</td><td>Cambio escala</td><td>scale</td><td>Respiración</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>4.6</td><td>Cambio color</td><td>hue-rotate</td><td>Cristales</td></tr>
 
-      <!-- Sección 5 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">5 · Combinaciones</td>
-      </tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.1</td><td>Fuego encendido</td><td>pulse + opacidad</td><td>🔥 vivo</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.2</td><td>Portal encendido</td><td>glow + spin</td><td>🌀 portal</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.3</td><td>Cohete en diagonal</td><td>vibración + rotate(45°)</td><td>🚀 NE</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.4</td><td>Cohete alternando</td><td>vibración amplia</td><td>🚀 zigzag</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.5</td><td>Cohete espejado</td><td>vibración + flip + rotate</td><td>🚀 NO</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.6</td><td>Nave flotando</td><td>translateY suave</td><td>🛸 flotar</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.7</td><td>Nave con latido</td><td>pulse + translateY</td><td>🛸 respirar</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.8</td><td>Planta alien cíclica</td><td>hue-rotate cíclico</td><td>🍄🌱🌵 cambia color</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>5.9</td><td>Planta alien fija</td><td>hue-rotate estático</td><td>🍄🌱🌵 teñidas</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">5 · Combinaciones</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.1</td><td>Fuego</td><td>pulse + opacidad</td><td>🔥</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.2</td><td>Portal</td><td>glow + spin</td><td>🌀</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.3</td><td>Cohete diag.</td><td>vibración + rotate</td><td>🚀 NE</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.4</td><td>Cohete zigzag</td><td>vibración amplia</td><td>🚀</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.5</td><td>Cohete espejado</td><td>flip + rotate</td><td>🚀 NO</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.6</td><td>Nave flota</td><td>translateY</td><td>🛸</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.7</td><td>Nave respira</td><td>pulse + translateY</td><td>🛸</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.8</td><td>Planta ciclica</td><td>hue-rotate</td><td>🍄</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>5.9</td><td>Planta fija</td><td>hue-rotate estático</td><td>🌵</td></tr>
 
-      <!-- Sección 6 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">6 · Fondos pintados</td>
-      </tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>6.1</td><td>Pasto verde vivo</td><td>background-color</td><td>🌿 pasto</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>6.2</td><td>Trigo / pastizal</td><td>background-color</td><td>🌾 campo</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>6.3</td><td>Arena del desierto</td><td>color + radial-gradient + filter</td><td>🌫️ desierto</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>6.4</td><td>Textura rocosa</td><td>color + radial-gradient</td><td>〰️ roca/luna</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>6.5</td><td>Emoji vacío sobre roca</td><td>reusa fondo rocoso</td><td>▫️ suelo</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>6.6</td><td>Piedra (papa rotada)</td><td>rotate + grayscale</td><td>🥔 piedra</td></tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>6.7</td><td>Huevo alienígena</td><td>hue-rotate + pulse</td><td>🥚 huevo vivo</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">6 · Fondos</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>6.1</td><td>Pasto</td><td>background</td><td>🌿</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>6.2</td><td>Trigo</td><td>background</td><td>🌾</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>6.3</td><td>Arena</td><td>gradient + filter</td><td>🌫️</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>6.4</td><td>Rocoso</td><td>gradient</td><td>〰️</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>6.5</td><td>Vacío roca</td><td>reusa fondo</td><td>▫️</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>6.6</td><td>Piedra</td><td>rotate + grayscale</td><td>🥔</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>6.7</td><td>Huevo alien</td><td>hue-rotate + pulse</td><td>🥚</td></tr>
 
-      <!-- Sección 7 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">7 · Cadena animada</td>
-      </tr>
-      <tr style="border-bottom:1px solid #1a1a1a;"><td style="padding:6px 10px;">☐</td><td>7.1</td><td>Cadena sube/baja</td><td>flip alternado con fase</td><td>⛓️ entre bloques</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">7-8 · Cadena y golpes</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>7.1</td><td>Cadena sube/baja</td><td>flip con fase</td><td>⛓️</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>8.1</td><td>Parpadeo golpe</td><td>keyframes + delays</td><td>🌳🏔️🧱</td></tr>
 
-      <!-- Sección 8 -->
-      <tr style="border-bottom:1px solid #1a1a1a; background:#0d0d10;">
-        <td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">8 · Parpadeo de golpes</td>
-      </tr>
-      <tr><td style="padding:6px 10px;">☐</td><td>8.1</td><td>Parpadeo de golpe</td><td>keyframes + delays</td><td>🌳🏔️🧱 golpeados</td></tr>
+      <tr style="background:#0d0d10;"><td colspan="5" style="padding:8px 10px; color:#6cf; font-weight:bold;">11-13 · Tiles y espaciales</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>11.1</td><td>Flip tiles</td><td>scaleX ↔ scaleX(-1)</td><td>26 tiles</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>11.2</td><td>Secuencia tiles</td><td>array + frame</td><td>26 tiles</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>12.x</td><td>Espaciales</td><td>múltiples</td><td>planeta, escudo, nave</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.1</td><td>Portal partículas</td><td>spin + particulas</td><td>🌀</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.2</td><td>Vórtice oscuro</td><td>spin + orbit</td><td>🕳️</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.3</td><td>Abducción</td><td>flotar + ascender</td><td>🛸👽</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.4</td><td>Cristal alien</td><td>3 animaciones</td><td>💎</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.5</td><td>Bioma vivo</td><td>pulse desincronizado</td><td>🍄🌵🌿</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.6</td><td>Núcleo energía</td><td>pulso + glow</td><td>⚡</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.7</td><td>Bomba</td><td>vibración + chispa</td><td>💣</td></tr>
+      <tr><td style="padding:6px 10px;">☐</td><td>13.8</td><td>Volcán erupción</td><td>latido + humo + chispas</td><td>🌋</td></tr>
     </tbody>
   </table>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- ESTILOS SECCIÓN 7 Y 8                                   -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<style>
-  /* ── Sección 7: Cadena ── */
-  .demo-cadena {
-    flex-direction: column;
-    gap: 4px;
-    padding: 10px;
-    font-size: 32px;
-  }
-  .demo-cadena .bloque {
-    font-size: 34px;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(102, 204, 255, 0.1);
-  }
-  .cadena-anim {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 4px 0;
-  }
-  .eslabon {
-    font-size: 26px;
-    line-height: 1;
-    display: block;
-    transition: transform 0.08s linear;
-  }
-
-  /* ── Sección 8: Parpadeo de golpes ── */
-  @keyframes parpadeoGolpe {
-    0%   { opacity: 1;    transform: scale(1);    filter: brightness(1); }
-    15%  { opacity: 0.2;  transform: scale(0.92); filter: brightness(2); }
-    30%  { opacity: 1;    transform: scale(1.04); filter: brightness(1); }
-    45%  { opacity: 0.15; transform: scale(0.9);  filter: brightness(2.5); }
-    60%  { opacity: 1;    transform: scale(1.02); filter: brightness(1); }
-    75%  { opacity: 0.3;  transform: scale(0.95); filter: brightness(1.8); }
-    100% { opacity: 1;    transform: scale(1);    filter: brightness(1); }
-  }
-  .fx-golpe   { animation: parpadeoGolpe 0.55s infinite; font-size: 42px; }
-  .fx-golpe-b { animation-delay: 0.15s; }
-  .fx-golpe-c { animation-delay: 0.32s; }
-</style>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SCRIPT SECCIÓN 7 (cadena)                               -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<script>
-  // Cadena que sube/baja
-  let frameCadena = 0;
-  setInterval(() => {
-    frameCadena++;
-    document.querySelectorAll('#cadena .eslabon').forEach((el, i) => {
-      const fase = (i % 2 === 0) ? 0 : 1;
-      const voltear = ((frameCadena + fase) % 2 === 0);
-      el.style.transform = voltear ? 'scaleX(-1)' : 'scaleX(1)';
-    });
-  }, 250);
-
-  // Parpadeo de golpes: delay aleatorio para desincronizar más
-  document.querySelectorAll('.fx-golpe').forEach((el) => {
-    const extra = (Math.random() * 0.3).toFixed(2);
-    el.style.animationDelay = extra + 's';
-  });
-</script>
-
-
-<!-- 🏁 FIN DEL CATÁLOGO -->
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SECCIÓN 11 · ANIMACIONES DE TILES (FLIP + SECUENCIA)    -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════ SECCIÓN 11 ═══════════════ -->
 <h2 id="s11">11 · Animaciones de tiles (flip + secuencia)</h2>
-<p class="subtitulo">
-  Dos categorías de animación de tiles: mismo emoji alternando orientación (flip) y varios emojis en secuencia. El loop global es compartido para todos los tiles.
-</p>
+<p class="subtitulo">Dos categorías: mismo emoji alternando orientación (flip) y varios emojis en secuencia.</p>
 
-<!-- 11.1 Flip alternado -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">11.1 · Mismo emoji, orientación alternada (flip)</span>
-    <span class="item-badge">scaleX ↔ scaleX(-1)</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">11.1 · Mismo emoji, orientación alternada (flip)</span><span class="item-badge">scaleX ↔ scaleX(-1)</span></div>
   <div class="item-body" style="grid-template-columns: 1fr;">
     <div class="info">
-      <p><strong>Qué hace:</strong> en cada frame, el emoji se voltea horizontalmente una y otra vez.</p>
-      <p><strong>Fórmula:</strong> <code>(frame % 2 === 0) ? scaleX(1) : scaleX(-1)</code> aplicado por JS.</p>
-      <p><strong>Uso:</strong> fuego, huellas, portales, tornados, cadenas, orbes.</p>
+      <p><strong>Fórmula:</strong> <code>(frame % 2 === 0) ? scaleX(1) : scaleX(-1)</code></p>
+      <p><strong>Uso:</strong> fuego, huellas, portales, tornados.</p>
     </div>
     <div class="grid" id="grid-flip" style="margin-top: 12px;"></div>
     <pre class="pre-seccion11"><code>const ANIM_FLIP = [
@@ -1779,24 +1116,16 @@ setInterval(() => {
   { emoji: "🔮", nombre: "Orbe" },
   { emoji: "⛓️", nombre: "Cadena" },
 ];
-
-// En cada tick:
 el.style.transform = (frame % 2 === 0) ? "scaleX(1)" : "scaleX(-1)";</code></pre>
   </div>
 </div>
 
-<!-- 11.2 Secuencia de emojis -->
 <div class="item">
-  <div class="item-header">
-    <span class="check">☐</span>
-    <span class="item-title">11.2 · Varios emojis en secuencia</span>
-    <span class="item-badge">array + ciclar</span>
-  </div>
+  <div class="item-header"><span class="check">☐</span><span class="item-title">11.2 · Varios emojis en secuencia</span><span class="item-badge">array + ciclar</span></div>
   <div class="item-body" style="grid-template-columns: 1fr;">
     <div class="info">
-      <p><strong>Qué hace:</strong> en cada frame, avanza al siguiente emoji del array (vuelve al inicio al terminar).</p>
-      <p><strong>Fórmula:</strong> <code>emojis[frame % emojis.length]</code> aplicado por JS.</p>
-      <p><strong>Uso:</strong> mundo girando, fases lunares, cometa, candado, cuadrados, botones.</p>
+      <p><strong>Fórmula:</strong> <code>emojis[frame % emojis.length]</code></p>
+      <p><strong>Uso:</strong> mundo girando, fases lunares, cometa.</p>
     </div>
     <div class="grid" id="grid-seq" style="margin-top: 12px;"></div>
     <pre class="pre-seccion11"><code>const ANIM_SEQ = [
@@ -1817,70 +1146,550 @@ el.style.transform = (frame % 2 === 0) ? "scaleX(1)" : "scaleX(-1)";</code></pre
   { emojis: ["▪️", "▫️"], nombre: "Cuadrado mini" },
   { emojis: ["🔳", "🔲"], nombre: "Botón" },
 ];
-
-// En cada tick:
 el.textContent = emojis[frame % emojis.length];</code></pre>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- ESTILOS SECCIÓN 11                                       -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<style>
-  /* Grid compacto dentro del item (reusa .grid global pero achica tarjetas) */
-  #grid-flip,
-  #grid-seq {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 8px;
-  }
-  #grid-flip .card,
-  #grid-seq .card {
-    padding: 10px 6px;
-  }
-  #grid-flip .anim,
-  #grid-seq .anim {
-    font-size: 36px;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.05s linear;
-  }
-  #grid-flip .nombre,
-  #grid-seq .nombre {
-    font-size: 9px;
-    margin-top: 6px;
-  }
-  #grid-flip .badge,
-  #grid-seq .badge {
-    margin-top: 4px;
-  }
+<!-- ═══════════════ SECCIÓN 12 ═══════════════ -->
+<h2 id="s12">12 · Efectos espaciales</h2>
+<p class="subtitulo">Efectos para un juego espacial.</p>
 
-  /* Bloque de código dentro de la sección 11 */
-  .pre-seccion11 {
-    background: #08080a;
-    border: 1px solid #1a1a1a;
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin-top: 12px;
-    overflow-x: auto;
-    font-size: 11px;
-    color: #9cd;
-    line-height: 1.5;
-    white-space: pre;
-  }
-  .pre-seccion11 code {
-    font-family: monospace;
-  }
-</style>
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.1 · Planeta con atmósfera</span><span class="item-badge">glow + pulso</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="space-planet">🪐</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> planeta con energía activa.</p>
+      <pre><code>.planeta {
+  filter: drop-shadow(0 0 7px #48dfff);
+  animation: pulsoPlaneta 2s ease-in-out infinite;
+}
+@keyframes pulsoPlaneta {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}</code></pre>
+    </div>
+  </div>
+</div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- SCRIPT SECCIÓN 11                                        -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.2 · Escudo de energía</span><span class="item-badge">halo + latido</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="space-shield">🛡️</span><span class="space-shield-core">🧑‍🚀</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> campo protector.</p>
+      <pre><code>.escudo {
+  filter: drop-shadow(0 0 7px cyan);
+  animation: escudo 0.9s ease-in-out infinite;
+}
+@keyframes escudo {
+  0%,100% { opacity: .55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.3 · Propulsión de nave</span><span class="item-badge">llama + vibración</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="space-thrust">🔥</span><span class="space-ship">🚀</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> motor encendido.</p>
+      <pre><code>.propulsion {
+  filter: drop-shadow(0 0 6px orange);
+  animation: motor 0.18s ease-in-out infinite alternate;
+}
+@keyframes motor {
+  from { transform: scaleY(.7) scaleX(.85); opacity: .7; }
+  to { transform: scaleY(1.25) scaleX(1.1); opacity: 1; }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.4 · Teletransporte</span><span class="item-badge">opacidad + escala</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="space-teleport">👽</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> alien apareciendo desde portal.</p>
+      <pre><code>@keyframes aparecer {
+  0% { opacity: 0; transform: scale(.2) rotate(-35deg); filter: blur(5px); }
+  70% { opacity: 1; transform: scale(1.15) rotate(8deg); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.5 · Satélite en órbita</span><span class="item-badge">composición + rotación</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="orbit-planet">🪐<span class="orbit-moon">🛰️</span></span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> satélite girando alrededor del planeta.</p>
+      <pre><code>.orbita { animation: orbitar 5s linear infinite; }
+@keyframes orbitar { to { transform: rotate(360deg); } }</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.6 · Rayo láser</span><span class="item-badge">estela + glow</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="laser-trail">━━━━━━</span><span class="laser-bolt">🔹</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> disparo energético.</p>
+      <pre><code>.laser {
+  color: cyan;
+  text-shadow: 0 0 5px cyan, 0 0 14px #00aaff;
+  animation: disparo .6s linear infinite;
+}
+@keyframes disparo {
+  from { transform: translateX(-35px); opacity: 0; }
+  15% { opacity: 1; }
+  to { transform: translateX(35px); opacity: 0; }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.7 · Daño recibido</span><span class="item-badge">flash + sacudida</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="space-hit">👾</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> enemigo golpeado.</p>
+      <pre><code>.impacto {
+  animation: golpe 0.35s steps(2, end) infinite;
+}
+@keyframes golpe {
+  0%,100% { filter: brightness(1); transform: translateX(0); }
+  25%,75% { filter: brightness(3) sepia(1); transform: translateX(-3px); }
+  50% { filter: brightness(2); transform: translateX(3px); }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.8 · Modo fantasma</span><span class="item-badge">opacidad + tinte</span></div>
+  <div class="item-body">
+    <div class="demo space-demo"><span class="space-ghost">👻</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> enemigo intangible.</p>
+      <pre><code>.fantasma {
+  opacity: .45;
+  filter: hue-rotate(130deg) saturate(.7) drop-shadow(0 0 6px #8cf);
+  animation: fantasma 1.8s ease-in-out infinite;
+}
+@keyframes fantasma {
+  0%,100% { opacity: .3; }
+  50% { opacity: .65; }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">12.9 · Estación espacial</span><span class="item-badge">composición</span></div>
+  <div class="item-body">
+    <div class="demo space-demo station-demo"><span>🛰️</span><span>🧱</span><span>🛰️</span><span>🔩</span><span>🛸</span></div>
+    <div class="info">
+      <p><strong>Simula:</strong> estructura espacial con piezas.</p>
+      <pre><code>.estacion { display: grid; grid-template-columns: repeat(3, 1fr); }
+.modulo-central { grid-column: 2; }</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SECCIÓN 13 ═══════════════ -->
+<h2 id="s13">13 · Composiciones multi-elemento y efectos adicionales</h2>
+<p class="subtitulo">
+  Efectos complejos con varios emojis apilados. Cada item tiene una <strong>variante</strong> con otro emoji para ver el efecto en sí.
+</p>
+
+<!-- 13.1 Portal dimensional -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.1 · Portal dimensional</span><span class="item-badge">spin + partículas</span></div>
+  <div class="item-body">
+    <div class="demo demo-portal-nuevo">
+      <span class="portal-giro">🌀</span>
+      <span class="portal-particula pp1">✨</span>
+      <span class="portal-particula pp2">✨</span>
+      <span class="portal-particula pp3">✨</span>
+      <span class="portal-particula pp4">✨</span>
+    </div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> 🌀 gira continuamente + 4 ✨ se alejan del centro en 4 direcciones (con delay escalonado).</p>
+      <p><strong>Simula:</strong> portal mágico con partículas.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini" style="position: relative;">
+          <span class="portal-giro" style="font-size: 26px;">🕳️</span>
+        </div>
+        <span class="variante-desc">Cambiá 🌀 por 🕳️ → vórtice oscuro</span>
+      </div>
+      <pre><code>.portal-giro {
+  animation: spinPortal 3s linear infinite;
+  filter: drop-shadow(0 0 14px #a066ff) drop-shadow(0 0 30px #7a3fff);
+}
+@keyframes spinPortal {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.portal-particula {
+  position: absolute;
+  top: 50%; left: 50%;
+  animation: alejarParticula 2.4s ease-out infinite;
+}
+@keyframes alejarParticula {
+  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2); opacity: 0; }
+}
+/* Cada partícula con --dx, --dy distinto y delay distinto */</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 13.2 Vórtice oscuro -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.2 · Vórtice oscuro</span><span class="item-badge">spin + scale + orbit</span></div>
+  <div class="item-body">
+    <div class="demo demo-vortice">
+      <span class="vortice-base">🕳️</span>
+      <span class="vortice-spark vs1">✨</span>
+      <span class="vortice-spark vs2">✨</span>
+    </div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> 🕳️ gira alternando escala + 2 ✨ orbitan a su alrededor.</p>
+      <p><strong>Simula:</strong> agujero negro o vórtice con chispas orbitando.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini" style="position: relative;">
+          <span class="vortice-base" style="font-size: 26px;">🌀</span>
+        </div>
+        <span class="variante-desc">Cambiá 🕳️ por 🌀 → vórtice azul</span>
+      </div>
+      <pre><code>.vortice-base {
+  animation: spinVortice 4s linear infinite reverse;
+  filter: drop-shadow(0 0 12px #00ffff) drop-shadow(0 0 25px #0088ff);
+}
+@keyframes spinVortice {
+  0%   { transform: rotate(0deg) scale(0.9); }
+  50%  { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(0.9); }
+}
+.vortice-spark {
+  animation: orbitaSpark 2s linear infinite;
+}
+@keyframes orbitaSpark {
+  0%   { transform: rotate(0deg) translateX(35px) rotate(0deg); opacity: 0.2; }
+  50%  { opacity: 1; }
+  100% { transform: rotate(360deg) translateX(35px) rotate(-360deg); opacity: 0.2; }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 13.3 Nave abduciendo -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.3 · Nave abduciendo un objeto</span><span class="item-badge">flotar + ascender + cono</span></div>
+  <div class="item-body">
+    <div class="demo demo-abduccion">
+      <span class="abduccion-nave">🛸</span>
+      <div class="abduccion-cono"></div>
+      <span class="abduccion-objeto">👽</span>
+    </div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> 🛸 flota + cono de luz verde pulsante + 👽 asciende con escala decreciente.</p>
+      <p><strong>Simula:</strong> nave abduciendo un alien.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini" style="position: relative; min-height: 60px;">
+          <span style="position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 20px;">🛸</span>
+          <span style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 16px;">👾</span>
+        </div>
+        <span class="variante-desc">Cambiá 👽 por 👾 → abduciendo un enemigo</span>
+      </div>
+      <pre><code>.abduccion-nave {
+  animation: flotarNave 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #6cf);
+}
+@keyframes flotarNave {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-6px); }
+}
+.abduccion-cono {
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 60px solid rgba(74, 255, 138, 0.35);
+  filter: blur(2px) drop-shadow(0 0 8px #4aff8a);
+  animation: pulsoCono 1.6s ease-in-out infinite;
+}
+.abduccion-objeto {
+  animation: ascender 2.4s ease-in infinite;
+}
+@keyframes ascender {
+  0%   { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+  80%  { transform: translateX(-50%) translateY(-65px) scale(0.3); opacity: 0.6; }
+  100% { transform: translateX(-50%) translateY(-85px) scale(0.1); opacity: 0; }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 13.4 Cristal alienígena -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.4 · Cristal alienígena</span><span class="item-badge">3 animaciones simultáneas</span></div>
+  <div class="item-body">
+    <div class="demo demo-cristal">
+      <span class="cristal-base">💎</span>
+      <span class="cristal-destello cd1">💫</span>
+      <span class="cristal-destello cd2">💫</span>
+      <span class="cristal-destello cd3">💫</span>
+      <span class="cristal-destello cd4">💫</span>
+    </div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> 💎 con 3 animaciones simultáneas (color + flotar + brillo) + 4 💫 pulsando alrededor.</p>
+      <p><strong>Simula:</strong> cristal alienígena vivo.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini" style="position: relative;">
+          <span class="cristal-base" style="font-size: 26px;">🔮</span>
+        </div>
+        <span class="variante-desc">Cambiá 💎 por 🔮 → orbe mágico</span>
+      </div>
+      <pre><code>.cristal-base {
+  animation:
+    cristalColor 4s linear infinite,
+    cristalFlota 2.2s ease-in-out infinite,
+    cristalBrillo 1.8s ease-in-out infinite;
+}
+@keyframes cristalColor {
+  0%   { filter: hue-rotate(0deg)   brightness(1.1) drop-shadow(0 0 8px #6cf); }
+  25%  { filter: hue-rotate(90deg)  brightness(1.3) drop-shadow(0 0 12px #6cf); }
+  50%  { filter: hue-rotate(180deg) brightness(1.1) drop-shadow(0 0 8px #6cf); }
+  75%  { filter: hue-rotate(270deg) brightness(1.3) drop-shadow(0 0 12px #6cf); }
+  100% { filter: hue-rotate(360deg) brightness(1.1) drop-shadow(0 0 8px #6cf); }
+}
+@keyframes cristalFlota {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes cristalBrillo {
+  0%, 100% { text-shadow: 0 0 6px #fff; }
+  50%      { text-shadow: 0 0 16px #fff, 0 0 24px #6cf; }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 13.5 Bioma alienígena vivo -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.5 · Bioma alienígena vivo</span><span class="item-badge">pulse desincronizado + luces</span></div>
+  <div class="item-body">
+    <div class="demo demo-bioma">
+      <span class="bioma-planta bp1">🌿</span>
+      <span class="bioma-planta bp2">🍄</span>
+      <span class="bioma-planta bp3">🌵</span>
+      <span class="bioma-planta bp4">🌿</span>
+      <span class="bioma-luz bl1">✨</span>
+      <span class="bioma-luz bl2">✨</span>
+      <span class="bioma-luz bl3">✨</span>
+    </div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> 4 plantas con tamaños y delays distintos pulsan (scaleY + hue-rotate) + 3 ✨ flotan.</p>
+      <p><strong>Simula:</strong> bioma alienígena vivo.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini" style="gap: 2px; font-size: 16px;">🌱🌸🌴</div>
+        <span class="variante-desc">Cambiá por 🌱🌸🌴 → bioma florido</span>
+      </div>
+      <pre><code>.bioma-planta {
+  animation: plantaPulso 2s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.bioma-planta.bp1 { font-size: 22px; animation-delay: 0s; }
+.bioma-planta.bp2 { font-size: 32px; animation-delay: 0.4s; }
+.bioma-planta.bp3 { font-size: 20px; animation-delay: 0.8s; }
+.bioma-planta.bp4 { font-size: 26px; animation-delay: 1.2s; }
+@keyframes plantaPulso {
+  0%, 100% { transform: scaleY(1) translateY(0); filter: hue-rotate(0deg) brightness(1); }
+  50%      { transform: scaleY(1.1) translateY(-3px); filter: hue-rotate(40deg) brightness(1.3); }
+}
+.bioma-luz {
+  animation: luzFlota 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #c9ff8a);
+}
+@keyframes luzFlota {
+  0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.3; }
+  50%      { transform: translateY(-14px) scale(1.2); opacity: 1; }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 13.6 Núcleo de energía -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.6 · Núcleo de energía</span><span class="item-badge">pulso + glow</span></div>
+  <div class="item-body">
+    <div class="demo demo-energia"><span class="energia-base">⚡</span></div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> ⚡ pulsa rápido (0.8s) alternando glow amarillo.</p>
+      <p><strong>Simula:</strong> núcleo de energía o fuente de poder.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini">
+          <span class="energia-base" style="font-size: 26px;">☢️</span>
+        </div>
+        <span class="variante-desc">Cambiá ⚡ por ☢️ → núcleo radioactivo</span>
+      </div>
+      <pre><code>.energia-base {
+  animation: pulsoEnergia 0.8s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 15px #ffeb3b);
+}
+@keyframes pulsoEnergia {
+  0%   { transform: scale(0.95); filter: drop-shadow(0 0 5px #ffeb3b); }
+  100% { transform: scale(1.15); filter: drop-shadow(0 0 25px #ffc107); }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 13.7 Bomba por explotar -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.7 · Bomba por explotar</span><span class="item-badge">vibración + chispa</span></div>
+  <div class="item-body">
+    <div class="demo demo-bomba">
+      <span class="bomba-base">💣</span>
+      <span class="bomba-chispa">✨</span>
+    </div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> 💣 vibra rápidamente + ✨ pulsa arriba (chispa de mecha).</p>
+      <p><strong>Simula:</strong> bomba a punto de explotar.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini">
+          <span class="bomba-base" style="font-size: 26px;">🧨</span>
+        </div>
+        <span class="variante-desc">Cambiá 💣 por 🧨 → petardo</span>
+      </div>
+      <pre><code>.bomba-base {
+  animation: vibrarBomba 0.15s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #ff3d00);
+}
+@keyframes vibrarBomba {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(-2px, 2px) rotate(-3deg); }
+  50%  { transform: translate(2px, -2px) rotate(3deg); }
+  75%  { transform: translate(-1px, -2px) rotate(-1deg); }
+  100% { transform: translate(1px, 2px) rotate(1deg); }
+}
+.bomba-chispa {
+  animation: chispaAnim 0.4s ease-out infinite alternate;
+}
+@keyframes chispaAnim {
+  0%   { transform: scale(0.8) translateY(0); opacity: 0.5; }
+  100% { transform: scale(1.4) translateY(-6px); opacity: 1; filter: drop-shadow(0 0 8px #ffeb3b); }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 13.8 Volcán con humo -->
+<div class="item">
+  <div class="item-header"><span class="check">☐</span><span class="item-title">13.8 · Volcán en erupción con humo</span><span class="item-badge">latido + humo + chispas</span></div>
+  <div class="item-body">
+    <div class="demo demo-volcan">
+      <span class="humo-volcan hv1">💨</span>
+      <span class="humo-volcan hv2">💨</span>
+      <span class="humo-volcan hv3">💨</span>
+      <span class="chispa-volcan cv1">🔥</span>
+      <span class="chispa-volcan cv2">🔥</span>
+      <span class="volcan-base">🌋</span>
+    </div>
+    <div class="info">
+      <p><strong>Qué hace:</strong> 🌋 late con glow naranja + 3 columnas de 💨 suben desde la cima + 2 🔥 saltan como chispas.</p>
+      <p><strong>Simula:</strong> volcán en erupción con humo y lava.</p>
+      <div class="variante">
+        <span class="variante-label">🔁 Variante:</span>
+        <div class="demo-mini" style="position: relative; min-height: 60px;">
+          <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 26px;">🗻</span>
+          <span style="position: absolute; top: 0; left: 40%; font-size: 10px; opacity: 0.7;">💨</span>
+          <span style="position: absolute; top: 0; right: 40%; font-size: 10px; opacity: 0.7;">💨</span>
+        </div>
+        <span class="variante-desc">Cambiá 🌋 por 🗻 → montaña con bruma</span>
+      </div>
+      <pre><code>.volcan-base {
+  animation: volcanLatir 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #ff5722);
+}
+@keyframes volcanLatir {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); filter: drop-shadow(0 0 20px #ff9800); }
+}
+.humo-volcan {
+  position: absolute;
+  bottom: 50px;
+  opacity: 0;
+  animation: subirHumo 3s ease-out infinite;
+}
+.humo-volcan.hv1 { left: 42%; animation-delay: 0s; }
+.humo-volcan.hv2 { left: 50%; animation-delay: 1s; }
+.humo-volcan.hv3 { left: 58%; animation-delay: 2s; }
+@keyframes subirHumo {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.5); }
+  20%  { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(-60px) scale(1.6) translateX(15px); }
+}
+.chispa-volcan {
+  position: absolute;
+  bottom: 55px;
+  font-size: 12px;
+  animation: saltarChispa 1.8s ease-out infinite;
+}
+.chispa-volcan.cv1 { left: 38%; animation-delay: 0s; }
+.chispa-volcan.cv2 { right: 38%; animation-delay: 0.9s; }
+@keyframes saltarChispa {
+  0%   { opacity: 1; transform: translateY(0) scale(0.6); }
+  100% { opacity: 0; transform: translateY(-70px) scale(1.2); }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
 <script>
-  // ─────────────────────────────────────────────
-  // Datos de los tiles
-  // ─────────────────────────────────────────────
+  // ── Secuencia 🌍🌎🌏 (sección 4.2) ──
+  const mundos = ['🌍', '🌎', '🌏'];
+  let idxMundo = 0;
+  const elMundo = document.getElementById('sec-mundo');
+  setInterval(() => {
+    idxMundo = (idxMundo + 1) % mundos.length;
+    elMundo.textContent = mundos[idxMundo];
+  }, 400);
+
+  // ── Cadena sube/baja (sección 7) ──
+  let frameCadena = 0;
+  setInterval(() => {
+    frameCadena++;
+    document.querySelectorAll('#cadena .eslabon').forEach((el, i) => {
+      const fase = (i % 2 === 0) ? 0 : 1;
+      const voltear = ((frameCadena + fase) % 2 === 0);
+      el.style.transform = voltear ? 'scaleX(-1)' : 'scaleX(1)';
+    });
+  }, 250);
+
+  // ── Parpadeo de golpes: delays aleatorios ──
+  document.querySelectorAll('.fx-golpe').forEach((el) => {
+    const extra = (Math.random() * 0.3).toFixed(2);
+    el.style.animationDelay = extra + 's';
+  });
+
+  // ── Tiles: flip + secuencia (sección 11) ──
   const ANIM_FLIP = [
     { emoji: "🔥", nombre: "Fuego vivo" },
     { emoji: "💞", nombre: "Recuperación" },
@@ -1913,9 +1722,6 @@ el.textContent = emojis[frame % emojis.length];</code></pre>
     { emojis: ["🔳", "🔲"], nombre: "Botón" },
   ];
 
-  // ─────────────────────────────────────────────
-  // Construir tarjetas dentro de la sección 11
-  // ─────────────────────────────────────────────
   const gridFlip = document.getElementById("grid-flip");
   const gridSeq  = document.getElementById("grid-seq");
 
@@ -1941,35 +1747,25 @@ el.textContent = emojis[frame % emojis.length];</code></pre>
     gridSeq.appendChild(card);
   });
 
-  // ─────────────────────────────────────────────
-  // Loop de animación (comparte un solo frame global)
-  // ─────────────────────────────────────────────
   let frameTiles = 0;
-  const VELOCIDAD_TILES = 300; // ms por frame
+  const VELOCIDAD_TILES = 300;
 
   function tickTiles() {
     frameTiles++;
-
-    // Categoría A: flip horizontal
     ANIM_FLIP.forEach((a, i) => {
       const el = document.getElementById(`flip-${i}`);
       if (!el) return;
       el.style.transform = (frameTiles % 2 === 0) ? "scaleX(1)" : "scaleX(-1)";
     });
-
-    // Categoría B: ciclar emojis
     ANIM_SEQ.forEach((a, i) => {
       const el = document.getElementById(`seq-${i}`);
       if (!el) return;
-      const f = frameTiles % a.emojis.length;
-      el.textContent = a.emojis[f];
+      el.textContent = a.emojis[frameTiles % a.emojis.length];
     });
   }
 
   setInterval(tickTiles, VELOCIDAD_TILES);
 </script>
-
-<!-- 🏁 FIN DEL CATÁLOGO COMPLETO -->
 
 </body>
 </html>

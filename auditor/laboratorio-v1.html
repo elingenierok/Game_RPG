@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>🧪 Laboratorio de efectos · v1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0a;
+    color: #ddd;
+    font-family: monospace;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 20px;
+    color: #6cf;
+    margin-bottom: 4px;
+    text-shadow: 0 0 8px rgba(102, 204, 255, 0.4);
+  }
+  .subtitulo {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #1a1a1a;
+    line-height: 1.6;
+  }
+
+  /* ── Layout de dos columnas ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* ── Paneles ── */
+  .panel {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .panel h2 {
+    font-size: 12px;
+    color: #6cf;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  /* ── Campo de entrada de emoji ── */
+  .campo {
+    margin-bottom: 16px;
+  }
+  .campo label {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .campo input[type="text"] {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #ddd;
+    font-family: monospace;
+    font-size: 22px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .campo input[type="text"]:focus {
+    border-color: #6cf;
+    box-shadow: 0 0 8px rgba(102, 204, 255, 0.2);
+  }
+
+  /* ── Lista de efectos (checkboxes) ── */
+  .efectos {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .efecto {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #0a0a0a;
+    border: 1px solid #1e1e24;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .efecto:hover {
+    border-color: #2a4a6a;
+  }
+  .efecto.activo {
+    background: #0f1a24;
+    border-color: #6cf;
+  }
+  .efecto input[type="checkbox"] {
+    accent-color: #6cf;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .efecto-label {
+    font-size: 12px;
+    color: #ddd;
+    flex: 1;
+  }
+  .efecto-badge {
+    font-size: 9px;
+    color: #6cf;
+    background: #1a2a3a;
+    border: 1px solid #2a4a6a;
+    border-radius: 3px;
+    padding: 1px 6px;
+    white-space: nowrap;
+  }
+
+  /* ── Panel derecho: previews + CSS ── */
+  .preview-panel {
+    position: sticky;
+    top: 20px;
+  }
+
+  /* Grid de 2 previews */
+  .previews {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 600px) {
+    .previews { grid-template-columns: 1fr; }
+  }
+
+  .preview-box {
+    background: #080810;
+    border: 1px solid #1e1e24;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .preview-label {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  /* Área base: fondo, centrado, overflow */
+  .preview-area {
+    background:
+      radial-gradient(circle at 20% 30%, #151820 1px, transparent 2px),
+      radial-gradient(circle at 80% 70%, #151820 1px, transparent 2px),
+      #0a0a0a;
+    background-size: 32px 32px, 47px 47px, auto;
+    border: 1px solid #1a1a20;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    overflow: hidden;
+  }
+
+  /* Tamaños distintos por preview */
+  .preview-chico .preview-area {
+    min-height: 110px;
+    font-size: 44px;
+  }
+  .preview-grande .preview-area {
+    min-height: 220px;
+    font-size: 100px;
+  }
+
+  /* El emoji en sí */
+  .preview-area .target {
+    display: inline-block;
+    will-change: transform, filter;
+    transform-origin: center center;
+  }
+
+  /* ── Bloque de CSS generado ── */
+  .css-output {
+    background: #08080a;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 11px;
+    color: #9cd;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 240px;
+    overflow-y: auto;
+    font-family: monospace;
+  }
+  .css-output .vacio {
+    color: #444;
+    font-style: italic;
+  }
+
+  /* ── Botones ── */
+  .acciones {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn {
+    flex: 1;
+    background: #1a2a3a;
+    border: 1px solid #2a4a6a;
+    color: #6cf;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn:hover {
+    background: #2a3a5a;
+    border-color: #6cf;
+  }
+  .btn.secundario {
+    background: #1a1a1a;
+    border-color: #333;
+    color: #888;
+  }
+  .btn.secundario:hover {
+    background: #222;
+    border-color: #555;
+    color: #ddd;
+  }
+
+  /* ═══════════════════════════════════════════════
+     CLASES DE EFECTOS
+     Cada efecto usa una propiedad individual (rotate, scale, translate)
+     o un canal distinto (filter, text-shadow). Así se combinan sin
+     pisarse entre sí.
+     ═══════════════════════════════════════════════ */
+
+    /* ═══════════════════════════════════════════════════════
+     EFECTOS ANIMADOS: solo keyframes, sin clase CSS.
+     El JS los combina en una sola `animation:` con comas.
+     Así spin + pulse + float + hue corren sin pisarse.
+     ═══════════════════════════════════════════════════════ */
+
+  @keyframes efecto-spin {
+    from { rotate: 0deg; }
+    to   { rotate: 360deg; }
+  }
+
+    @keyframes efecto-pulse {
+    0%, 100% { scale: 1; }
+    50%      { scale: var(--pulse-scale-max, 1.2); }
+  }
+
+    @keyframes efecto-float {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 calc(-1 * var(--float-height, 10px)); }
+  }
+
+    @keyframes efecto-hue {
+    from { filter: hue-rotate(0deg); }
+    to   { filter: hue-rotate(var(--hue-max, 360deg)); }
+  }
+
+    @keyframes efecto-latido-fuerte {
+    0%, 100% { scale: 1; }
+    50%      { scale: var(--latido-fuerte-scale-max, 1.5); }
+  }
+
+    @keyframes efecto-parpadeo {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.15; }
+  }
+
+  @keyframes efecto-vibrar {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    20%      { transform: translate(calc(-2px * var(--vibrar-intensity, 1)), calc(1px * var(--vibrar-intensity, 1))) rotate(calc(-3deg * var(--vibrar-intensity, 1))); }
+    40%      { transform: translate(calc(2px * var(--vibrar-intensity, 1)), calc(-1px * var(--vibrar-intensity, 1))) rotate(calc(3deg * var(--vibrar-intensity, 1))); }
+    60%      { transform: translate(calc(-1px * var(--vibrar-intensity, 1)), calc(2px * var(--vibrar-intensity, 1))) rotate(calc(-2deg * var(--vibrar-intensity, 1))); }
+    80%      { transform: translate(calc(1px * var(--vibrar-intensity, 1)), calc(-2px * var(--vibrar-intensity, 1))) rotate(calc(2deg * var(--vibrar-intensity, 1))); }
+  }
+
+  @keyframes efecto-rotacion-alterna {
+    from { rotate: 0deg; }
+    to   { rotate: 180deg; }
+  }
+
+  @keyframes efecto-cambio-opacidad {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+  }
+    /* ── Glow: efecto estático, controlado por --glow-shadow inline ── */
+  .fx-glow {
+    text-shadow: var(--glow-shadow, 0 0 10px #6cf);
+  }
+
+  /* ── Formato del CSS generado ── */
+  .css-output .tag {
+    display: inline-block;
+    font-size: 9px;
+    color: #6cf;
+    background: #1a2a3a;
+    border: 1px solid #2a4a6a;
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin: 6px 0 4px;
+    letter-spacing: 1px;
+  }
+  .css-output code {
+    color: #9cd;
+    background: #0f1a24;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+
+  /* ── Paneles de parámetros ── */
+  .efecto-wrapper {
+    margin-bottom: 8px;
+  }
+  .efecto-wrapper .parametros {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: #0d1014;
+    border: 1px solid #1e2a34;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    margin-top: -1px;
+  }
+  .efecto-wrapper.activo .parametros {
+    display: flex;
+  }
+  .efecto-wrapper.activo .efecto {
+    border-radius: 6px 6px 0 0;
+  }
+
+  .param {
+    display: grid;
+    grid-template-columns: 75px 1fr 50px;
+    gap: 8px;
+    align-items: center;
+    font-size: 10px;
+    color: #999;
+  }
+  .param > span:first-child {
+    color: #888;
+  }
+  .param input[type="range"] {
+    width: 100%;
+    accent-color: #6cf;
+  }
+  .param select {
+    grid-column: 2 / 4;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 4px;
+    color: #ddd;
+    font-family: monospace;
+    font-size: 10px;
+    padding: 5px 8px;
+    cursor: pointer;
+  }
+    .param input[type="color"] {
+    grid-column: 2 / 4;
+    width: 100%;
+    height: 30px;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .param input[type="color"]:focus {
+    outline: none;
+    border-color: #6cf;
+  }
+  .param select:focus {
+    outline: none;
+    border-color: #6cf;
+  }
+  .param-valor {
+    color: #6cf;
+    font-size: 10px;
+    text-align: right;
+    font-weight: bold;
+  }
+
+  /* ── Aviso de conflictos ── */
+  .aviso-conflictos {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    background: #2a1f0a;
+    border: 1px solid #6a4a1a;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    color: #fda;
+    line-height: 1.5;
+  }
+  .aviso-conflictos.visible {
+    display: flex;
+  }
+  .aviso-conflictos-titulo {
+    font-weight: bold;
+    color: #fc8;
+    margin-bottom: 4px;
+  }
+  .aviso-conflictos-canal {
+    color: #6cf;
+    background: #1a2a3a;
+    padding: 0 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    margin: 0 3px;
+  }
+  .aviso-conflictos-botones {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .aviso-conflictos-botones button {
+    background: #3a2a0a;
+    border: 1px solid #6a4a1a;
+    color: #fc8;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .aviso-conflictos-botones button:hover {
+    background: #5a3f0a;
+    border-color: #fc8;
+  }
+
+  /* ── Presets rápidos ── */
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: #0a0a0a;
+    border: 1px solid #1e1e24;
+    border-radius: 6px;
+    color: #ddd;
+    font-family: monospace;
+    font-size: 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .preset-btn:hover {
+    border-color: #6cf;
+    background: #0f1a24;
+  }
+  .preset-btn:active {
+    transform: scale(0.97);
+  }
+  .preset-emoji {
+    font-size: 16px;
+    flex-shrink: 0;
+  } 
+</style>
+</head>
+<body>
+
+<h1>🧪 Laboratorio de efectos · v1</h1>
+<div class="subtitulo">
+  Pegá un emoji, tildá efectos, mirá el resultado en vivo. Los efectos se combinan sin pisarse porque usan propiedades individuales (<code>rotate</code>, <code>scale</code>, <code>translate</code>) o canales distintos (<code>filter</code>, <code>text-shadow</code>).
+</div>
+
+<div class="layout">
+
+  <!-- ═══════════════ PANEL IZQUIERDO: CONTROLES ═══════════════ -->
+  <div class="panel">
+    <h2>⚙️ Controles</h2>
+
+        <div class="campo">
+      <label for="emoji-input">Emoji o carácter</label>
+      <input type="text" id="emoji-input" value="🍄" maxlength="10" autocomplete="off">
+    </div>
+
+    <div class="campo">
+      <label>Presets rápidos</label>
+      <div class="presets" id="lista-presets"></div>
+    </div>
+
+    <div class="campo">
+      <label>Efectos disponibles</label>
+      <div class="efectos" id="lista-efectos">
+
+        <div class="efecto-wrapper" data-wrapper="spin">
+          <label class="efecto" data-efecto="spin">
+            <input type="checkbox" data-efecto="spin">
+            <span class="efecto-label">Girar 360°</span>
+            <span class="efecto-badge">rotate</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="spin-duration" min="0.5" max="6" step="0.1" value="2">
+              <span class="param-valor" data-valor="spin-duration">2.0s</span>
+            </label>
+            <label class="param">
+              <span>Dirección</span>
+              <select data-param="spin-direction">
+                <option value="normal">Horaria ⟳</option>
+                <option value="reverse">Antihoraria ⟲</option>
+                <option value="alternate">Alternada ⇄</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="efecto-wrapper" data-wrapper="pulse">
+          <label class="efecto" data-efecto="pulse">
+            <input type="checkbox" data-efecto="pulse">
+            <span class="efecto-label">Pulsar (latido)</span>
+            <span class="efecto-badge">scale</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="pulse-duration" min="0.3" max="3" step="0.1" value="1">
+              <span class="param-valor" data-valor="pulse-duration">1.0s</span>
+            </label>
+            <label class="param">
+              <span>Escala máx</span>
+              <input type="range" data-param="pulse-scaleMax" min="1.05" max="1.6" step="0.05" value="1.2">
+              <span class="param-valor" data-valor="pulse-scaleMax">1.20</span>
+            </label>
+          </div>
+        </div>
+        <div class="efecto-wrapper" data-wrapper="latido-fuerte">
+          <label class="efecto" data-efecto="latido-fuerte">
+            <input type="checkbox" data-efecto="latido-fuerte">
+            <span class="efecto-label">Latido fuerte</span>
+            <span class="efecto-badge">scale</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="latido-fuerte-duration" min="0.2" max="2" step="0.1" value="0.7">
+              <span class="param-valor" data-valor="latido-fuerte-duration">0.7s</span>
+            </label>
+            <label class="param">
+              <span>Escala máx</span>
+              <input type="range" data-param="latido-fuerte-scaleMax" min="1.2" max="2.2" step="0.05" value="1.5">
+              <span class="param-valor" data-valor="latido-fuerte-scaleMax">1.50</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="efecto-wrapper" data-wrapper="float">
+          <label class="efecto" data-efecto="float">
+            <input type="checkbox" data-efecto="float">
+            <span class="efecto-label">Flotar</span>
+            <span class="efecto-badge">translate</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="float-duration" min="0.5" max="4" step="0.1" value="1.5">
+              <span class="param-valor" data-valor="float-duration">1.5s</span>
+            </label>
+            <label class="param">
+              <span>Altura</span>
+              <input type="range" data-param="float-height" min="2" max="40" step="1" value="10">
+              <span class="param-valor" data-valor="float-height">10px</span>
+            </label>
+          </div>
+        </div>
+
+                <div class="efecto-wrapper" data-wrapper="hue">
+          <label class="efecto" data-efecto="hue">
+            <input type="checkbox" data-efecto="hue">
+            <span class="efecto-label">Cambiar color</span>
+            <span class="efecto-badge">filter</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="hue-duration" min="0.5" max="12" step="0.5" value="4">
+              <span class="param-valor" data-valor="hue-duration">4.0s</span>
+            </label>
+            <label class="param">
+              <span>Rango</span>
+              <input type="range" data-param="hue-degrees" min="60" max="720" step="30" value="360">
+              <span class="param-valor" data-valor="hue-degrees">360°</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="efecto-wrapper" data-wrapper="glow">
+          <label class="efecto" data-efecto="glow">
+            <input type="checkbox" data-efecto="glow">
+            <span class="efecto-label">Glow (halo)</span>
+            <span class="efecto-badge">text-shadow</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Color</span>
+              <input type="color" data-param="glow-color" value="#66ccff">
+            </label>
+                        <label class="param">
+              <span>Intensidad</span>
+              <input type="range" data-param="glow-intensity" min="0.3" max="2.5" step="0.1" value="1">
+              <span class="param-valor" data-valor="glow-intensity">1.0×</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="efecto-wrapper" data-wrapper="parpadeo">
+          <label class="efecto" data-efecto="parpadeo">
+            <input type="checkbox" data-efecto="parpadeo">
+            <span class="efecto-label">Parpadeo</span>
+            <span class="efecto-badge">opacity</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="parpadeo-duration" min="0.2" max="2" step="0.1" value="0.6">
+              <span class="param-valor" data-valor="parpadeo-duration">0.6s</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="efecto-wrapper" data-wrapper="vibracion">
+          <label class="efecto" data-efecto="vibracion">
+            <input type="checkbox" data-efecto="vibracion">
+            <span class="efecto-label">Vibración</span>
+            <span class="efecto-badge">transform</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="vibracion-duration" min="0.1" max="1" step="0.05" value="0.3">
+              <span class="param-valor" data-valor="vibracion-duration">0.3s</span>
+            </label>
+            <label class="param">
+              <span>Intensidad</span>
+              <input type="range" data-param="vibracion-intensity" min="0.5" max="3" step="0.1" value="1">
+              <span class="param-valor" data-valor="vibracion-intensity">1.0×</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="efecto-wrapper" data-wrapper="rotacion-alterna">
+          <label class="efecto" data-efecto="rotacion-alterna">
+            <input type="checkbox" data-efecto="rotacion-alterna">
+            <span class="efecto-label">Rotación alternada</span>
+            <span class="efecto-badge">rotate</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="rotacion-alterna-duration" min="0.5" max="4" step="0.1" value="1.5">
+              <span class="param-valor" data-valor="rotacion-alterna-duration">1.5s</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="efecto-wrapper" data-wrapper="cambio-opacidad">
+          <label class="efecto" data-efecto="cambio-opacidad">
+            <input type="checkbox" data-efecto="cambio-opacidad">
+            <span class="efecto-label">Cambio de opacidad</span>
+            <span class="efecto-badge">opacity</span>
+          </label>
+          <div class="parametros">
+            <label class="param">
+              <span>Velocidad</span>
+              <input type="range" data-param="cambio-opacidad-duration" min="0.5" max="5" step="0.1" value="2">
+              <span class="param-valor" data-valor="cambio-opacidad-duration">2.0s</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="acciones">
+      <button class="btn secundario" id="btn-reset">🔄 Reset</button>
+    </div>
+
+  </div>
+
+    <!-- ═══════════════ PANEL DERECHO: PREVIEW ═══════════════ -->
+  <div class="panel preview-panel">
+    <h2>👁️ Preview en vivo</h2>
+    <div class="aviso-conflictos" id="aviso-conflictos"></div>
+
+    <div class="previews">
+      <div class="preview-box preview-chico">
+        <span class="preview-label">Tile (chico)</span>
+        <div class="preview-area">
+          <span class="target" data-preview="chico">🍄</span>
+        </div>
+      </div>
+      <div class="preview-box preview-grande">
+        <span class="preview-label">Zoom (grande)</span>
+        <div class="preview-area">
+          <span class="target" data-preview="grande">🍄</span>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top: 20px;">📝 CSS generado</h2>
+    <div class="css-output" id="css-output">
+      <span class="vacio">— Sin efectos activos —</span>
+    </div>
+
+  </div>
+<script>
+  // ═══════════════════════════════════════════════════════════
+  // LABORATORIO v1.3 — Detector de conflictos por canal
+  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
+  // PRESETS: combinaciones guardadas
+  // Cada preset define emoji + efectos activos + parámetros custom.
+  // Agregar uno nuevo = sumar una entrada acá. No hace falta tocar HTML.
+  // ═══════════════════════════════════════════════════════════
+  const PRESETS = [
+    {
+      id: 'hongo-peligroso',
+      nombre: 'Hongo peligroso',
+      emoji: '🍄',
+      efectos: ['pulse', 'hue', 'glow'],
+      parametros: {
+        pulse: { duration: 0.8, scaleMax: 1.3 },
+        hue:   { duration: 3, degrees: 180 },
+        glow:  { color: '#ff3366', intensity: 1.5 },
+      },
+    },
+    {
+      id: 'portal-magico',
+      nombre: 'Portal mágico',
+      emoji: '🌀',
+      efectos: ['spin', 'pulse', 'glow'],
+      parametros: {
+        spin:  { duration: 4, direction: 'normal' },
+        pulse: { duration: 2, scaleMax: 1.15 },
+        glow:  { color: '#66ccff', intensity: 2.0 },
+      },
+    },
+    {
+      id: 'nave-flotante',
+      nombre: 'Nave flotante',
+      emoji: '🛸',
+      efectos: ['float', 'glow'],
+      parametros: {
+        float: { duration: 2.5, height: 12 },
+        glow:  { color: '#4aff8a', intensity: 1.3 },
+      },
+    },
+    {
+      id: 'bomba-a-punto',
+      nombre: 'Bomba a punto',
+      emoji: '💣',
+      efectos: ['pulse', 'glow', 'float'],
+      parametros: {
+        pulse: { duration: 0.35, scaleMax: 1.25 },
+        float: { duration: 0.15, height: 3 },
+        glow:  { color: '#ff4400', intensity: 2.2 },
+      },
+    },
+    {
+      id: 'fuego-vivo',
+      nombre: 'Fuego vivo',
+      emoji: '🔥',
+      efectos: ['pulse', 'hue', 'glow'],
+      parametros: {
+        pulse: { duration: 0.5, scaleMax: 1.25 },
+        hue:   { duration: 2, degrees: 120 },
+        glow:  { color: '#ffaa00', intensity: 1.8 },
+      },
+    },
+    {
+      id: 'cristal-brillante',
+      nombre: 'Cristal brillante',
+      emoji: '✨',
+      efectos: ['spin', 'pulse', 'glow'],
+      parametros: {
+        spin:  { duration: 5, direction: 'alternate' },
+        pulse: { duration: 1.5, scaleMax: 1.2 },
+        glow:  { color: '#aa66ff', intensity: 1.6 },
+      },
+    },
+  ];
+
+  // ── Biblioteca de efectos ──
+  const META = {
+    spin:               { nombre: 'Girar 360°',         canal: 'rotate',      clase: null },
+    pulse:              { nombre: 'Pulsar (latido)',    canal: 'scale',       clase: null },
+    'latido-fuerte':    { nombre: 'Latido fuerte',      canal: 'scale',       clase: null },
+    float:              { nombre: 'Flotar',             canal: 'translate',   clase: null },
+    hue:                { nombre: 'Cambiar color',      canal: 'filter',      clase: null },
+    glow:               { nombre: 'Glow (halo)',        canal: 'text-shadow', clase: 'fx-glow' },
+    parpadeo:           { nombre: 'Parpadeo',           canal: 'opacity',     clase: null },
+    vibracion:          { nombre: 'Vibración',          canal: 'transform',   clase: null },
+    'rotacion-alterna': { nombre: 'Rotación alternada', canal: 'rotate',      clase: null },
+    'cambio-opacidad':  { nombre: 'Cambio de opacidad', canal: 'opacity',     clase: null },
+  };
+
+    const PARAM_DEFAULTS = {
+    spin:  { duration: 2, direction: 'normal' },
+    pulse: { duration: 1, scaleMax: 1.2 },
+    float: { duration: 1.5, height: 10 },
+    hue:   { duration: 4, degrees: 360 },
+    glow:  { color: '#66ccff', intensity: 1 },
+    'latido-fuerte':    { duration: 0.7, scaleMax: 1.5 },
+    parpadeo:           { duration: 0.6 },
+    vibracion:          { duration: 0.3, intensity: 1 },
+    'rotacion-alterna': { duration: 1.5 },
+    'cambio-opacidad':  { duration: 2 },
+  };
+
+  const efectosActivos = new Set();
+  const parametros = JSON.parse(JSON.stringify(PARAM_DEFAULTS));
+
+  const inputEmoji   = document.getElementById('emoji-input');
+  const targets      = document.querySelectorAll('.target');
+  const checkboxes   = document.querySelectorAll('input[data-efecto]');
+  const cssOutput    = document.getElementById('css-output');
+  const btnReset     = document.getElementById('btn-reset');
+  const avisoDiv     = document.getElementById('aviso-conflictos');
+
+  // ═══════════════════════════════════════════════════════════
+  // CONSTRUIR ANIMACIONES
+  // ═══════════════════════════════════════════════════════════
+    // Convierte un hex (#abc o #aabbcc) a rgba con alpha
+  function hexToRgba(hex, alpha) {
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h[0]+h[0] + h[1]+h[1] + h[2]+h[2];
+    const r = parseInt(h.substring(0, 2), 16);
+    const g = parseInt(h.substring(2, 4), 16);
+    const b = parseInt(h.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  // Genera la cadena completa de text-shadow para el glow
+  function buildGlowShadow() {
+    const { color, intensity } = parametros.glow;
+    const base = 10 * intensity;
+    return [
+      `0 0 ${base}px ${hexToRgba(color, 1.0)}`,
+      `0 0 ${base * 2}px ${hexToRgba(color, 0.6)}`,
+      `0 0 ${base * 3}px ${hexToRgba(color, 0.4)}`,
+    ].join(', ');
+  }
+
+  function construirAnimaciones() {
+    const anims = [];
+    if (efectosActivos.has('spin')) {
+      anims.push(`efecto-spin ${parametros.spin.duration}s linear infinite ${parametros.spin.direction}`);
+    }
+        if (efectosActivos.has('pulse')) {
+      anims.push(`efecto-pulse ${parametros.pulse.duration}s ease-in-out infinite`);
+    }
+    if (efectosActivos.has('latido-fuerte')) {
+      anims.push(`efecto-latido-fuerte ${parametros['latido-fuerte'].duration}s ease-in-out infinite`);
+    }
+        if (efectosActivos.has('float')) {
+      anims.push(`efecto-float ${parametros.float.duration}s ease-in-out infinite`);
+    }
+        if (efectosActivos.has('hue')) {
+      anims.push(`efecto-hue ${parametros.hue.duration}s linear infinite`);
+    }
+    if (efectosActivos.has('parpadeo')) {
+      anims.push(`efecto-parpadeo ${parametros.parpadeo.duration}s ease-in-out infinite`);
+    }
+    if (efectosActivos.has('vibracion')) {
+      anims.push(`efecto-vibrar ${parametros.vibracion.duration}s ease-in-out infinite`);
+    }
+    if (efectosActivos.has('rotacion-alterna')) {
+      anims.push(`efecto-rotacion-alterna ${parametros['rotacion-alterna'].duration}s linear infinite alternate`);
+    }
+    if (efectosActivos.has('cambio-opacidad')) {
+      anims.push(`efecto-cambio-opacidad ${parametros['cambio-opacidad'].duration}s ease-in-out infinite`);
+    }
+    return anims;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // DETECTAR CONFLICTOS POR CANAL
+  // Devuelve [{ canal, efectos: [id1, id2, ...] }, ...]
+  // ═══════════════════════════════════════════════════════════
+  function detectarConflictos() {
+    const porCanal = {};
+    efectosActivos.forEach(id => {
+      const canal = META[id].canal;
+      if (!porCanal[canal]) porCanal[canal] = [];
+      porCanal[canal].push(id);
+    });
+    const conflictos = [];
+    Object.keys(porCanal).forEach(canal => {
+      if (porCanal[canal].length > 1) {
+        conflictos.push({ canal, efectos: porCanal[canal] });
+      }
+    });
+    return conflictos;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════════
+    function render() {
+    const emoji = inputEmoji.value.trim() || '❓';
+
+    targets.forEach(t => {
+      // Reset total
+      t.textContent = emoji;
+      t.className = 'target';
+      t.style.animation = '';
+      t.style.removeProperty('--pulse-scale-max');
+      t.style.removeProperty('--float-height');
+      t.style.removeProperty('--hue-max');
+      t.style.removeProperty('--glow-shadow');
+      t.style.removeProperty('--latido-fuerte-scale-max');
+      t.style.removeProperty('--vibrar-intensity');
+
+      // Clases estáticas (glow)
+      efectosActivos.forEach(id => {
+        if (META[id] && META[id].clase) t.classList.add(META[id].clase);
+      });
+
+    // Variables CSS para parámetros que afectan @keyframes
+      if (efectosActivos.has('pulse')) {
+        t.style.setProperty('--pulse-scale-max', parametros.pulse.scaleMax);
+      }
+      if (efectosActivos.has('float')) {
+        t.style.setProperty('--float-height', parametros.float.height + 'px');
+      }
+      if (efectosActivos.has('hue')) {
+        t.style.setProperty('--hue-max', parametros.hue.degrees + 'deg');
+      }
+      if (efectosActivos.has('glow')) {
+        t.style.setProperty('--glow-shadow', buildGlowShadow());
+      }
+            if (efectosActivos.has('latido-fuerte')) {
+        t.style.setProperty('--latido-fuerte-scale-max', parametros['latido-fuerte'].scaleMax);
+      }
+      if (efectosActivos.has('vibracion')) {
+        t.style.setProperty('--vibrar-intensity', parametros.vibracion.intensity);
+      }
+
+      // Animaciones compuestas
+      const anims = construirAnimaciones();
+      if (anims.length) t.style.animation = anims.join(', ');
+    });
+
+    // Labels + wrappers
+    document.querySelectorAll('.efecto').forEach(label => {
+      const id = label.dataset.efecto;
+      const activo = efectosActivos.has(id);
+      label.classList.toggle('activo', activo);
+      const wrapper = label.closest('.efecto-wrapper');
+      if (wrapper) wrapper.classList.toggle('activo', activo);
+    });
+
+    // Aviso de conflictos
+    renderAvisoConflictos();
+
+    // CSS generado
+    actualizarCSS();
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // AVISO DE CONFLICTOS
+  // ═══════════════════════════════════════════════════════════
+  function renderAvisoConflictos() {
+    const conflictos = detectarConflictos();
+    if (conflictos.length === 0) {
+      avisoDiv.classList.remove('visible');
+      avisoDiv.innerHTML = '';
+      return;
+    }
+
+    avisoDiv.classList.add('visible');
+    let html = '';
+
+    conflictos.forEach(c => {
+      const nombres = c.efectos.map(id => META[id].nombre).join(' y ');
+      html += `<div class="aviso-conflictos-titulo">⚠️ Conflicto en canal <span class="aviso-conflictos-canal">${c.canal}</span></div>`;
+      html += `<div>${nombres} comparten la misma propiedad CSS. Solo uno se verá.</div>`;
+      html += '<div class="aviso-conflictos-botones">';
+      c.efectos.forEach(id => {
+        html += `<button data-mantener="${id}">Mantener ${META[id].nombre}</button>`;
+      });
+      html += '</div>';
+    });
+
+    avisoDiv.innerHTML = html;
+
+    // Delegación de eventos para los botones "Mantener X"
+    avisoDiv.querySelectorAll('[data-mantener]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mantener = btn.dataset.mantener;
+        // Encontrar el conflicto al que pertenece este botón
+        const conflicto = conflictos.find(c => c.efectos.includes(mantener));
+        if (!conflicto) return;
+        // Desactivar todos los demás del mismo conflicto
+        conflicto.efectos.forEach(id => {
+          if (id !== mantener) {
+            efectosActivos.delete(id);
+            // Desmarcar el checkbox visual
+            const cb = document.querySelector(`input[data-efecto="${id}"]`);
+            if (cb) cb.checked = false;
+          }
+        });
+        render();
+      });
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CSS GENERADO
+  // ═══════════════════════════════════════════════════════════
+  function actualizarCSS() {
+    if (efectosActivos.size === 0) {
+      cssOutput.innerHTML = '<span class="vacio">— Sin efectos activos —</span>';
+      return;
+    }
+
+    const emoji = inputEmoji.value.trim() || '❓';
+
+    const clases = [];
+    efectosActivos.forEach(id => {
+      if (META[id] && META[id].clase) clases.push(META[id].clase);
+    });
+
+        const anims = construirAnimaciones();
+    const inlineStyles = [];
+    if (anims.length) inlineStyles.push(`animation: ${anims.join(', ')}`);
+    if (efectosActivos.has('pulse')) {
+      inlineStyles.push(`--pulse-scale-max: ${parametros.pulse.scaleMax}`);
+    }
+    if (efectosActivos.has('float')) {
+      inlineStyles.push(`--float-height: ${parametros.float.height}px`);
+    }
+    if (efectosActivos.has('hue')) {
+      inlineStyles.push(`--hue-max: ${parametros.hue.degrees}deg`);
+    }
+    if (efectosActivos.has('glow')) {
+      inlineStyles.push(`--glow-shadow: ${buildGlowShadow()}`);
+    }
+        if (efectosActivos.has('latido-fuerte')) {
+      inlineStyles.push(`--latido-fuerte-scale-max: ${parametros['latido-fuerte'].scaleMax}`);
+    }
+    if (efectosActivos.has('vibracion')) {
+      inlineStyles.push(`--vibrar-intensity: ${parametros.vibracion.intensity}`);
+    }
+
+    const classAttr = ' class="target' + (clases.length ? ' ' + clases.join(' ') : '') + '"';
+    const styleAttr = inlineStyles.length ? ` style="${inlineStyles.join('; ')}"` : '';
+
+    let html = '';
+    html += '<span class="tag">HTML resultante</span>\n';
+    html += `&lt;span${classAttr}${styleAttr}&gt;${emoji}&lt;/span&gt;\n\n`;
+    html += `<span class="tag">Efectos activos (${efectosActivos.size})</span>\n`;
+    efectosActivos.forEach(id => {
+      html += `• ${META[id].nombre} — <code>${META[id].canal}</code>\n`;
+    });
+
+    cssOutput.innerHTML = html;
+  }
+  // ═══════════════════════════════════════════════════════════
+  // SINCRONIZAR CONTROLES VISUALES CON EL ESTADO
+  // Usado por Reset y por los presets.
+  // ═══════════════════════════════════════════════════════════
+  function sincronizarControlesDesdeParametros() {
+    // 1. Checkboxes: marcados según efectosActivos
+    checkboxes.forEach(cb => {
+      cb.checked = efectosActivos.has(cb.dataset.efecto);
+    });
+
+    // 2. Inputs de parámetros: valor según parametros
+    document.querySelectorAll('[data-param]').forEach(input => {
+      const partes = input.dataset.param.split('-');
+      const campo = partes.pop();
+      const efecto = partes.join('-');
+      const val = parametros[efecto]?.[campo];
+      if (val !== undefined) input.value = val;
+    });
+
+    // 3. Labels de valores: texto formateado según parametros
+    document.querySelectorAll('[data-valor]').forEach(el => {
+      const partes = el.dataset.valor.split('-');
+      const campo = partes.pop();
+      const efecto = partes.join('-');
+      const val = parametros[efecto]?.[campo];
+      if (val !== undefined) {
+        let unidad = '';
+        let decimales = 1;
+        if (campo === 'duration') unidad = 's';
+        else if (campo === 'height') { unidad = 'px'; decimales = 0; }
+        else if (campo === 'scaleMax') { decimales = 2; }
+        else if (campo === 'degrees') { unidad = '°'; decimales = 0; }
+        else if (campo === 'intensity') { unidad = '×'; decimales = 1; }
+        el.textContent = parseFloat(val).toFixed(decimales) + unidad;
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CARGAR UN PRESET
+  // ═══════════════════════════════════════════════════════════
+  function cargarPreset(preset) {
+    // 1. Resetear estado
+    efectosActivos.clear();
+    Object.keys(parametros).forEach(k => delete parametros[k]);
+    Object.assign(parametros, JSON.parse(JSON.stringify(PARAM_DEFAULTS)));
+
+    // 2. Aplicar emoji
+    inputEmoji.value = preset.emoji;
+
+    // 3. Activar efectos del preset
+    preset.efectos.forEach(id => efectosActivos.add(id));
+
+    // 4. Aplicar parámetros custom del preset (sobreescriben defaults)
+    if (preset.parametros) {
+      Object.entries(preset.parametros).forEach(([efecto, vals]) => {
+        if (parametros[efecto]) Object.assign(parametros[efecto], vals);
+      });
+    }
+
+    // 5. Sincronizar controles visuales y renderizar
+    sincronizarControlesDesdeParametros();
+    render();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // GENERAR BOTONES DE PRESETS
+  // ═══════════════════════════════════════════════════════════
+  function construirBotonesPresets() {
+    const contenedor = document.getElementById('lista-presets');
+    PRESETS.forEach(preset => {
+      const btn = document.createElement('button');
+      btn.className = 'preset-btn';
+      btn.innerHTML = `<span class="preset-emoji">${preset.emoji}</span><span>${preset.nombre}</span>`;
+      btn.addEventListener('click', () => cargarPreset(preset));
+      contenedor.appendChild(btn);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // EVENTOS
+  // ═══════════════════════════════════════════════════════════
+  inputEmoji.addEventListener('input', render);
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.dataset.efecto;
+      if (cb.checked) efectosActivos.add(id);
+      else            efectosActivos.delete(id);
+      render();
+    });
+  });
+
+  document.querySelectorAll('[data-param]').forEach(input => {
+    input.addEventListener('input', () => {
+      const partes = input.dataset.param.split('-');
+      const campo = partes.pop();
+      const efecto = partes.join('-');
+      if (!parametros[efecto]) return;
+      let valor = input.value;
+      if (input.type === 'range') valor = parseFloat(valor);
+      parametros[efecto][campo] = valor;
+            const label = document.querySelector(`[data-valor="${input.dataset.param}"]`);
+      if (label && input.type === 'range') {
+        let unidad = '';
+        let decimales = 1;
+        if (campo === 'duration') unidad = 's';
+        else if (campo === 'height') { unidad = 'px'; decimales = 0; }
+        else if (campo === 'scaleMax') { decimales = 2; }
+        else if (campo === 'degrees') { unidad = '°'; decimales = 0; }
+        else if (campo === 'intensity') { unidad = '×'; decimales = 1; }
+        label.textContent = valor.toFixed(decimales) + unidad;
+      }
+      render();
+    });
+  });
+
+   btnReset.addEventListener('click', () => {
+    efectosActivos.clear();
+    inputEmoji.value = '🍄';
+
+    Object.keys(parametros).forEach(k => delete parametros[k]);
+    Object.assign(parametros, JSON.parse(JSON.stringify(PARAM_DEFAULTS)));
+
+    sincronizarControlesDesdeParametros();
+    render();
+  });
+
+  // Arranque
+  construirBotonesPresets();
+  render();
+</script>
+
+</body>
+</html>

@@ -2,10 +2,8 @@
 //  BLOQUE 9 · RENDER DEL MUNDO (chunks 2D + cámara fluida)
 // ─────────────────────────────────────────────────────────────────
 //  Grid extendido: viewport + 2 celdas extra a cada lado.
-//  El contenido del grid se recalcula cuando:
-//    - La cámara está quieta y la esquina cambió.
-//    - La cámara se está moviendo y la esquina visible cambió.
-//  El translate se calcula SIEMPRE con la posición exacta de la cámara.
+//  El contenido del grid se recalcula cuando la esquina cambia.
+//  Los EFECTOS VISUALES se actualizan SIEMPRE (cada frame).
 // ═══════════════════════════════════════════════════════════════
 
 const divMapa = document.getElementById("mapa");
@@ -28,9 +26,6 @@ divJugador.style.width  = TAMANO_CELDA + "px";
 divJugador.style.height = TAMANO_CELDA + "px";
 divJugador.style.fontSize = FONT_EMOJI + "px";
 
-// El jugador debe quedar EXACTAMENTE sobre la celda central del viewport.
-// Con ANCHO_VENTANA = 32, la celda central es la 16 (índice).
-// Su esquina izquierda está en 16 * TAMANO_CELDA.
 const celdaCentralX = Math.floor(ANCHO_VENTANA / 2);
 const celdaCentralY = Math.floor(ALTO_VENTANA / 2);
 divJugador.style.left = (celdaCentralX * TAMANO_CELDA) + "px";
@@ -53,11 +48,13 @@ for (let vy = 0; vy < ALTO_GRID; vy++) {
   }
 }
 
-// Esquina del grid (la celda [0][0] del grid corresponde a esta posición del mundo)
+// Esquina del grid
 let _esquinaGridX = null;
 let _esquinaGridY = null;
 
-// ─── Forzar el redibujado del grid en el próximo render ───
+// Flag: ¿había efectos en el frame anterior?
+let _habiaEfectos = false;
+
 function forzarRedibujadoGrid() {
   _esquinaGridX = null;
   _esquinaGridY = null;
@@ -147,17 +144,51 @@ function llenarGrid(esquinaX, esquinaY) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  EFECTOS VISUALES (clases CSS dinámicas)
+// ─────────────────────────────────────────────────────────────────
+//  Se ejecuta SIEMPRE en render(), no solo cuando la esquina cambia.
+//  Solo itera si hay efectos activos (o los hubo en el frame anterior).
+//  No toca textContent, background ni transform: solo className.
+// ═══════════════════════════════════════════════════════════════
+function actualizarEfectosEnGrid() {
+  if (typeof efectosActivos === "undefined") return;
+
+  const hayEfectos = efectosActivos.size > 0;
+  if (!hayEfectos && !_habiaEfectos) return;
+  _habiaEfectos = hayEfectos;
+
+  // Si el grid todavía no se inicializó, salir
+  if (_esquinaGridX === null || _esquinaGridY === null) return;
+
+  for (let vy = 0; vy < ALTO_GRID; vy++) {
+    for (let vx = 0; vx < ANCHO_GRID; vx++) {
+      const idx = vy * ANCHO_GRID + vx;
+      const celda = celdas[idx];
+      const wx = _esquinaGridX + vx;
+      const wy = _esquinaGridY + vy;
+
+      const efectos = obtenerEfectosDe(wx, wy);
+      const nuevoClassName = efectos.length > 0
+        ? "tile " + efectos.join(" ")
+        : "tile";
+
+      if (celda.className !== nuevoClassName) {
+        celda.className = nuevoClassName;
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  RENDER PRINCIPAL
 // ═══════════════════════════════════════════════════════════════
 function render() {
   const centroX = Math.floor(ANCHO_VENTANA / 2);
   const centroY = Math.floor(ALTO_VENTANA / 2);
 
-  // Esquina del viewport (con decimales)
   const esquinaX = camara.x - centroX;
   const esquinaY = camara.y - centroY;
 
-  // Esquina del grid (con margen)
   const nuevaEsquinaX = Math.floor(esquinaX) - MARGEN_GRID;
   const nuevaEsquinaY = Math.floor(esquinaY) - MARGEN_GRID;
 
@@ -172,7 +203,10 @@ function render() {
 
   divMapa.style.transform = `translate(${offsetPxX}px, ${offsetPxY}px)`;
 
-  // Emoji + orientación del jugador fijo
+  // ─── Efectos visuales ───
+  actualizarEfectosEnGrid();
+
+  // ─── Emoji + orientación del jugador fijo ───
   const datosJugador = _temaActivo.jugador;
   let emojiJugador;
 

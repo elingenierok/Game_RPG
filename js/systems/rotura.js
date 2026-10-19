@@ -2,10 +2,10 @@
 //  BLOQUE 7.10 · SISTEMA DE ROTURA (chunks 2D)
 // ─────────────────────────────────────────────────────────────────
 //  El click se convierte a coordenadas del mundo (wx, wy).
-//  La rotura modifica el chunk correspondiente.
+//  Mientras se rompe, la celda vibra en bucle hasta que la barra
+//  llega a cero. Al terminar, el efecto se quita y el tile cambia.
 // ═══════════════════════════════════════════════════════════════
 
-// ─── Estado de la rotura actual ───
 const rotura = {
   activa: false,
   wx: null,
@@ -46,7 +46,6 @@ function coordenadasClickAMundo(evento) {
   };
 }
 
-// ─── ¿El jugador está adyacente a (wx, wy)? ───
 function jugadorAdyacenteA(wx, wy) {
   const jx = Math.floor(estado.jugador.wx);
   const jy = Math.floor(estado.jugador.wy);
@@ -55,7 +54,6 @@ function jugadorAdyacenteA(wx, wy) {
   return (dx + dy) === 1;
 }
 
-// ─── ¿Tiene el objeto equipado? ───
 function tieneObjetoEquipado(nombre) {
   return (estado.inventario[nombre] || 0) > 0;
 }
@@ -64,36 +62,37 @@ function tieneObjetoEquipado(nombre) {
 //  INICIAR ROTURA
 // ═══════════════════════════════════════════════════════════════
 function intentarIniciarRotura(wx, wy) {
-  // 1. ¿Hay algo rompible en esa celda?
   const tile = tileEnMundo(wx, wy);
   const config = ROTURA_POR_TILE[tile];
   if (!config) return false;
 
-  // 2. ¿El jugador está adyacente?
   if (!jugadorAdyacenteA(wx, wy)) return false;
 
-  // 3. ¿Tiene el objeto correcto?
   if (!tieneObjetoEquipado(config.objeto)) {
     const nombreObjeto = config.objeto === "HACHA" ? "hacha" : "pico";
     mostrarCartelRapido(`Necesitás un ${nombreObjeto}`);
     return false;
   }
 
-  // 4. Iniciar rotura
   rotura.activa = true;
   rotura.wx = wx;
   rotura.wy = wy;
   rotura.tileOriginal = tile;
 
-    // Tile base según el bioma de la celda
   const bioma = obtenerBiomaDeCelda(SEMILLA, wx, wy);
   rotura.tileBase = NOMBRE_A_TILE[BIOMAS[bioma].tileBase];
 
   rotura.tiempoInicio = Date.now();
   rotura.duracionMs = config.duracionMs;
 
+  // ─── Efecto visual de golpe en bucle (permanente hasta quitar) ───
+  if (typeof aplicarEfecto === "function") {
+    aplicarEfecto(wx, wy, "efecto-golpe-loop");
+  }
+
   const barra = document.getElementById("barra-stamina");
   barra.classList.add("visible");
+  document.getElementById("barra-stamina-relleno").style.width = "100%";
 
   rotura.intervalID = setInterval(actualizarRotura, INTERVALO_ROTURA_MS);
   return true;
@@ -105,6 +104,7 @@ function intentarIniciarRotura(wx, wy) {
 function actualizarRotura() {
   if (!rotura.activa) return;
 
+  // Cancelaciones
   if (!jugadorAdyacenteA(rotura.wx, rotura.wy)) {
     cancelarRotura();
     return;
@@ -121,25 +121,35 @@ function actualizarRotura() {
   const relleno = document.getElementById("barra-stamina-relleno");
   relleno.style.width = (progreso * 100) + "%";
 
+  // Fin de la rotura
   if (transcurrido >= rotura.duracionMs) {
     finalizarRotura();
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  FINALIZAR ROTURA
+//  FINALIZAR ROTURA (barra llegó a cero)
 // ═══════════════════════════════════════════════════════════════
 function finalizarRotura() {
   if (!rotura.activa) return;
 
-  // Convertir el tile en el chunk correspondiente
-  const info = coordsMundoATile(rotura.wx, rotura.wy);
+  const wx = rotura.wx;
+  const wy = rotura.wy;
+
+  // 1. Quitar el efecto de golpe (mismo momento que la barra llega a 0)
+  if (typeof quitarEfecto === "function") {
+    quitarEfecto(wx, wy, "efecto-golpe-loop");
+  }
+
+  // 2. Cambiar el tile
+  const info = coordsMundoATile(wx, wy);
   const chunk = obtenerChunk(info.cx, info.cy);
   chunk.mapa[info.ly][info.lx] = rotura.tileBase;
 
+  // 3. Resetear barra y estado
   cancelarRotura();
 
-  // Forzar el redibujado del grid (para que el cambio se vea al instante)
+  // 4. Refrescar la celda inmediatamente
   if (typeof forzarRedibujadoGrid === "function") {
     forzarRedibujadoGrid();
   }
@@ -147,9 +157,14 @@ function finalizarRotura() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  CANCELAR ROTURA
+//  CANCELAR ROTURA (interrumpida, sin romper el tile)
 // ═══════════════════════════════════════════════════════════════
 function cancelarRotura() {
+  // Quitar el efecto si estaba activo
+  if (typeof quitarEfecto === "function" && rotura.wx !== null && rotura.wy !== null) {
+    quitarEfecto(rotura.wx, rotura.wy, "efecto-golpe-loop");
+  }
+
   rotura.activa = false;
 
   if (rotura.intervalID !== null) {
@@ -212,23 +227,18 @@ divMapaClick.addEventListener("mousedown", (e) => {
   const coords = coordenadasClickAMundo(e);
   if (!coords) return;
 
-  // 1. ¿Navegando? Intentar desembarcar
   if (typeof estaNavegando === "function" && estaNavegando()) {
-    // 1a. Intentar desembarcar
     if (typeof iniciarDesembarco === "function") {
       if (iniciarDesembarco(coords.wx, coords.wy)) return;
     }
-    // 1b. Si no puede desembarcar, intentar romper (ej: roca en el agua)
     intentarIniciarRotura(coords.wx, coords.wy);
     return;
   }
 
-  // 2. Intentar colocar barco
   if (typeof intentarColocarBarco === "function") {
     if (intentarColocarBarco(coords.wx, coords.wy)) return;
   }
 
-  // 3. Intentar romper
   intentarIniciarRotura(coords.wx, coords.wy);
 });
 

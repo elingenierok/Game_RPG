@@ -4,6 +4,120 @@ Historial completo de versiones del proyecto. Para el estado actual, ver [README
 
 ---
 
+## v2.4.2-alpha · 2026-10-19 (sistema de efectos visuales)
+
+### 🎯 Objetivo
+
+Crear un sistema de efectos visuales **genérico y desacoplado**: cualquier tile, mob, ítem o entidad puede "recibir" un efecto visual (vibrar, parpadear, glow, etc.) sin código específico por entidad.
+
+### 🧠 El problema que resuelve
+
+Hasta v2.4.1-alpha, los efectos visuales estaban hardcodeados dentro de `render.js` por entidad:
+
+- `if (tile === TILE_LLAVE) celda.classList.add("glow")`
+- `if (mob.tipo === "tigre") celda.style.transform = "scaleX(-1)"`
+
+Con 3 mobs no dolía, pero al querer agregar vibrar/parpadear/destello a **cualquier** entidad (tigre, lobo, roca, árbol, cofre, puerta), hubiera implicado tocar `render.js` una y otra vez.
+
+### ✅ Completado
+
+**Nuevo sistema de efectos (`js/systems/efectos.js` — NUEVO)**
+
+- Mapa global `efectosActivos: Map<"wx,wy", [{ clase, hasta }]>`.
+- `aplicarEfecto(wx, wy, clase, duracionMs?)` — si no se pasa duración, dura para siempre hasta quitarse manualmente.
+- `quitarEfecto(wx, wy, clase)` — quita un efecto puntual.
+- `quitarTodosLosEfectos(wx, wy)` — quita todos de una celda.
+- `obtenerEfectosDe(wx, wy)` — devuelve las clases activas, filtrando expirados.
+- `limpiarEfectos()` — limpia todo (para reiniciar mundo).
+- Autocontenido, sin dependencias.
+
+**CSS (`css/estilo.css`)**
+
+- Nuevos keyframes:
+  - `vibrar-random` — vibración **orgánica** combinando `translateX` y `translateY` en secuencia irregular (no solo izq-der).
+  - `parpadeo` — `opacity: 1 ↔ 0.2`.
+  - `destello-rojo` — `drop-shadow` rojo + `brightness` alternado.
+  - `pulse` — `scale(1 ↔ 1.3)` infinito.
+- Nuevas clases compuestas:
+  - `.efecto-ataque` — vibrar + parpadeo + destello rojo (~0.5s, 1 sola pasada).
+  - `.efecto-golpe` — vibrar + parpadeo lentos (~1s, 3 pasadas).
+  - `.efecto-golpe-loop` — vibrar + parpadeo **infinitos** (mientras dura la rotura).
+  - `.efecto-recoger` — solo parpadeo rápido.
+  - `.efecto-danio` — vibrar + parpadeo + destello rojo (para daño al jugador).
+  - `.efecto-glow` — halo celeste permanente.
+  - `.efecto-pulse` — pulsación permanente.
+
+**`js/ui/render.js`**
+
+- Nueva función `actualizarEfectosEnGrid()` que se ejecuta **cada frame** (no solo al cambiar la esquina del grid).
+- Solo itera si hay efectos activos o los hubo en el frame anterior (optimización).
+- **No toca** `textContent`, `background` ni `transform`: **solo** el `className` de la celda. Así las animaciones CSS no se reinician cada frame.
+- Se mantiene todo lo demás: `dibujarCeldaEnGrid`, `llenarGrid`, HUD, orientación del jugador.
+
+**`js/systems/rotura.js`**
+
+- Al iniciar la rotura: `aplicarEfecto(wx, wy, "efecto-golpe-loop")` (sin duración → infinito).
+- Mientras la barra baja, la animación corre en bucle.
+- Al llegar la barra a **0** (o al cancelar): `quitarEfecto(...)` **en el mismo instante** que se cambia el tile / se resetea la barra.
+- Se eliminó el "re-aplicar efecto cada 1s" que tenía la versión anterior. Ahora es un único efecto-loop.
+- La animación, la barra y el cambio de tile terminan **exactamente juntos**.
+
+**`index.html`**
+
+- Agregado `<script src="js/systems/efectos.js"></script>` **justo antes** de `render.js`.
+
+### 🎨 Ajustes visuales
+
+- **Vibración reducida de 4px a 2px.** Con 4px se sacudía demasiado "violento", con 2px se ve como un golpe real.
+- Vibrar ahora es **orgánico** (no solo izquierda-derecha): combina desplazamientos en X e Y.
+- Vibración "en bucle" mientras se pica/tala → sensación de "estar trabajando" sobre el tile.
+- Al terminar la rotura, **la animación se corta en el mismo frame** en que el tile desaparece.
+
+### 🔧 Cambios técnicos
+
+- `efectos.js` es transversal: cualquier sistema (rotura, combate, recolección, victoria) puede llamar `aplicarEfecto(...)` sin acoplarse al render.
+- Los efectos se guardan por **coordenadas del mundo** `(wx, wy)`, no por índice de celda. Así siguen vigentes cuando la cámara se mueve.
+- El render consulta `obtenerEfectosDe(wx, wy)` y aplica las clases CSS. El motor no sabe qué es un efecto: solo lo dibuja.
+
+### 🧪 Bugs encontrados y resueltos durante el desarrollo
+
+- **Bug 1:** las animaciones CSS no se veían porque `render()` reseteaba `celda.className` cada frame (60fps). Solución: solo actualizar `className` cuando el valor nuevo es distinto.
+- **Bug 2:** dos clases con `animation:` se pisaban entre sí. Solución: combinar las animaciones en una sola clase con múltiples animaciones separadas por coma.
+- **Bug 3:** `const lineas` se usaba antes de declararse en el HTML de prueba. Solución: declarar antes.
+
+### 🚀 Lo que se puede hacer ahora (antes no)
+
+| Caso | Antes | Ahora |
+|------|-------|-------|
+| Atacar a un tigre | Comportamiento hardcodeado | `aplicarEfecto(wx, wy, "efecto-ataque", 500)` |
+| Picar una roca | No tenía animación | `aplicarEfecto(wx, wy, "efecto-golpe-loop")` mientras dura |
+| Recoger un ítem | No tenía animación | `aplicarEfecto(wx, wy, "efecto-recoger", 300)` |
+| Daño al jugador | No tenía animación | `aplicarEfecto(wx, wy, "efecto-danio", 500)` |
+| Cofre importante | Hardcodeo por tile | `aplicarEfecto(wx, wy, "efecto-glow")` permanente |
+| Portal activo | Hardcodeo por tile | `aplicarEfecto(wx, wy, "efecto-pulse")` permanente |
+| Mob herido | No existía | Agregar `"efecto-danio"` al golpear |
+
+### ⏸️ Pendiente (ver BACKLOG · F25)
+
+- Aplicar `efecto-ataque` al iniciar batalla (hoy la batalla es un overlay, no hay feedback visual del mob).
+- Aplicar `efecto-danio` al jugador cuando HP esté implementado.
+- Aplicar `efecto-recoger` al recoger ítems y equipables.
+- Efecto `efecto-glow` permanente a la llave (reemplazar el glow hardcodeado).
+- Sistema de efectos en la UI de HTML de prueba (`pruebas/efectos.html`).
+
+### 📖 Documentación
+
+- CHANGELOG: esta entrada.
+- BACKLOG: F25 agregado.
+- README: sistema de efectos documentado.
+
+### ⚠️ Estado
+
+- **v2.4.2-alpha estable.** El sistema de efectos funciona y la rotura es la primera en usarlo.
+- Todo el código existente sigue funcionando igual.
+
+---
+
 ## v2.4.1-alpha · 2026-10-17 (fix bugs de v2.4-alpha)
 
 ### 🎯 Objetivo

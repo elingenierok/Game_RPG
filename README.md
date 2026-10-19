@@ -2,7 +2,8 @@
 
 > Motor de mundo procedural con semilla, mundo 2D circular, cámara fluida,
 > chunks de 32×32, biomas por celda con ruido, ítems recolectables,
-> mobs con IA en tiempo real, y módulo de combate por reflejos en desarrollo paralelo.
+> mobs con IA en tiempo real, sistema de efectos visuales genéricos,
+> y módulo de combate por reflejos en desarrollo paralelo.
 
 ---
 
@@ -10,8 +11,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.4.1-alpha · biomas por celda + bugs cerrados |
-| **Última actualización** | 2026-10-17 |
+| **Versión actual** | v2.4.2-alpha · sistema de efectos visuales genéricos |
+| **Última actualización** | 2026-10-19 |
 | **Estado global** | ✅ Jugable · Base del motor completa · 0 bugs conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -24,7 +25,7 @@
 📖 **Documentos complementarios:**
 
 - [CHANGELOG.md](CHANGELOG.md) — Historial completo de versiones
-- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F24)
+- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F25)
 
 ---
 
@@ -79,18 +80,18 @@ Se actualiza automáticamente al hacer `git push`.
 ```text
 Game_RPG/
 ├── auditor/                      ← Herramienta auxiliar de diagnóstico
-│   ├── auditor.html
+│   ├── auditor.html              ← Auditor de semillas 2D
 │   ├── auditor.css
-│   └── auditor.js
+│   ├── auditor.js
+│   └── laboratorio-v1.html       ← Laboratorio de emojis y efectos (herramienta)
 ├── pruebas/                      ← Archivos de prueba aislados
-│   ├── animaciones.html
-│   ├── biomas.html
-│   ├── biomas-escala.html
-│   └── ruido-test.html
+│   ├── catalogo.html             ← Catálogo de efectos visuales (herramienta)
+│   └── pruebas/
+│       └── biomas.html           ← Prueba de generación de biomas
 ├── index.html                    ← Solo HTML (estructura + <script src>)
 ├── README.md                     ← Este documento
 ├── CHANGELOG.md                  ← Historial de versiones
-├── BACKLOG.md                    ← Ideas futuras (F1-F24)
+├── BACKLOG.md                    ← Ideas futuras (F1-F25)
 ├── .gitignore                    ← Archivos ignorados por Git
 ├── css/
 │   └── estilo.css                ← Todo el CSS del juego
@@ -102,6 +103,7 @@ Game_RPG/
     │   ├── rng.js                ← BLOQUE 3: hash, PRNG, randInt
     │   ├── ruido.js              ← BLOQUE 3.5: Value Noise + fBm
     │   ├── tiles.js              ← BLOQUE 2: tiles, iconos, bloqueantes
+    │   ├── tiles_muestrario.md   ← Referencia de uso de tiles (documento)
     │   ├── estado.js             ← BLOQUE 7: estado global (coords del mundo)
     │   ├── input.js              ← BLOQUE 14: listeners de teclado
     │   └── temas/                ← Datos temáticos (tierra / espacio)
@@ -125,6 +127,7 @@ Game_RPG/
     │
     └── systems/                  ← Sistemas transversales
         ├── camara.js             ← BLOQUE 20: cámara fluida
+        ├── efectos.js            ← BLOQUE 7.12: efectos visuales genéricos
         ├── ia.js                 ← BLOQUE 7.9: IA de mobs en tiempo real
         ├── rotura.js             ← BLOQUE 7.10: sistema de rotura
         ├── barco.js              ← BLOQUE 7.11: sistema del barco
@@ -135,8 +138,8 @@ Game_RPG/
 
 ```text
 tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas → mundo
-→ camara → estado → chunks → items → mobs → enemigos → render → ia
-→ jugador → victoria → input → rotura → barco → cheats → main
+→ camara → estado → chunks → items → mobs → enemigos → efectos → render
+→ ia → jugador → victoria → input → rotura → barco → cheats → main
 ```
 
 **Criterio de organización en carpetas:**
@@ -147,7 +150,8 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 | `world/` | Generación y gestión del terreno: chunks 2D, biomas |
 | `entities/` | Todo lo que "vive" en el mundo: jugador, mobs, ítems |
 | `ui/` | Render visual, pantallas y overlays |
-| `systems/` | Sistemas transversales: cámara, IA, rotura, barco, cheats |
+| `systems/` | Sistemas transversales: cámara, efectos, IA, rotura, barco, cheats |
+| `auditor/` | Herramientas de diagnóstico y experimentación |
 | `pruebas/` | Archivos HTML aislados para experimentar (no se cargan desde el juego) |
 
 **Dependencias críticas:**
@@ -158,6 +162,8 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 - `mobs.js` **antes** de `enemigos.js`.
 - `camara.js` **antes** de `estado.js`.
 - `estado.js` **antes** de `chunks.js`, `items.js`, `mobs.js`, `enemigos.js`.
+- `efectos.js` **antes** de `render.js` (lo usa `actualizarEfectosEnGrid`).
+- `efectos.js` **antes** de `rotura.js` (lo usa `aplicarEfecto` y `quitarEfecto`).
 - `render.js` **antes** de `ia.js`.
 - `ia.js` **antes** de `jugador.js`.
 - `cheats.js` **antes** de `main.js`.
@@ -405,7 +411,9 @@ Cada mob es un **objeto de datos** con una estructura común.
 | desierto | 🟧 DESERT_SAND |
 | nieve | ❄️ SNOW |
 
-**Nota (v2.4.1-alpha):** desde el fix de B1/B5, el `tileBase` se calcula con `obtenerBiomaDeCelda(wx, wy)`. Romper una roca en el agua deja agua, romper en desierto deja `DESERT_SAND`.
+**Nota (v2.4.1-alpha):** el `tileBase` se calcula con `obtenerBiomaDeCelda(wx, wy)`. Romper una roca en el agua deja agua, romper en desierto deja `DESERT_SAND`.
+
+**Nota (v2.4.2-alpha):** mientras se rompe un tile, la celda vibra y parpadea en bucle (efecto `.efecto-golpe-loop`). Al llegar la barra a 0, la animación y el cambio de tile terminan **exactamente juntos**.
 
 **Idea futura:** objetos de mejor nivel (hacha de hierro, pico de diamante) que reduzcan el tiempo de rotura. Ver BACKLOG · F12.
 
@@ -428,8 +436,6 @@ Los objetos equipables se muestran según el **tema activo**:
 | ⛏️ PICO | ⛏️ | 🔫 (taladro) |
 | 🕯️ LINTERNA | 🕯️ | 💡 (lámpara) |
 | 🛶 BARCO | 🛶 | 🚀 (módulo de escape) |
-
-Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis de `ICONOS`, que depende de `TEMA_ACTIVO`.
 
 **Cómo funciona el tema activo:**
 
@@ -519,7 +525,7 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 | R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server / Pages) | CORS |
 | R4 | CSS separado | 🟢 | `css/estilo.css` | v1.0 |
 | R5 | Bloques referenciables | 🟢 | `// ═══ BLOQUE N ═══` | v1.0 |
-| R6 | Orden de carga | 🟢 | temas → config → ruido → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → render → ia → jugador → victoria → input → rotura → barco → cheats → main | v2.4.1-alpha |
+| R6 | Orden de carga | 🟢 | temas → config → ruido → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → efectos → render → ia → jugador → victoria → input → rotura → barco → cheats → main | v2.4.2-alpha |
 | R7 | Versionado | 🟢 | Git + GitHub | v1.0 |
 | R8 | Deploy público | 🟢 | GitHub Pages | v1.0 |
 | R9 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
@@ -538,6 +544,9 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 | R22 | Ruido autocontenido | 🟢 | `js/core/ruido.js` (sin dependencias) | v2.4-alpha |
 | R23 | IA reescrita para 2D | 🟢 | `ia.js` con `wx, wy`, sin `estado.pantalla` | v2.4.1-alpha |
 | R24 | Cheats de test temporales | 🧪 | `js/systems/cheats.js` (borrar antes de producción) | v2.4.1-alpha |
+| R25 | Sistema de efectos visuales | 🟢 | `js/systems/efectos.js` + clases CSS | v2.4.2-alpha |
+| R26 | Efectos por coordenada del mundo | 🟢 | `Map<"wx,wy", efectos[]>`, independientes del render | v2.4.2-alpha |
+| R27 | Herramientas de experimentación | 🟢 | `auditor/laboratorio-v1.html` + `pruebas/catalogo.html` | v2.4.2-alpha |
 
 ---
 
@@ -559,7 +568,8 @@ Los slots de equipados (arriba del mapa) y el HUD del inventario leen los emojis
 | Animación del jugador | Emojis alternados al caminar | v2.3-alpha |
 | Botón de cambio de tema | Glow celeste, arriba a la derecha | v2.3-alpha |
 | Botón de cheat | Rojo, arriba a la derecha | v2.4.1-alpha |
-| **Biomas orgánicos** | Manchas sin bordes rectos (ruido) | v2.4-alpha |
+| Biomas orgánicos | Manchas sin bordes rectos (ruido) | v2.4-alpha |
+| **Efectos visuales genéricos** | Vibrar, parpadear, destello, glow, pulse | v2.4.2-alpha |
 
 **Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
 
@@ -607,11 +617,45 @@ El jugador tiene 4 estados visuales, definidos en cada tema:
 
 **Orientación:** se aplica `transform: scaleX(-1)` cuando `mirandoIzquierda === true`.
 
-**Velocidad de alternancia:** 150ms (configurable cambiando el divisor en `render.js`).
+### Efectos visuales genéricos (v2.4.2-alpha)
+
+Sistema desacoplado que permite aplicar efectos a cualquier tile, mob, ítem o entidad. Ver BACKLOG · F25 para el detalle completo.
+
+**Efectos disponibles:**
+
+| Clase CSS | Efecto | Cuándo usarla |
+|-----------|--------|---------------|
+| `.efecto-ataque` | Vibrar + parpadear + destello rojo (~0.5s) | Ente recibe golpe |
+| `.efecto-golpe` | Vibrar + parpadear lentos (~1s) | Picar/talar (una vez) |
+| `.efecto-golpe-loop` | Vibrar + parpadear infinitos | Mientras dura la rotura |
+| `.efecto-recoger` | Parpadeo rápido (0.3s) | Recoger ítem |
+| `.efecto-danio` | Vibrar + parpadear + destello rojo | Jugador recibe daño |
+| `.efecto-glow` | Halo celeste permanente | Ítem importante |
+| `.efecto-pulse` | Pulsación permanente | Portal, orbe |
+
+**Uso:**
+
+```js
+aplicarEfecto(wx, wy, "efecto-ataque", 500);       // temporal
+aplicarEfecto(wx, wy, "efecto-glow");              // permanente
+quitarEfecto(wx, wy, "efecto-glow");               // quitar
+```
+
+**Render:** cada frame, el render consulta `obtenerEfectosDe(wx, wy)` y aplica las clases al `className` de la celda. Solo actualiza si cambió (para no reiniciar animaciones CSS).
+
+**Vibración:** orgánica, combinando `translateX` y `translateY` en secuencia irregular (no solo izq-der). Máximo 2px para no sacudir demasiado.
+
+### Herramientas de experimentación
+
+| Archivo | Función |
+|---------|---------|
+| `auditor/laboratorio-v1.html` | Laboratorio ejecutable en el navegador. Permite probar cualquier emoji con cualquier efecto (vibrar, glow, pulse, etc.). No afecta el proyecto. |
+| `pruebas/catalogo.html` | Catálogo comprimido de efectos con ejemplos prácticos. Sirve para elegir el efecto adecuado según la función. |
+| `js/core/tiles_muestrario.md` | Documento de referencia con el uso de tiles. |
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v2.4.1-alpha)
+## 🧪 MARCO 9 · Sistema de Test (v2.4.2-alpha)
 
 ### Lo que hay ahora
 
@@ -625,7 +669,7 @@ El jugador tiene 4 estados visuales, definidos en cada tema:
 - **Costa con forma de franja**.
 - **Ítems recolectables** (🍎 / 🧪, 0-3 por chunk).
 - **Objetos equipables**: 🪓 ⛏️ 🕯️ 🛶 (o ⚡ 🔫 💡 🚀 en espacio).
-- **Sistema de rotura** (click + barra de stamina).
+- **Sistema de rotura** (click + barra de stamina + efecto de golpe).
 - **Sistema del barco** (navegar sobre agua).
 - **Mobs con IA** (deambular, perseguir, huir).
 - **Pausa global en batalla**.
@@ -637,6 +681,7 @@ El jugador tiene 4 estados visuales, definidos en cada tema:
 - **Color de fondo por bioma**.
 - **Animación del jugador** (quieto, corriendo, en barco).
 - **Ruido (Value Noise)** para generación de biomas.
+- **Sistema de efectos visuales genéricos** (vibrar, parpadear, destello, glow, pulse).
 
 ### Bugs conocidos
 
@@ -654,6 +699,10 @@ Todos los bugs de v2.4-alpha fueron resueltos en v2.4.1-alpha:
 
 ### Lo que falta
 
+- Aplicar `efecto-ataque` al iniciar batalla (hoy la batalla es un overlay sin feedback visual del mob).
+- Aplicar `efecto-danio` al jugador cuando HP esté implementado.
+- Aplicar `efecto-recoger` al recoger ítems y equipables.
+- Reemplazar el glow hardcodeado de la llave por `aplicarEfecto(..., "efecto-glow")`.
 - Pulir emojis y nombres del tema espacio.
 - Adaptar `auditor/` al sistema de temas.
 - Adaptar `victoria.js` con mensaje temático.
@@ -726,7 +775,7 @@ Interfaz radial con 6 sectores anidados. El jugador **bloquea** arrastrando el m
 
 **Movido a [BACKLOG.md](BACKLOG.md).**
 
-Ideas futuras: F1-F24.
+Ideas futuras: F1-F25.
 
 ---
 
@@ -766,6 +815,7 @@ Ideas futuras: F1-F24.
 - [x] **Tema espacio + color bioma + animación** ← v2.3-alpha
 - [x] **Biomas por celda con ruido (F24)** ← v2.4-alpha
 - [x] **Bugs de biomas por celda (F24)** ← v2.4.1-alpha
+- [x] **Sistema de efectos visuales genéricos (F25)** ← v2.4.2-alpha
 
 ### 🔥 Próximas tareas (urgentes)
 
@@ -776,7 +826,7 @@ Ideas futuras: F1-F24.
 | 🟡 Media | Loot y XP de mobs | ⏸️ | Campos ya definidos |
 | 🟡 Media | Pulir tema espacio (emojis, nombres, biomas) | ⏸️ | Ver BACKLOG · F19 |
 | 🟡 Media | Más tipos de ítems | ⏸️ | Extender sistema actual |
-| 🟢 Baja | Transformaciones visuales (F23) | ⏸️ | Rotación, glow, pulse |
+| 🟢 Baja | Aplicar F25 a otras features (combate, recoger, llave) | ⏸️ | Ver BACKLOG · F25 |
 | 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis pintadas |
 | 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
 | 🟢 Baja | Minimapa completo | ⏸️ | Fase futura |
@@ -788,7 +838,7 @@ Ideas futuras: F1-F24.
 - Refactorización a módulos ES
 - Entidades multi-tile (mobs 2×2)
 - Sprites reales (PNG) — ver F20
-- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F24)
+- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F25)
 
 ---
 
@@ -811,6 +861,7 @@ Ideas futuras: F1-F24.
 | 7.9 | IA de mobs | `js/systems/ia.js` |
 | 7.10 | Sistema de rotura | `js/systems/rotura.js` |
 | 7.11 | Sistema del barco | `js/systems/barco.js` |
+| 7.12 | Efectos visuales genéricos | `js/systems/efectos.js` |
 | 8 | Carga e inicialización de chunks | `js/world/chunks.js` |
 | 9 | Render del mundo | `js/ui/render.js` |
 | 10 | (Eliminado en v2.0 — barra de zonas) | — |
@@ -851,7 +902,7 @@ Ideas futuras: F1-F24.
 
 ### Al cambiar de versión
 
-1. Bump en el encabezado (`v2.4.1-alpha` → `v2.5-alpha`).
+1. Bump en el encabezado (`v2.4.2-alpha` → `v2.5-alpha`).
 2. Agregar entrada en `CHANGELOG.md`.
 3. Actualizar la fecha.
 
@@ -886,6 +937,7 @@ Ideas futuras: F1-F24.
 - **Tema activo**: se guarda en `localStorage` y se lee en `config.js`.
 - **Biomas por celda**: `obtenerBiomaDeCelda(wx, wy)` reemplaza al viejo `obtenerBiomaDeChunk` para el render. El chunk mantiene un "bioma dominante" para spawns.
 - **Ruido autocontenido**: `ruido.js` no depende de nada más.
+- **Efectos visuales**: `efectos.js` guarda por coordenada `(wx, wy)`. Cualquier sistema puede llamar `aplicarEfecto(...)`. El render solo aplica clases CSS, sin saber qué es un efecto.
 - **Cheats temporales**: `cheats.js` es un archivo aparte. **Borrar antes de producción.**
 
 ---
@@ -901,4 +953,4 @@ Ideas futuras: F1-F24.
 
 ---
 
-**Fin del README · Última revisión: 2026-10-17**
+**Fin del README · Última revisión: 2026-10-19**
