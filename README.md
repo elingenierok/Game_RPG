@@ -12,7 +12,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Versión actual** | v2.4.2-alpha · sistema de efectos visuales genéricos |
-| **Última actualización** | 2026-10-19 (docs: F1 reescrita, F12 expandida, F26 y F27 agregadas) |
+| **Última actualización** | 2026-10-19 (docs: F1 reescrita, F12 expandida, F26, F27 y F28 agregadas) |
 | **Estado global** | ✅ Jugable · Base del motor completa · 0 bugs conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -25,7 +25,7 @@
 📖 **Documentos complementarios:**
 
 - [CHANGELOG.md](CHANGELOG.md) — Historial completo de versiones
-- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F27)
+- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F28)
 
 ---
 
@@ -268,6 +268,7 @@ cd Game_RPG
 | J8 | Pantallas/menús | 🧪 | Mapa + overlay de batalla | v1.2 |
 | J9 | Cambio entre pantallas | 🧪 | Overlay simple | FSM cuando crezca |
 | J10 | Diálogos con NPCs | ⏸️ | No | Fase futura |
+| J11 | Sistema de combate | ⏸️ | Turnos + minijuego de timing. Ver BACKLOG · F28 | Pendiente |
 
 ---
 
@@ -712,6 +713,8 @@ quitarEfecto(wx, wy, "efecto-glow");               // quitar
 - **Animación del jugador** (quieto, corriendo, en barco).
 - **Ruido (Value Noise)** para generación de biomas.
 - **Sistema de efectos visuales genéricos**.
+- **Sistema de combate con timing (BACKLOG · F28).** ← próxima tarea urgente.
+
 
 ### Bugs conocidos
 
@@ -808,7 +811,7 @@ Interfaz radial con 6 sectores anidados. El jugador **bloquea** arrastrando el m
 
 **Movido a [BACKLOG.md](BACKLOG.md).**
 
-Ideas futuras: F1-F27.
+Ideas futuras: F1-F28.
 
 ---
 
@@ -854,7 +857,7 @@ Ideas futuras: F1-F27.
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | Sistema de HP + daño real | ⏸️ | Reemplaza batalla simulada. Base para F1, F26 y F27. |
+| 🔥 Alta | **Sistema de combate con timing (F28)** | ⏸️ | Turnos + minijuego de timing. Base para F1, F26 y F27 |
 | 🟡 Media | Prototipo 2 del módulo de combate | ⏸️ | SVG radial |
 | 🟡 Media | Loot y XP de mobs | ⏸️ | Campos ya definidos |
 | 🟡 Media | Pulir tema espacio (emojis, nombres, biomas) | ⏸️ | Ver BACKLOG · F19 |
@@ -988,8 +991,9 @@ Ideas futuras: F1-F27.
 - Los IDs (M1, J1, R1, X1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
 - Los bloques del código (BLOQUE 1 a 99) son referenciables para modificaciones puntuales.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
-- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F27).
+- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F28).
 - **Prioridad actual:** HP + daño real. Es la base de F1, F26 y F27.
+- **Prioridad actual:** F28 (sistema de combate con timing). Es la base de F1, F26 y F27.
 
 ---
 

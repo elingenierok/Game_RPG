@@ -3,6 +3,36 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## Docs · 2026-10-19 (anotaciones: F28 sistema de combate con timing)
+
+### 📝 Documentación
+
+**BACKLOG expandido con F28:**
+
+- **F28 nueva** — Sistema de combate con timing (HP + daño real):
+  - Combate por turnos en overlay.
+  - Minijuego de timing: barra horizontal con marcador izq→der en 1500ms, una sola pasada.
+  - **Ataque:** precisión del click determina multiplicador (0 a 2× el daño).
+  - **Defensa:** precisión del click determina reducción (0 a 100%).
+  - Stats del jugador: HP 20, ataque 3, defensa 1, velocidad 1.
+  - HP del mob ya existe en `mobs.js`, se copia a `hpActual` al iniciar.
+  - Huir: mantiene HP del mob.
+  - Muerte del jugador: pantalla de derrota + reiniciar.
+  - HP en el HUD: barra + número (futuro: corazones ❤️/💔).
+  - Archivos nuevos: `barra-timing.js`, `combate.js`, `combate-ui.js`.
+  - 9 fases de implementación, 2-3 sesiones estimadas.
+
+**Relaciones actualizadas:**
+
+- F28 es prerequisito de F1 (día-noche "peligroso"), F26 (especiales), F27 (bosses), y MARCO 11 (combate por reflejos).
+- F28 va a usar los efectos de F25 (`efecto-ataque` y `efecto-danio`).
+
+### ⚠️ Estado
+
+- **v2.4.2-alpha sigue estable.** Solo cambios en documentación.
+- F28 es la próxima tarea urgente. Cuando se implemente, la versión sube a v2.5-alpha.
+
+---
 
 ## Docs · 2026-10-19 (anotaciones de diseño: día-noche, mobs especiales, bosses)
 
