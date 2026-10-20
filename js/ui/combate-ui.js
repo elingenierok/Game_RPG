@@ -97,12 +97,13 @@ window.CombateUI = (() => {
   }
 
   // ─── Cerrar el overlay ───
-  function cerrar() {
+  //  mantenerPausa: true → no reanudar (pantalla de derrota).
+  function cerrar(mantenerPausa = false) {
   if (!abierto) return;
   abierto = false;
 
-  // ─── Reanudar el juego ───
-  if (typeof estado !== "undefined") {
+  // ─── Reanudar el juego (salvo que se mantenga la pausa) ───
+  if (!mantenerPausa && typeof estado !== "undefined") {
     estado.pausado = false;
   }
 

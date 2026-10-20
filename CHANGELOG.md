@@ -3,6 +3,59 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v2.5.1-alpha · 2026-10-20 (fixes F28.1 + UX de combate)
+
+### 🎯 Objetivo
+
+Cerrar los bugs conocidos de F28 y dejar el combate listo para seguir con las fases 7-9.
+
+### ✅ Corregido
+
+**B6 · HP 0 no cerraba el combate**
+
+- Causa real: el combate sí cerraba, pero durante la pantalla de DERROTA se reanudaban la IA y el movimiento, y el mob podía iniciar un combate nuevo.
+- Fix: flag `estadoCombate.derrota` + pausa global durante la derrota; `iniciarCombate` queda bloqueado mientras dura.
+- Se agregó `verificarMuerteJugador()` en el loop principal: si el HP llega a 0 en cualquier momento, cierra el combate al instante.
+
+**B7 · Matar al mob con HP 0 “curaba” al jugador**
+
+- Causa: `reiniciarMundo()` reseteaba `hp = hpMax` pero no refrescaba el HUD; la barra se actualizaba recién al moverse.
+- Fix: `actualizarHUD()` después de reiniciar. La muerte del jugador ahora tiene prioridad sobre la victoria contra el mob.
+
+**B8 · Huir no funcionaba durante la barra de timing**
+
+- Causa: `#barra-timing-overlay` (`z-index: 500`) tapaba el overlay de combate y capturaba todos los clicks; clickear Huir ejecutaba `apretar()`.
+- Fix: la capa de fondo usa `pointer-events: none`; solo `#barra-timing-panel` captura clicks. Huir cancela la barra y abre la confirmación.
+
+**B9 · Callback de timing pendiente**
+
+- `BarraTiming.cancelar()` ahora cancela el `setTimeout` de feedback de 400ms y protege el callback. Evita `TypeError` y acciones después de huir o cerrar el combate.
+
+**Limpieza de `index.html`**
+
+- Eliminado bloque duplicado de `#barra-stamina`.
+- Título actualizado a `v2.5.1-alpha`.
+- `barra-timing.js` movido antes de `render.js` para respetar el orden documentado.
+
+### 🧪 Pruebas manuales
+
+- B6: HP 0 → DERROTA sin barra extra, mundo reiniciado y HP visible en máximo.
+- B7: HP 0 + ataque → DERROTA, sin victoria ni curación.
+- Huir durante la barra: la barra se cancela y abre la confirmación.
+- Huida: 35% contra tigre, penalización 8% del HP máximo (2 HP con 20).
+- Combate normal: atacar, defender, matar mob y conservar HP.
+
+### 📖 Documentación
+
+- README, BACKLOG, CHANGELOG y AGENTS actualizados a v2.5.1-alpha.
+
+### ⚠️ Estado
+
+- v2.5.1-alpha jugable, sin bugs críticos conocidos de F28.1.
+- F28 fases 7-9 siguen pendientes (pulido de muerte, pantalla de derrota con botón y balance/corazones).
+
+---
+
 ## v2.5-alpha · 2026-10-20 (sistema de combate con timing · F28 fase 1-6)
 
 ### 🎯 Objetivo

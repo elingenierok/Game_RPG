@@ -12,7 +12,7 @@ Motor de un roguelike procedural en **JavaScript vanilla**, sin frameworks, sin 
 
 **Frase guía del creador:** *"Si el test se siente entretenido, agrego complejidad."*
 
-**Versión actual:** v2.5-alpha (combate funcional, 2 bugs conocidos: F28.1).
+**Versión actual:** v2.5.1-alpha (combate funcional, F28.1 resuelto).
 
 ---
 
@@ -131,7 +131,7 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 
 ---
 
-## Estado actual (v2.5-alpha)
+## Estado actual (v2.5.1-alpha)
 
 ### Implementado
 - Mundo 2D circular, cámara fluida, movimiento 360°.
@@ -145,16 +145,18 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 - Huida probabilística con penalización.
 - Sistema de efectos visuales genéricos (`efectos.js`).
 
-### Bugs conocidos (F28.1 · PENDIENTES)
-- **B6:** HP del jugador en 0 no cierra el combate.
-- **B7:** matar al mob con HP 0 cura al jugador al máximo.
+### Bugs resueltos (F28.1 · v2.5.1-alpha)
+- **B6:** HP en 0 no cerraba el combate / combate nuevo durante la derrota.
+- **B7:** matar al mob con HP 0 “curaba” al jugador (HUD sin refrescar tras reinicio).
+- **B8:** Huir bloqueado por la barra de timing.
+- **B9:** callback de timing pendiente al cancelar.
 
-Ver `BACKLOG.md · F28.1` para causas y soluciones tentativas.
+Ver `BACKLOG.md · F28.1` para causas y soluciones.
 
 ### Prioridad actual
-1. **Resolver B6 y B7** (F28.1).
-2. F28 fase 7-9 (muerte jugador pulida, pantalla derrota, corazones).
-3. F30 (sistema de niveles del jugador).
+1. F28 fase 7-9 (muerte del mob, pantalla de derrota con botón, corazones).
+2. F30 (sistema de niveles del jugador).
+3. F13 (loot y XP).
 
 ---
 

@@ -21,7 +21,9 @@ const estadoCombate = {
   mob: null,
   turnoActual: null,
   pausado: false,             // true mientras hay confirmación de huida abierta
+  derrota: false,             // true mientras se muestra la pantalla de derrota
   timeoutPendiente: null,     // ID del setTimeout entre turnos (para poder cancelarlo)
+  derrotaTimeout: null,       // ID del setTimeout de reinicio tras la derrota
 };
 
 const COMBATE = {
@@ -65,6 +67,9 @@ function calcularPenalizacionHuida(nivelJug, nivelMob) {
 // ═══════════════════════════════════════════════════════════════
 function iniciarCombate(mob) {
   if (estadoCombate.activo) return;
+  if (estadoCombate.derrota) return;
+  if (estado.ganado) return;
+  if (estado.jugador.hp <= 0) return;
   if (!mob) return;
 
   // Copiar HP del mob si no existe (hpActual)
@@ -115,6 +120,11 @@ function iniciarCombate(mob) {
 function turnoJugador() {
   if (!estadoCombate.activo) return;
   if (estadoCombate.pausado) return;   // ← nuevo
+  if (estadoCombate.derrota) return;
+  if (estado.jugador.hp <= 0) {
+    cerrarCombate("muerte_jugador");
+    return;
+  }
 
   estadoCombate.turnoActual = "jugador";
   CombateUI.mostrarMensaje("Tu turno: ¡Atacá!");
@@ -125,6 +135,11 @@ function turnoJugador() {
     onResultado: (precision) => {
       if (!estadoCombate.activo) return;
       if (estadoCombate.pausado) return;   // ← nuevo
+      if (estadoCombate.derrota) return;
+      if (estado.jugador.hp <= 0) {
+        cerrarCombate("muerte_jugador");
+        return;
+      }
 
       const datosMob = MOBS[estadoCombate.mob.tipo];
       const ataque = estado.jugador.ataque;
@@ -143,6 +158,11 @@ function turnoJugador() {
         estadoCombate.timeoutPendiente = null;
         if (!estadoCombate.activo) return;
         if (estadoCombate.pausado) return;   // ← nuevo
+        if (estadoCombate.derrota) return;
+        if (estado.jugador.hp <= 0) {
+          cerrarCombate("muerte_jugador");
+          return;
+        }
         if (estadoCombate.mob.hpActual <= 0) {
           cerrarCombate("muerte_mob");
           return;
@@ -159,6 +179,11 @@ function turnoJugador() {
 function turnoMob() {
   if (!estadoCombate.activo) return;
   if (estadoCombate.pausado) return;   // ← nuevo
+  if (estadoCombate.derrota) return;
+  if (estado.jugador.hp <= 0) {
+    cerrarCombate("muerte_jugador");
+    return;
+  }
 
   estadoCombate.turnoActual = "mob";
   CombateUI.mostrarMensaje("El mob contraataca. ¡Defendete!");
@@ -169,6 +194,7 @@ function turnoMob() {
     onResultado: (precision) => {
       if (!estadoCombate.activo) return;
       if (estadoCombate.pausado) return;   // ← nuevo
+      if (estadoCombate.derrota) return;
 
       const datosMob = MOBS[estadoCombate.mob.tipo];
       const ataque = datosMob.ataque;
@@ -183,10 +209,21 @@ function turnoMob() {
         CombateUI.mostrarMensaje(`¡Recibiste ${daño.toFixed(1)} de daño!`);
       }
 
+      // Si el golpe mató al jugador, cerrar apenas se vea el mensaje.
+      if (estado.jugador.hp <= 0) {
+        estadoCombate.timeoutPendiente = setTimeout(() => {
+          estadoCombate.timeoutPendiente = null;
+          if (!estadoCombate.activo) return;
+          cerrarCombate("muerte_jugador");
+        }, COMBATE.DELAY_MENSAJE_MS);
+        return;
+      }
+
       estadoCombate.timeoutPendiente = setTimeout(() => {
         estadoCombate.timeoutPendiente = null;
         if (!estadoCombate.activo) return;
         if (estadoCombate.pausado) return;   // ← nuevo
+        if (estadoCombate.derrota) return;
         if (estado.jugador.hp <= 0) {
           cerrarCombate("muerte_jugador");
           return;
@@ -287,11 +324,18 @@ function intentarHuir(nivelJug, nivelMob, prob) {
 function cerrarCombate(motivo) {
   if (!estadoCombate.activo) return;
 
+  // La muerte del jugador tiene prioridad sobre la victoria contra el mob.
+  if (motivo === "muerte_mob" && estado.jugador.hp <= 0) {
+    motivo = "muerte_jugador";
+  }
+  const muerteJugador = motivo === "muerte_jugador";
+
   const mob = estadoCombate.mob;
   estadoCombate.activo = false;
   estadoCombate.mob = null;
   estadoCombate.turnoActual = null;
   estadoCombate.pausado = false;
+  if (muerteJugador) estadoCombate.derrota = true;
 
   // Cancelar timeout pendiente (si lo hay)
   if (estadoCombate.timeoutPendiente) {
@@ -302,8 +346,15 @@ function cerrarCombate(motivo) {
   // Cancelar barra de timing (por si quedó activa)
   if (typeof BarraTiming !== "undefined") BarraTiming.cancelar();
 
-  CombateUI.cerrar();
-  if (typeof reanudarTicks === "function") reanudarTicks();
+  CombateUI.cerrar(muerteJugador);
+
+  // En derrota el juego queda bloqueado hasta reiniciar el mundo.
+  if (muerteJugador) {
+    estado.pausado = true;
+    if (typeof pausarTicks === "function") pausarTicks();
+  } else {
+    if (typeof reanudarTicks === "function") reanudarTicks();
+  }
 
   // ─── Según el motivo ───
   if (motivo === "muerte_mob") {
@@ -330,7 +381,27 @@ function cerrarCombate(motivo) {
 // ═══════════════════════════════════════════════════════════════
 //  PANTALLA DE DERROTA
 // ═══════════════════════════════════════════════════════════════
+// ─── Guardia global de muerte ───
+//  Si el HP llega a 0 en cualquier momento (incluso en medio de una barra),
+//  cierra el combate y muestra la derrota sin permitir otro ataque.
+function verificarMuerteJugador() {
+  if (estado.jugador.hp > 0) return;
+  if (estado.ganado) return;
+  if (estadoCombate.derrota) return;
+
+  if (estadoCombate.activo) {
+    cerrarCombate("muerte_jugador");
+  } else {
+    mostrarPantallaDerrota();
+  }
+}
+
 function mostrarPantallaDerrota() {
+  // Bloquear combate, IA y movimiento durante la pantalla de derrota.
+  estadoCombate.derrota = true;
+  estado.pausado = true;
+  if (typeof pausarTicks === "function") pausarTicks();
+
   const overlay = document.getElementById("overlay");
   const titulo = document.getElementById("ovTitulo");
   const subtitulo = document.getElementById("ovSubtitulo");
@@ -340,7 +411,8 @@ function mostrarPantallaDerrota() {
     subtitulo.textContent = "Reiniciando mundo...";
     overlay.classList.add("visible");
 
-    setTimeout(() => {
+    estadoCombate.derrotaTimeout = setTimeout(() => {
+      estadoCombate.derrotaTimeout = null;
       overlay.classList.remove("visible");
       if (typeof reiniciarMundo === "function") {
         reiniciarMundo(SEMILLA);
@@ -357,4 +429,26 @@ function mostrarPantallaDerrota() {
 // ═══════════════════════════════════════════════════════════════
 function cancelarCombateSiActivo() {
   if (estadoCombate.activo) cerrarCombate("cancelado");
+  reiniciarEstadoCombate();
+}
+
+// ─── Reset completo del estado de combate (al reiniciar el mundo) ───
+function reiniciarEstadoCombate() {
+  estadoCombate.derrota = false;
+  estadoCombate.pausado = false;
+  estadoCombate.turnoActual = null;
+
+  if (estadoCombate.timeoutPendiente) {
+    clearTimeout(estadoCombate.timeoutPendiente);
+    estadoCombate.timeoutPendiente = null;
+  }
+
+  if (estadoCombate.derrotaTimeout) {
+    clearTimeout(estadoCombate.derrotaTimeout);
+    estadoCombate.derrotaTimeout = null;
+  }
+
+  if (typeof BarraTiming !== "undefined") BarraTiming.cancelar();
+  if (typeof estado !== "undefined") estado.pausado = false;
+  if (typeof reanudarTicks === "function") reanudarTicks();
 }

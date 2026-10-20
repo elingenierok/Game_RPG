@@ -32,6 +32,7 @@ let _loopIniciado = false;
 
 // Loop principal: actualiza animaciones y renderiza
 function loop() {
+  if (typeof verificarMuerteJugador === "function") verificarMuerteJugador();
   if (typeof actualizarJugador === "function") actualizarJugador();
   if (typeof sincronizarCamara === "function") sincronizarCamara();
 
@@ -81,6 +82,9 @@ function reiniciarMundo(nuevaSemilla) {
   document.getElementById("overlay").classList.remove("visible");
 
   inicializarJugador();
+
+  // Refrescar el HUD (HP, posición, inventario) tras el reinicio.
+  if (typeof actualizarHUD === "function") actualizarHUD();
 
   console.log("🌱 Nueva semilla:", SEMILLA);
 }

@@ -32,10 +32,15 @@ window.BarraTiming = (() => {
   let teclaHandler = null;
   let contenedor = null;
   let marcador = null;
+  let timeoutFeedback = null;
 
   // ─── Iniciar el minijuego ───
   function iniciar(opciones) {
     if (activo) return;
+    if (timeoutFeedback) {
+      clearTimeout(timeoutFeedback);
+      timeoutFeedback = null;
+    }
     activo = true;
     duracion = opciones.duracionMs || 1500;
     onResultado = opciones.onResultado || (() => {});
@@ -74,8 +79,11 @@ window.BarraTiming = (() => {
     document.body.appendChild(contenedor);
     marcador = document.getElementById("barra-timing-marcador");
 
-    // Click en el panel también cuenta como apretar
-    contenedor.addEventListener("click", apretar);
+    // Click en el panel central cuenta como apretar.
+    // La capa de fondo no recibe clicks (pointer-events: none), así
+    // el botón Huir del combate sigue siendo clickeable.
+    const panel = document.getElementById("barra-timing-panel");
+    if (panel) panel.addEventListener("click", apretar);
   }
 
   // ─── Animar el marcador ───
@@ -126,13 +134,17 @@ window.BarraTiming = (() => {
     }
 
     // Esperar un momento para que se vea el feedback
-    setTimeout(() => {
+    timeoutFeedback = setTimeout(() => {
+      timeoutFeedback = null;
       if (contenedor && contenedor.parentNode) {
         contenedor.parentNode.removeChild(contenedor);
       }
       contenedor = null;
       marcador = null;
-      onResultado(precision);
+
+      const callback = onResultado;
+      onResultado = null;
+      if (typeof callback === "function") callback(precision);
     }, 400);
   }
 
@@ -145,8 +157,12 @@ window.BarraTiming = (() => {
 
   // ─── Cancelar el minijuego sin disparar callback ───
   function cancelar() {
-    if (!activo) return;
     activo = false;
+
+    if (timeoutFeedback) {
+      clearTimeout(timeoutFeedback);
+      timeoutFeedback = null;
+    }
 
     if (frameId) { cancelAnimationFrame(frameId); frameId = null; }
     if (teclaHandler) {

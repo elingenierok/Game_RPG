@@ -11,9 +11,9 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.5-alpha · sistema de combate con timing (F28 fase 1-6) |
-| **Última actualización** | 2026-10-20 (F28 fase 1-6 funcional + 2 bugs conocidos F28.1) |
-| **Estado global** | ✅ Jugable · Combate funcional · 2 bugs conocidos (F28.1) |
+| **Versión actual** | v2.5.1-alpha · combate con timing + fixes F28.1 |
+| **Última actualización** | 2026-10-20 (F28.1 resuelto: B6-B9 + fixes de UX y timing) |
+| **Estado global** | ✅ Jugable · Combate funcional · sin bugs críticos conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
 | **Ejecución local** | Live Server en VS Code |
@@ -704,7 +704,7 @@ Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 - Dos paneles: jugador (izq) y mob (der), con emoji + barra de HP.
 - Mensaje central de estado del turno.
 - Barra de timing horizontal con zonas coloreadas.
-- Botón "Huir" con confirmación y probabilidad.
+- Botón "Huir" con confirmación y probabilidad. Se puede usar durante la barra de timing: la cancela y abre el diálogo.
 
 **Flujo:**
 - Turno jugador → ataque con timing → daño al mob.
@@ -757,9 +757,9 @@ Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 - **Sistema de efectos visuales genéricos**.
 - **Minijuego de timing** integrado en el combate.
 
-### Bugs conocidos (ver BACKLOG · F28.1)
+### Bugs resueltos (ver BACKLOG · F24 y F28.1)
 
-Todos los bugs de v2.4-alpha fueron resueltos en v2.4.1-alpha:
+Todos los bugs de v2.4-alpha y de F28.1 fueron resueltos:
 
 | ID | Bug | Estado |
 |:--:|-----|:------:|
@@ -768,15 +768,16 @@ Todos los bugs de v2.4-alpha fueron resueltos en v2.4.1-alpha:
 | B3 | Mobs de tierra aparecen en el agua | ✅ Arreglado |
 | B4 | Atravesar mob no dispara pelea | ✅ Arreglado |
 | B5 | Romper roca en agua genera arena | ✅ Arreglado |
-| B6 | HP jugador en 0 no cierra combate | ⏸️ Pendiente |
-| B7 | Matar mob con HP 0 cura al jugador | ⏸️ Pendiente |
+| B6 | HP jugador en 0 no cierra combate / combate nuevo en derrota | ✅ Arreglado en v2.5.1-alpha |
+| B7 | Matar mob con HP 0 “cura” al jugador | ✅ Arreglado en v2.5.1-alpha |
+| B8 | Huir bloqueado por la barra de timing | ✅ Arreglado en v2.5.1-alpha |
+| B9 | Callback de timing pendiente al cancelar | ✅ Arreglado en v2.5.1-alpha |
 
 **Ver detalle en [BACKLOG.md](BACKLOG.md) · F24 y F28.1.**
 
 ### Lo que falta
 
-- **F28.1:** resolver bugs B6 y B7.
-- **F28 fase 7-9:** pulir muerte jugador, pantalla derrota, balance final, corazones.
+- **F28 fase 7-9:** pulir muerte del mob, pantalla de derrota con botón, balance final y corazones.
 - Aplicar `efecto-recoger` al recoger ítems.
 - Reemplazar glow hardcodeado de la llave.
 - Pulir tema espacio.
@@ -894,18 +895,18 @@ Ideas futuras: F1-F30.
 - [x] **Bugs de biomas por celda (F24)** ← v2.4.1-alpha
 - [x] **Sistema de efectos visuales genéricos (F25)** ← v2.4.2-alpha
 - [x] **F28 fase 1-6** (stats, barra HP, minijuego de timing, overlay, lógica de turnos, huida) ← v2.5-alpha
+- [x] **F28.1 · B6/B7/B8/B9** (derrota bloqueada, HUD, Huir durante timing, callback cancelable) ← v2.5.1-alpha
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | **F28.1: resolver B6 y B7** | ⏸️ | HP 0 no cierra combate + matar mob con HP 0 cura |
-| 🟡 Media | F28 fase 7-9 (muerte jugador, derrota, corazones) | ⏸️ | Balance final |
+| 🟡 Media | F28 fase 7-9 (muerte, derrota, corazones) | ⏸️ | Balance final y pantalla de derrota pulida |
 | 🟡 Media | F30: sistema de niveles del jugador | ⏸️ | Placeholder actual es nivel 1 |
 | 🟡 Media | Loot y XP de mobs (F13) | ⏸️ | Depende de F30 |
 | 🟡 Media | Equipables mejorados (F12) | ⏸️ | Velocidad, stats, linterna |
 | 🟡 Media | Pulir tema espacio | ⏸️ | F19 |
-| 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de F28.1 |
+| 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de F28 |
 | 🟢 Baja | Escalado de timing (F29) | ⏸️ | Después de F28 + F1 |
 | 🟢 Baja | Mobs especiales (F26) | ⏸️ | Fase tardía |
 | 🟢 Baja | Mobs bosses (F27) | ⏸️ | Fase tardía |
@@ -990,7 +991,7 @@ Ideas futuras: F1-F30.
 
 ### Al cambiar de versión
 
-1. Bump en el encabezado (`v2.5-alpha` → `v2.6-alpha`).
+1. Bump en el encabezado (`v2.5.1-alpha` → `v2.6-alpha`).
 2. Agregar entrada en `CHANGELOG.md`.
 3. Actualizar la fecha.
 
@@ -1042,7 +1043,7 @@ Ideas futuras: F1-F30.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
 - Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F30).
 - La configuración de agentes vive en **[AGENTS.md](AGENTS.md)**.
-- **Prioridad actual:** F28.1 (resolver bugs B6 y B7).
+- **Prioridad actual:** F28 fases 7-9 (pulido de muerte, derrota y balance).
 
 ---
 

@@ -33,8 +33,8 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F25 · Sistema de efectos visuales genéricos · 🧪 PARCIAL en v2.4.2-alpha
 - F26 · Sistema de mobs especiales (categoría 2)
 - F27 · Sistema de mobs bosses (categoría 3)
-- F28 · Sistema de combate con timing · 🧪 FASES 1-6 IMPLEMENTADAS en v2.5-alpha
-- F28.1 · Bugs conocidos del combate con timing · ⏸️ PENDIENTE
+- F28 · Sistema de combate con timing · 🧪 FASES 1-6 + F28.1 RESUELTO en v2.5.1-alpha
+- F28.1 · Bugs de combate con timing · ✅ RESUELTO en v2.5.1-alpha
 - F29 · Escalado dinámico de dificultad del timing
 - F30 · Sistema de niveles del jugador
 
@@ -758,7 +758,7 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 
 ---
 
-## ⚔️ F28 · Sistema de combate con timing · 🧪 FASES 1-6 IMPLEMENTADAS en v2.5-alpha
+## ⚔️ F28 · Sistema de combate con timing · 🧪 FASES 1-6 + F28.1 RESUELTO en v2.5.1-alpha
 
 **Idea:** reemplazar el overlay de batalla simulada por un **combate real por turnos** con **minijuego de timing**. Introducir HP del jugador, daño real, muerte y pantalla de derrota.
 
@@ -904,7 +904,7 @@ penalizacion% = clamp(5 + (nivelMob - nivelJug), 2, 40)
 | 5 | `combate.js` (lógica de turnos) | ✅ |
 | 6 | Huida probabilística + conectar `victoria.js` | ✅ |
 | 7 | Muerte del mob pulida | ⏸️ |
-| 8 | Muerte del jugador + pantalla derrota | ⏸️ (básico funciona) |
+| 8 | Muerte del jugador + pantalla derrota | 🧪 (bloqueo y reinicio automático funcionando; falta botón/pulido) |
 | 9 | Balance final + íconos de corazón | ⏸️ |
 
 ### Decisiones confirmadas
@@ -920,39 +920,54 @@ penalizacion% = clamp(5 + (nivelMob - nivelJug), 2, 40)
 
 ### Pendiente futuro
 
-- **Bugs B6 y B7** (ver F28.1).
+- Pantalla de derrota con botón de reinicio (fase 8).
 - Loot y XP (F13).
 - Íconos de corazón (❤️/💔) en el HUD.
 - Stats modificables por equipables (F12).
 - Efectos negativos (veneno, lentitud) para bosses (F27).
 - Integración con combate por reflejos (MARCO 11).
 
-**Estado:** 🧪 Fases 1-6 implementadas en v2.5-alpha. Fases 7-9 pendientes. Bugs B6 y B7 conocidos (F28.1).
+**Estado:** 🧪 Fases 1-6 implementadas en v2.5-alpha. F28.1 resuelto en v2.5.1-alpha (B6-B9). Fases 7 y 9 pendientes; fase 8 básica funcional.
 
 ---
 
-## 🐛 F28.1 · Bugs conocidos del combate con timing · ⏸️ PENDIENTE
+## 🐛 F28.1 · Bugs de combate con timing · ✅ RESUELTO en v2.5.1-alpha
 
-Bugs detectados al probar F28 (fases 1-6). No bloquean el test pero deben resolverse antes de producción.
+Bugs detectados al probar F28 (fases 1-6). Resueltos y verificados manualmente en v2.5.1-alpha.
 
-### B6 · HP del jugador en 0 no cierra el combate
+### B6 · HP del jugador en 0 no cerraba el combate
 
-**Síntoma:** el HP del jugador llega a 0 pero el combate sigue. El jugador puede seguir atacando.
+**Síntoma original:** el HP llegaba a 0 y el combate seguía.
 
-**Causa probable:** `aplicarDañoAlJugador` baja el HP pero el chequeo `if (estado.jugador.hp <= 0)` solo ocurre al final del `setTimeout` del turno del mob. Si el jugador mata al mob en el turno siguiente (antes del próximo turno del mob), el chequeo nunca se ejecuta.
+**Causa real:** el combate cerraba y mostraba DERROTA, pero durante esos 2 segundos se reanudaban la IA y el movimiento; el mob podía iniciar un combate nuevo. Además, el HUD no se refrescaba al reiniciar.
 
-**Solución tentativa:** agregar chequeo `if (estado.jugador.hp <= 0)` también después de cada ataque del jugador (en el `onResultado` de `turnoJugador`), y también en `aplicarDañoAlJugador`.
+**Solución:**
+- Flag `estadoCombate.derrota` + pausa global durante la derrota.
+- `iniciarCombate` bloqueado mientras `derrota` está activo.
+- `verificarMuerteJugador()` en el loop principal cierra el combate apenas el HP llega a 0.
+- `actualizarHUD()` al reiniciar el mundo.
 
-### B7 · Matar al mob con HP 0 cura al jugador
+### B7 · Matar al mob con HP 0 “curaba” al jugador
 
-**Síntoma:** estando en 0 HP, el jugador mata al tigre y su HP se recupera al máximo.
+**Síntoma:** parecía que el HP se recuperaba al máximo.
 
-**Causa probable:** `cerrarCombate("muerte_mob")` no resetea `estado.jugador.hp`. Pero algo en el flujo (probablemente el `render` o `actualizarHUD` después de derrotar el mob) puede estar reseteando la barra de HP visual, y/o `estado.jugador.hp` no se está seteando correctamente cuando llega a 0.
+**Causa real:** `reiniciarMundo()` reseteaba `hp = hpMax` pero el HUD recién se actualizaba al moverse. No era una curación: era el reinicio del mundo + barra desactualizada.
 
-**Hipótesis secundaria:** si `derrotarMobEn` remueve el mob y el jugador queda en 0 HP, el siguiente render podría no mostrar el HP en 0 por algún cálculo con `Math.max(0, ...)`. Hay que revisar en detalle.
+**Solución:** refresco del HUD al reiniciar y prioridad de la muerte del jugador sobre la muerte del mob.
 
-**Prioridad:** 🟡 Media.
-**Estado:** ⏸️ Pendiente. Resolver en la próxima sesión con OpenCode.
+### B8 · Huir bloqueado por la barra de timing
+
+**Causa:** `#barra-timing-overlay` cubría toda la pantalla con `z-index: 500` y capturaba todos los clicks.
+
+**Solución:** `pointer-events: none` en la capa de fondo; solo `#barra-timing-panel` captura clicks. Huir cancela la barra y abre la confirmación.
+
+### B9 · Callback de timing pendiente
+
+**Causa:** `BarraTiming.cancelar()` no cancelaba el `setTimeout` de feedback de 400ms; podía dispararse después de huir o cerrar el combate.
+
+**Solución:** timeout cancelable + callback protegido.
+
+**Estado:** ✅ Resuelto y probado en v2.5.1-alpha.
 
 ---
 
@@ -1095,7 +1110,7 @@ function calcularPenalizacionHuida(nivelJug, nivelMob) {
 
 **Requiere:** F28 (fase 6 ya lo usa) + sistema de XP + persistencia (F8 fase 3).
 
-**Estado:** ⏸️ Anotado. Se implementa después de F28.1.
+**Estado:** ⏸️ Anotado. Se implementa después de F28 fases 7-9.
 
 ---
 
