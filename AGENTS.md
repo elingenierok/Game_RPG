@@ -12,7 +12,7 @@ Motor de un roguelike procedural en **JavaScript vanilla**, sin frameworks, sin 
 
 **Frase guía del creador:** *"Si el test se siente entretenido, agrego complejidad."*
 
-**Versión actual:** v2.5.1-alpha (combate funcional, F28.1 resuelto).
+**Versión actual:** v2.6-alpha (F28 completo, corazones y manzanas curativas).
 
 ---
 
@@ -131,32 +131,36 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 
 ---
 
-## Estado actual (v2.5.1-alpha)
+## Estado actual (v2.6-alpha)
 
 ### Implementado
 - Mundo 2D circular, cámara fluida, movimiento 360°.
 - Biomas por celda con ruido (temp + humedad).
 - Sistema de temas (tierra / espacio).
 - Ítems recolectables, equipables (hacha, pico, linterna, barco).
+- Manzanas curativas: +1 HP al pisarlas, sin superar `hpMax`; al máximo quedan en el suelo.
 - Sistema de rotura con efecto de golpe.
 - Mobs con IA (deambular, perseguir, huir).
-- **Combate por turnos con minijuego de timing** (F28 fase 1-6).
-- HP del jugador, daño real, muerte.
+- **Combate por turnos con minijuego de timing** (F28 fases 1-9).
+- HP del jugador, daño real, muerte y derrota con botón de reinicio.
+- Corazones de HP con número (2 HP por corazón).
+- HUD inicializado al cargar (posición y vida sin esperar al primer paso).
 - Huida probabilística con penalización.
 - Sistema de efectos visuales genéricos (`efectos.js`).
 
-### Bugs resueltos (F28.1 · v2.5.1-alpha)
+### Bugs resueltos (F28.1 + B10)
 - **B6:** HP en 0 no cerraba el combate / combate nuevo durante la derrota.
 - **B7:** matar al mob con HP 0 “curaba” al jugador (HUD sin refrescar tras reinicio).
 - **B8:** Huir bloqueado por la barra de timing.
 - **B9:** callback de timing pendiente al cancelar.
+- **B10:** HUD vacío y posición `0,0` hasta el primer paso (resuelto en v2.6-alpha).
 
-Ver `BACKLOG.md · F28.1` para causas y soluciones.
+Ver `BACKLOG.md · F28.1 y B10` para causas y soluciones.
 
 ### Prioridad actual
-1. F28 fase 7-9 (muerte del mob, pantalla de derrota con botón, corazones).
-2. F30 (sistema de niveles del jugador).
-3. F13 (loot y XP).
+1. F30 (sistema de niveles del jugador).
+2. F13 (loot y XP).
+3. F12 (equipables que modifican stats y HP máximo).
 
 ---
 

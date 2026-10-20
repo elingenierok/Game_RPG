@@ -11,9 +11,9 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.5.1-alpha · combate con timing + fixes F28.1 |
-| **Última actualización** | 2026-10-20 (F28.1 resuelto: B6-B9 + fixes de UX y timing) |
-| **Estado global** | ✅ Jugable · Combate funcional · sin bugs críticos conocidos |
+| **Versión actual** | v2.6-alpha · F28 completo (fases 1-9) + corazones + manzanas curativas |
+| **Última actualización** | 2026-10-20 (F28 fases 7-9, corazones, HUD inicial y manzanas curativas) |
+| **Estado global** | ✅ Jugable · Combate completo · sin bugs críticos conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
 | **Ejecución local** | Live Server en VS Code |
@@ -274,13 +274,13 @@ cd Game_RPG
 | J2 | Condición de victoria | 🧪 | Pisar la llave | Pantalla de "¡Ganaste!" |
 | J3 | Condición de derrota | 🧪 | HP del jugador en 0 durante combate | v2.5-alpha (F28) |
 | J4 | Progresión | ⏸️ | No hay | Ver BACKLOG · F30 (niveles) |
-| J5 | Muerte definitiva | 🧪 | Reinicia el mundo | v2.5-alpha |
+| J5 | Muerte definitiva | 🧪 | Pantalla de derrota + botón de reinicio | v2.6-alpha |
 | J6 | Turnos vs tiempo real | 🟢 | Mobs en tiempo real, combate por turnos | Ticks 400ms, turnos 1500ms |
 | J7 | Sistema de iniciativa | ⏸️ | No aplica | Fase futura |
 | J8 | Pantallas/menús | 🧪 | Mapa + overlay de combate con timing | v2.5-alpha |
 | J9 | Cambio entre pantallas | 🧪 | Overlay con pausa global (`estado.pausado`) | v2.5-alpha |
 | J10 | Diálogos con NPCs | ⏸️ | No | Fase futura |
-| J11 | Sistema de combate | 🧪 | Turnos + minijuego de timing (F28 fase 1-6) | v2.5-alpha |
+| J11 | Sistema de combate | 🟢 | Turnos + minijuego de timing (F28 fases 1-9) | v2.6-alpha |
 | J12 | Escalado del timing | ⏸️ | Por mob y por fase del día | Ver BACKLOG · F29 |
 | J13 | Sistema de niveles del jugador | ⏸️ | Placeholder (nivel 1 hardcodeado) | Ver BACKLOG · F30 |
 
@@ -368,7 +368,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | E2 | Movimiento de mobs | 🟢 | Tiempo real (ticks 400ms) | v1.5 |
 | E3 | Detección del jugador | 🟢 | Por distancia Manhattan | v1.5 |
 | E4 | Entrada al combate | 🧪 | Choque jugador↔mob → overlay real | v2.5-alpha |
-| E5 | Tipo de combate | 🧪 | Combate por turnos + timing | v2.5-alpha (F28 fase 1-6) |
+| E5 | Tipo de combate | 🟢 | Combate por turnos + timing | v2.6-alpha (F28 fases 1-9) |
 | E6 | Huida del combate | 🧪 | Probabilística: penalización + mob desaparece | v2.5-alpha (F28 fase 6) |
 | E7 | Loot y XP | ⏸️ | No | Campos definidos (F13, F30) |
 | E8 | Combate grupal (1vN) | ⏸️ | No | Fase avanzada |
@@ -382,11 +382,20 @@ Cada mob es un **objeto de datos** con una estructura común.
 
 ---
 
-## 🎒 MARCO 4.5 · Objetos equipables
+## 🎒 MARCO 4.5 · Objetos y consumibles
 
-### Estado actual
+### Manzanas curativas
 
-- **4 objetos:** 🪓 Hacha, ⛏️ Pico, 🕯️ Linterna, 🛶 Barco.
+- **Spawn:** 0-3 ítems por chunk; actualmente todos son manzanas.
+- **Uso:** al pisarlas se consumen y curan **1 HP** (medio corazón).
+- **Límite:** nunca superan `hpMax`; no aumentan la vida máxima.
+- **Al estar al máximo:** la manzana queda en el suelo y muestra `🍎 Vida al máximo`.
+- **Inventario:** las manzanas no se acumulan; son comida de uso inmediato.
+- **Futuro:** la misma función `curarJugador(cantidad)` servirá para otras comidas o consumibles.
+
+### Objetos equipables
+
+- **4 objetos:** 🪓 Hacha, ⛏️ Pico, 🔦 Linterna, 🛶 Barco.
 - **Spawn:** en cada chunk de su bioma (`porChunk: true`). Determinista por semilla.
 - **Recolección:** al pisarlos, se suman al inventario.
 - **Slots de equipados:** arriba del mapa, 4 slots.
@@ -555,7 +564,7 @@ Ver BACKLOG · F12 para el detalle completo.
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| U1 | HUD | 🟢 | Pos + Zona + Inventario + HP | v2.5-alpha |
+| U1 | HUD | 🟢 | Pos + Zona + Inventario + Corazones + HP | v2.6-alpha |
 | U2 | Minimapa | ⏸️ | No | Fase futura |
 | U3 | Log de mensajes | 🧪 | Console.log + carteles temporales | v1.7 |
 | U4 | Estilo de menús | 🧪 | Overlay simple + overlay de combate | v2.5-alpha |
@@ -570,9 +579,9 @@ Ver BACKLOG · F12 para el detalle completo.
 | U13 | Barra de stamina | 🟢 | Arriba del mapa, visible en rotura | v1.7 |
 | U14 | Botón de cambio de tema | 🟢 | Arriba a la derecha, fixed | v2.3-alpha |
 | U15 | Botón de cheat (temporal) | 🧪 | Arriba a la derecha, junto al de tema | v2.4.1-alpha |
-| U16 | Barra de HP | 🟢 | Arriba del mapa, gradiente rojo→verde | v2.5-alpha (F28 fase 2) |
+| U16 | Corazones de HP | 🟢 | 10 corazones (2 HP c/u) + número; sin barra | v2.6-alpha (F28 fase 9) |
 | U17 | Inventario visual | ⏸️ | Ventana nueva con todo pausado | Futuro (F8) |
-| U18 | Overlay de combate | 🟢 | Paneles jugador vs mob + barras HP + timing + botón huir | v2.5-alpha (F28 fase 4) |
+| U18 | Overlay de combate | 🟢 | Paneles jugador vs mob + barras HP + timing + botón huir | v2.6-alpha (F28 fases 4-9) |
 
 ---
 
@@ -627,14 +636,14 @@ Ver BACKLOG · F12 para el detalle completo.
 | Input de semilla | Glow celeste al focus | v0.4 |
 | Jugador y mobs mirando a la izquierda | `transform: scaleX(-1)` | v1.1 |
 | Barra de stamina | Gradiente celeste→verde | v1.7 |
-| **Barra de HP** | Gradiente rojo→naranja→verde | v2.5-alpha |
+| **Corazones de HP** | Lleno ❤️ / roto 💔 / vacío 🖤 + número | v2.6-alpha |
 | Color de fondo por bioma | Tinte sutil por bioma | v2.3-alpha |
 | Animación del jugador | Emojis alternados al caminar | v2.3-alpha |
 | Botón de cambio de tema | Glow celeste, arriba a la derecha | v2.3-alpha |
 | Botón de cheat | Rojo, arriba a la derecha | v2.4.1-alpha |
 | Biomas orgánicos | Manchas sin bordes rectos (ruido) | v2.4-alpha |
 | **Efectos visuales genéricos** | Vibrar, parpadear, destello, glow, pulse | v2.4.2-alpha |
-| **Overlay de combate** | Paneles con glow + barras HP + barra de timing | v2.5-alpha |
+| **Overlay de combate** | Paneles con glow + barras HP + timing + derrota | v2.6-alpha |
 | **Barra de timing** | Zonas verde/naranja/roja con marcador | v2.5-alpha |
 
 **Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
@@ -696,7 +705,7 @@ aplicarEfecto(wx, wy, "efecto-glow");              // permanente
 quitarEfecto(wx, wy, "efecto-glow");               // quitar
 ```
 
-### Overlay de combate (v2.5-alpha)
+### Overlay de combate (v2.6-alpha)
 
 Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 
@@ -705,6 +714,9 @@ Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 - Mensaje central de estado del turno.
 - Barra de timing horizontal con zonas coloreadas.
 - Botón "Huir" con confirmación y probabilidad. Se puede usar durante la barra de timing: la cancela y abre el diálogo.
+- Feedback de precisión: perfecto, bien o débil.
+- Muerte del mob: animación, mensaje y cierre diferido (~0.9s).
+- Derrota: overlay propio con HP final y botón **Reiniciar mundo**.
 
 **Flujo:**
 - Turno jugador → ataque con timing → daño al mob.
@@ -724,7 +736,7 @@ Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v2.5-alpha)
+## 🧪 MARCO 9 · Sistema de Test (v2.6-alpha)
 
 ### Lo que hay ahora
 
@@ -736,15 +748,17 @@ Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 - **7 biomas** por tema (tierra + espacio).
 - **Biomas por celda** con ruido (temp + humedad).
 - **Costa con forma de franja**.
-- **Ítems recolectables** (🍎 / 🧪, 0-3 por chunk).
+- **Ítems recolectables**: manzanas curativas (0-3 por chunk).
+- **Manzanas**: curan 1 HP al pisarlas, sin superar `hpMax`; al máximo quedan en el suelo.
 - **Objetos equipables**: 🪓 ⛏️ 🕯️ 🛶 (o ⚡ 🔫 💡 🚀 en espacio).
 - **Sistema de rotura** (click + barra de stamina + efecto de golpe).
 - **Sistema del barco** (navegar sobre agua).
 - **Mobs con IA** (deambular, perseguir, huir).
-- **HP del jugador** con barra en el HUD.
-- **Sistema de combate por turnos** con timing (F28 fase 1-6).
+- **HP del jugador** con corazones + número en el HUD (2 HP por corazón).
+- **HUD inicializado** al cargar (posición y vida sin esperar al primer paso).
+- **Sistema de combate por turnos** con timing (F28 fases 1-9).
 - **Huida probabilística** con penalización + mob desaparece.
-- **Muerte del jugador** → pantalla derrota + reinicio.
+- **Muerte del jugador** → pantalla de derrota con botón de reinicio.
 - **Pausa global en combate** (bloquea movimiento, IA, rotura, barco).
 - **Inventario en HUD** con íconos correctos.
 - **Control de semilla en UI**.
@@ -772,12 +786,13 @@ Todos los bugs de v2.4-alpha y de F28.1 fueron resueltos:
 | B7 | Matar mob con HP 0 “cura” al jugador | ✅ Arreglado en v2.5.1-alpha |
 | B8 | Huir bloqueado por la barra de timing | ✅ Arreglado en v2.5.1-alpha |
 | B9 | Callback de timing pendiente al cancelar | ✅ Arreglado en v2.5.1-alpha |
+| B10 | HUD vacío y posición `0,0` hasta el primer paso | ✅ Arreglado en v2.6-alpha |
 
-**Ver detalle en [BACKLOG.md](BACKLOG.md) · F24 y F28.1.**
+**Ver detalle en [BACKLOG.md](BACKLOG.md) · F24, F28.1 y B10.**
 
 ### Lo que falta
 
-- **F28 fase 7-9:** pulir muerte del mob, pantalla de derrota con botón, balance final y corazones.
+- Balance fino de combate (opcional, después de más pruebas).
 - Aplicar `efecto-recoger` al recoger ítems.
 - Reemplazar glow hardcodeado de la llave.
 - Pulir tema espacio.
@@ -896,12 +911,14 @@ Ideas futuras: F1-F30.
 - [x] **Sistema de efectos visuales genéricos (F25)** ← v2.4.2-alpha
 - [x] **F28 fase 1-6** (stats, barra HP, minijuego de timing, overlay, lógica de turnos, huida) ← v2.5-alpha
 - [x] **F28.1 · B6/B7/B8/B9** (derrota bloqueada, HUD, Huir durante timing, callback cancelable) ← v2.5.1-alpha
+- [x] **F28 fases 7-9** (muerte pulida, derrota con botón, corazones + feedback) ← v2.6-alpha
+- [x] **Manzanas curativas** (+1 HP al pisarlas, sin superar `hpMax`; al máximo quedan en el suelo) ← v2.6-alpha
+- [x] **HUD inicial** (posición y vida visibles al cargar) ← v2.6-alpha
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🟡 Media | F28 fase 7-9 (muerte, derrota, corazones) | ⏸️ | Balance final y pantalla de derrota pulida |
 | 🟡 Media | F30: sistema de niveles del jugador | ⏸️ | Placeholder actual es nivel 1 |
 | 🟡 Media | Loot y XP de mobs (F13) | ⏸️ | Depende de F30 |
 | 🟡 Media | Equipables mejorados (F12) | ⏸️ | Velocidad, stats, linterna |
@@ -991,7 +1008,7 @@ Ideas futuras: F1-F30.
 
 ### Al cambiar de versión
 
-1. Bump en el encabezado (`v2.5.1-alpha` → `v2.6-alpha`).
+1. Bump en el encabezado (ej: `v2.6-alpha` → `v2.7-alpha`).
 2. Agregar entrada en `CHANGELOG.md`.
 3. Actualizar la fecha.
 
@@ -1043,7 +1060,7 @@ Ideas futuras: F1-F30.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
 - Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F30).
 - La configuración de agentes vive en **[AGENTS.md](AGENTS.md)**.
-- **Prioridad actual:** F28 fases 7-9 (pulido de muerte, derrota y balance).
+- **Prioridad actual:** F30 (sistema de niveles del jugador).
 
 ---
 

@@ -3,6 +3,73 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v2.6-alpha · 2026-10-20 (F28 completo + corazones + manzanas curativas)
+
+### 🎯 Objetivo
+
+Cerrar las fases 7-9 de F28, reemplazar la barra de HP por corazones y convertir las manzanas en una fuente real de curación.
+
+### ✅ Completado
+
+**Fase 7 — Muerte del mob**
+
+- Mensaje `💀 ¡Derrotaste al <mob>!` con el nombre del enemigo.
+- Animación de muerte del panel del mob.
+- Cierre del combate diferido ~0.9s (`DELAY_MUERTE_MOB_MS`).
+- Botón Huir deshabilitado mientras el mob está derrotado.
+- Cartel del mundo con el nombre del mob derrotado.
+
+**Fase 8 — Pantalla de derrota**
+
+- Overlay propio de derrota con HP final y mensaje del mob.
+- Botón **Reiniciar mundo** con la misma semilla.
+- Se eliminó el reinicio automático (`derrotaTimeout`).
+- El botón queda enfocado para poder reiniciar con Enter/Espacio.
+
+**Fase 9 — Corazones y feedback**
+
+- HUD principal con **10 corazones** para 20 HP (2 HP por corazón).
+- `❤️` = 2 HP, `💔` = 1 HP, `🖤` = 0 HP.
+- Número de vida junto a los corazones (`20 / 20`).
+- Eliminada la barra de HP del HUD principal y su CSS.
+- Las barras de HP del overlay de combate se mantienen.
+- Feedback de precisión: `✨ ¡PERFECTO!`, `👍 Bien.`, `😕 Débil.`
+- Mensajes de daño/bloqueo más claros para el turno del mob.
+- El total de corazones se deriva de `hpMax`, listo para futuros aumentos de vida máxima.
+
+**HUD inicial**
+
+- `actualizarHUD()` se ejecuta al cargar el mundo, antes del primer movimiento.
+- La posición y los corazones aparecen desde el inicio (se corrigió el `0,0` y el HUD vacío).
+
+**Manzanas curativas**
+
+- Cada manzana cura **1 HP** al pisarla (`HP_POR_MANZANA = 1`).
+- La curación nunca supera `hpMax`; no aumenta la vida máxima.
+- Al estar al máximo, la manzana **no se consume**: queda en el suelo.
+- Las manzanas ya no se acumulan en el inventario; son comida de uso inmediato.
+- Nueva función reutilizable `curarJugador(cantidad)`.
+
+### 🧪 Pruebas
+
+- `node --check` OK en los JS modificados y `git diff --check` sin errores.
+- Captura headless: 10 corazones, `20 / 20` y posición `16,16` desde el arranque, sin mover al jugador.
+- Curación probada en 20, 19, 10 y 1 HP: siempre respeta el máximo.
+- Validación manual del usuario: el HUD y la curación con manzanas funcionan correctamente.
+
+### 📝 Documentación
+
+- README, BACKLOG, CHANGELOG, AGENTS e `index.html` actualizados a `v2.6-alpha`.
+- F28 marcado como completo (fases 1-9).
+- Manzanas curativas documentadas como consumible.
+
+### 📌 Estado
+
+- **v2.6-alpha jugable.** F28 completo, corazones con número y manzanas curativas.
+- Próxima prioridad: F30 (sistema de niveles del jugador).
+- Balance fino de combate queda como ajuste opcional después de más pruebas.
+
+---
 ## v2.5.1-alpha · 2026-10-20 (fixes F28.1 + UX de combate)
 
 ### 🎯 Objetivo
@@ -52,7 +119,7 @@ Cerrar los bugs conocidos de F28 y dejar el combate listo para seguir con las fa
 ### ⚠️ Estado
 
 - v2.5.1-alpha jugable, sin bugs críticos conocidos de F28.1.
-- F28 fases 7-9 siguen pendientes (pulido de muerte, pantalla de derrota con botón y balance/corazones).
+- F28 fases 7-9 siguen pendientes (resueltas después en v2.6-alpha).
 
 ---
 

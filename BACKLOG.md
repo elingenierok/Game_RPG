@@ -33,7 +33,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F25 · Sistema de efectos visuales genéricos · 🧪 PARCIAL en v2.4.2-alpha
 - F26 · Sistema de mobs especiales (categoría 2)
 - F27 · Sistema de mobs bosses (categoría 3)
-- F28 · Sistema de combate con timing · 🧪 FASES 1-6 + F28.1 RESUELTO en v2.5.1-alpha
+- F28 · Sistema de combate con timing · 🟢 FASES 1-9 + F28.1 RESUELTO en v2.6-alpha
 - F28.1 · Bugs de combate con timing · ✅ RESUELTO en v2.5.1-alpha
 - F29 · Escalado dinámico de dificultad del timing
 - F30 · Sistema de niveles del jugador
@@ -329,7 +329,7 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 - ¿Los equipables se dropean de mobs, se craftean o se encuentran en el mundo?
 - ¿Hay equipables que modifican HP máximo, o solo ataque/defensa/velocidad?
 - ¿Cómo se visualiza el cambio de stats en el HUD? (¿números? ¿íconos?)
-- ¿Cómo interactúa con la barra de HP cuando cambia `hpMax`?
+- ¿Cómo se agregan/quitan corazones cuando cambia `hpMax`?
 
 **Requiere:** F28 (stats base ya existen).
 
@@ -758,7 +758,7 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 
 ---
 
-## ⚔️ F28 · Sistema de combate con timing · 🧪 FASES 1-6 + F28.1 RESUELTO en v2.5.1-alpha
+## ⚔️ F28 · Sistema de combate con timing · 🟢 FASES 1-9 + F28.1 RESUELTO en v2.6-alpha
 
 **Idea:** reemplazar el overlay de batalla simulada por un **combate real por turnos** con **minijuego de timing**. Introducir HP del jugador, daño real, muerte y pantalla de derrota.
 
@@ -790,7 +790,7 @@ Antes de F28 el overlay de batalla era simulado (sin HP, sin daño, sin consecue
    - `dañoRecibido = max(1, ataqueMob - defJug) * (1 - reduccion)`.
    - `aplicarEfecto(jugador, "efecto-danio", 500)`.
    - Esperar 800ms.
-7. Si el jugador muere → pantalla derrota + reinicio.
+7. Si el jugador muere → pantalla de derrota con botón de reinicio.
 8. Si ambos viven → volver al paso 4.
 
 ### Visual del minijuego
@@ -830,12 +830,13 @@ Mobs: tigre (HP 12, ataque 5, defensa 2), gallina (HP 3, ataque 0), cerdo (HP 6,
 
 ### HP en el HUD normal
 
-- **Barra de HP** arriba del mapa, junto a la barra de stamina.
-- **Número** en el HUD lateral: "HP: 20/20".
-- **Futuro (fase 9):** íconos de corazón.
-  - 10 HP lleno = ❤️❤️❤️❤️❤️ (2 HP por corazón).
-  - 9 HP = ❤️❤️❤️❤️💔 (medio corazón).
-  - 8 HP = ❤️❤️❤️❤️🖤 (un corazón menos).
+- **Corazones** arriba del mapa + número de vida, sin barra.
+- **2 HP por corazón:** 20 HP = 10 corazones.
+- **❤️ lleno** = 2 HP, **💔 roto** = 1 HP, **🖤 vacío** = 0 HP.
+- Ejemplo: 3 HP = ❤️💔 + 8 corazones vacíos.
+- El total de corazones se deriva de `hpMax`, así que futuros aumentos de vida máxima agregan corazones.
+- **Manzanas curativas:** +1 HP al recogerlas, sin superar `hpMax`. Al estar al máximo, la manzana queda en el suelo.
+- `curarJugador(cantidad)` queda disponible para futuras comidas o consumibles.
 
 ### Huida (probabilística) — implementado en fase 6
 
@@ -864,8 +865,8 @@ penalizacion% = clamp(5 + (nivelMob - nivelJug), 2, 40)
 
 ### Muerte del jugador
 
-- Overlay cambia a pantalla de derrota.
-- Botón "Reiniciar" → `reiniciarMundo(SEMILLA)`.
+- Overlay de derrota propio con HP final y mensaje del mob.
+- Botón "Reiniciar mundo" → `reiniciarMundo(SEMILLA)`.
 - (Futuro: opción de "cargar partida" si hay persistencia.)
 
 ### Archivos
@@ -884,28 +885,29 @@ penalizacion% = clamp(5 + (nivelMob - nivelJug), 2, 40)
 |---------|--------|
 | `js/core/estado.js` | `hp`, `hpMax`, `ataque`, `defensa`, `velocidad`, `nivel` al jugador |
 | `js/entities/enemigos.js` | `hpActual: mob.hp` + `hpMax: mob.hp` al spawnear + función `removerMobEn` |
-| `js/ui/render.js` | Barra de HP del jugador en el HUD |
+| `js/ui/render.js` | Corazones + número de HP en el HUD |
 | `js/ui/victoria.js` | `iniciarBatalla` delega a `iniciarCombate` |
-| `js/systems/combate.js` | `pausado` + `timeoutPendiente` + `BarraTiming.cancelar()` |
+| `js/systems/combate.js` | `pausado` + `timeoutPendiente` + muerte/derrota + feedback |
 | `js/systems/barra-timing.js` | `cancelar()` para abortar sin disparar callback |
-| `js/entities/jugador.js` | `intentarMover` verifica `estado.pausado` |
-| `js/main.js` | `cancelarCombateSiActivo()` al reiniciar |
-| `index.html` | Scripts nuevos + `<div id="barra-hp">` |
-| `css/estilo.css` | Estilos de overlay + barra HP + timing + confirmación huida |
+| `js/entities/jugador.js` | `intentarMover` pausado + `curarJugador()` + manzanas |
+| `js/entities/items.js` | `buscarItemEn()` + manzanas consumibles |
+| `js/main.js` | Reinicio + `actualizarHUD()` inicial |
+| `index.html` | `<div id="hp-corazones">` (sin barra de HP) |
+| `css/estilo.css` | Corazones + overlay de derrota + animación de muerte |
 
 ### Fases
 
 | Fase | Qué se hace | Estado |
 |:----:|-------------|:------:|
 | 1 | Stats del jugador en `estado.js` + HP en mobs | ✅ |
-| 2 | Barra de HP en el HUD | ✅ |
+| 2 | Barra de HP en el HUD (reemplazada por corazones en fase 9) | ✅ |
 | 3 | `barra-timing.js` (con `pruebas/barra-timing.html`) | ✅ |
 | 4 | `combate-ui.js` (overlay con paneles) | ✅ |
 | 5 | `combate.js` (lógica de turnos) | ✅ |
 | 6 | Huida probabilística + conectar `victoria.js` | ✅ |
-| 7 | Muerte del mob pulida | ⏸️ |
-| 8 | Muerte del jugador + pantalla derrota | 🧪 (bloqueo y reinicio automático funcionando; falta botón/pulido) |
-| 9 | Balance final + íconos de corazón | ⏸️ |
+| 7 | Muerte del mob pulida | ✅ (mensaje, animación y cierre diferido) |
+| 8 | Muerte del jugador + pantalla derrota | ✅ (overlay con botón de reinicio) |
+| 9 | Corazones + feedback + balance | ✅ (corazones con número; balance fino queda opcional) |
 
 ### Decisiones confirmadas
 
@@ -915,19 +917,19 @@ penalizacion% = clamp(5 + (nivelMob - nivelJug), 2, 40)
 - Overlay (no combate en el mapa).
 - Huida probabilística con penalización (el mob desaparece).
 - HP del mob se mantiene si el jugador huye sin éxito (fallo del roll).
-- HUD: barra + número (después corazones).
+- HUD: corazones + número (2 HP por corazón); sin barra.
+- Manzanas curativas: +1 HP, sin superar `hpMax`.
 - Combate por reflejos (MARCO 11) reemplazará este sistema en el futuro.
 
 ### Pendiente futuro
 
-- Pantalla de derrota con botón de reinicio (fase 8).
+- Balance fino de combate (opcional, después de más pruebas).
 - Loot y XP (F13).
-- Íconos de corazón (❤️/💔) en el HUD.
 - Stats modificables por equipables (F12).
 - Efectos negativos (veneno, lentitud) para bosses (F27).
 - Integración con combate por reflejos (MARCO 11).
 
-**Estado:** 🧪 Fases 1-6 implementadas en v2.5-alpha. F28.1 resuelto en v2.5.1-alpha (B6-B9). Fases 7 y 9 pendientes; fase 8 básica funcional.
+**Estado:** 🟢 F28 completo (fases 1-9) en v2.6-alpha. F28.1 resuelto en v2.5.1-alpha (B6-B9). Incluye corazones con número, pantalla de derrota con botón y manzanas curativas.
 
 ---
 
@@ -968,6 +970,18 @@ Bugs detectados al probar F28 (fases 1-6). Resueltos y verificados manualmente e
 **Solución:** timeout cancelable + callback protegido.
 
 **Estado:** ✅ Resuelto y probado en v2.5.1-alpha.
+
+---
+
+## 🐛 B10 · HUD vacío al iniciar el mundo · ✅ RESUELTO en v2.6-alpha
+
+**Síntoma:** al recargar con `Ctrl+Shift+R`, la posición quedaba en `0,0` y los corazones/HP no aparecían hasta dar el primer paso.
+
+**Causa:** `actualizarHUD()` solo se llamaba al pisar una celda o después de una acción; no se ejecutaba al crear el jugador.
+
+**Solución:** llamada inicial a `actualizarHUD()` en `main.js`, después de `inicializarJugador()` e `iniciarTicks()`. La posición y los corazones aparecen desde el arranque.
+
+**Estado:** ✅ Resuelto y verificado con captura headless y prueba manual en v2.6-alpha.
 
 ---
 
@@ -1110,7 +1124,7 @@ function calcularPenalizacionHuida(nivelJug, nivelMob) {
 
 **Requiere:** F28 (fase 6 ya lo usa) + sistema de XP + persistencia (F8 fase 3).
 
-**Estado:** ⏸️ Anotado. Se implementa después de F28 fases 7-9.
+**Estado:** ⏸️ Anotado. Se implementa después de F28 (ya completo).
 
 ---
 
