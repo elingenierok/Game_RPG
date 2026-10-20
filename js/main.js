@@ -27,6 +27,9 @@
 inicializarJugador();
 iniciarTicks();   // ← NUEVO
 
+// Refrescar el HUD desde el arranque (antes del primer movimiento).
+if (typeof actualizarHUD === "function") actualizarHUD();
+
 // Flag para no duplicar el loop
 let _loopIniciado = false;
 

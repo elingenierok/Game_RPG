@@ -554,45 +554,6 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BARRA DE HP (v2.5-alpha · F28)
-   ═══════════════════════════════════════════════════════════════ */
-#barra-hp {
-  width: 100%;
-  height: 18px;
-  background: #181818;
-  border: 2px solid #333;
-  border-radius: 9px;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#barra-hp-relleno {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, #d33, #e85, #5c5);
-  transition: width 0.3s ease-out;
-  z-index: 1;
-}
-
-#barra-hp-texto {
-  position: relative;
-  z-index: 2;
-  font-family: monospace;
-  font-size: 11px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 0 1px 2px #000, 0 0 4px #000;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* ═══════════════════════════════════════════════════════════════
    BARRA DE TIMING (v2.5-alpha · F28)
    ═══════════════════════════════════════════════════════════════ */
 #barra-timing-overlay {
@@ -875,4 +836,162 @@ body {
   background: #6cf;
   color: #0a0a0a;
   box-shadow: 0 0 12px rgba(102, 204, 255, 0.6);
+}
+
+#combate-btn-huir:disabled {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #666;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------
+   CORAZONES DE HP + FEEDBACK DE COMBATE (F28 fase 9)
+   --------------------------------------------------------------- */
+#hp-corazones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 18px;
+  user-select: none;
+}
+
+#hp-corazones-iconos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+#hp-corazones-numero {
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  white-space: nowrap;
+}
+
+#hp-corazones-iconos .corazon {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#hp-corazones-iconos .corazon.roto {
+  opacity: 0.9;
+}
+
+#hp-corazones-iconos .corazon.vacio {
+  opacity: 0.5;
+  filter: grayscale(1) drop-shadow(0 0 1px rgba(255, 255, 255, 0.45));
+}
+
+/* --- Muerte del mob --- */
+#combate-mob.combate-mob-muerto {
+  animation: combateMuerteMob 0.8s ease-in forwards;
+}
+
+#combate-mob.combate-mob-muerto .combate-emoji {
+  filter: grayscale(1);
+}
+
+@keyframes combateMuerteMob {
+  0%   { transform: scale(1); opacity: 1; }
+  30%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(0.82) rotate(-4deg); opacity: 0.2; }
+}
+
+/* --- Pantalla de derrota --- */
+#derrota-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, background 0.25s ease;
+  font-family: monospace;
+}
+
+#derrota-overlay.visible {
+  opacity: 1;
+  background: rgba(20, 0, 0, 0.9);
+  pointer-events: auto;
+}
+
+#derrota-panel {
+  min-width: 360px;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: #111;
+  border: 2px solid #d33;
+  border-radius: 12px;
+  box-shadow: 0 0 48px rgba(221, 51, 51, 0.5);
+  transform: translateY(12px) scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+#derrota-overlay.visible #derrota-panel {
+  transform: translateY(0) scale(1);
+}
+
+#derrota-icono {
+  font-size: 56px;
+  line-height: 1;
+}
+
+#derrota-titulo {
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  color: #f66;
+  text-shadow: 0 0 16px rgba(255, 102, 102, 0.6);
+}
+
+#derrota-mensaje {
+  font-size: 15px;
+  color: #ddd;
+  text-align: center;
+}
+
+#derrota-hp {
+  font-size: 13px;
+  color: #aaa;
+}
+
+#derrota-btn-reiniciar {
+  margin-top: 8px;
+  padding: 10px 22px;
+  background: #1a1a1a;
+  border: 1px solid #6cf;
+  border-radius: 8px;
+  color: #6cf;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#derrota-btn-reiniciar:hover,
+#derrota-btn-reiniciar:focus {
+  background: #6cf;
+  color: #0a0a0a;
+  box-shadow: 0 0 16px rgba(102, 204, 255, 0.7);
+  outline: none;
+}
+
+#derrota-hint {
+  font-size: 10px;
+  color: #666;
+  letter-spacing: 1px;
 }

@@ -240,6 +240,12 @@ function iconoPorNombre(nombre) {
   return ICONO_POR_NOMBRE[nombre] || "❓";
 }
 
+// Iconos de corazón: 2 HP por corazón.
+const HP_POR_CORAZON = 2;
+const CORAZON_LLENO = "❤️";
+const CORAZON_ROTO = "💔";
+const CORAZON_VACIO = "🖤";
+
 function actualizarHUD() {
   const info = coordsMundoATile(Math.floor(estado.jugador.wx), Math.floor(estado.jugador.wy));
   document.getElementById("pos").textContent =
@@ -254,24 +260,44 @@ function actualizarHUD() {
       entradas.map(([nombre, cant]) => `${iconoPorNombre(nombre)} x${cant}`).join(" · ");
   }
 
-  // ─── Barra de HP (F28) ───
-  actualizarBarraHP();
+  // ─── Corazones de HP (F28) ───
+  actualizarCorazones();
 
   actualizarSlotsEquipados();
 }
 
-// ─── Barra de HP ───
-function actualizarBarraHP() {
-  const relleno = document.getElementById("barra-hp-relleno");
-  const texto = document.getElementById("barra-hp-texto");
-  if (!relleno || !texto) return;
+// ─── Corazones de HP (2 HP por corazón) ───
+function actualizarCorazones() {
+  const cont = document.getElementById("hp-corazones-iconos");
+  if (!cont) return;
 
-  const hp = estado.jugador.hp;
-  const hpMax = estado.jugador.hpMax;
-  const pct = Math.max(0, Math.min(100, (hp / hpMax) * 100));
+  const hp = Math.max(0, estado.jugador.hp);
+  const hpMax = estado.jugador.hpMax || 20;
+  const total = Math.max(1, Math.ceil(hpMax / HP_POR_CORAZON));
 
-  relleno.style.width = pct + "%";
-  texto.textContent = `${Math.ceil(hp)} / ${hpMax}`;
+  cont.innerHTML = "";
+  for (let i = 0; i < total; i++) {
+    const restante = hp - i * HP_POR_CORAZON;
+    const corazon = document.createElement("span");
+    corazon.className = "corazon";
+
+    if (restante >= HP_POR_CORAZON) {
+      corazon.textContent = CORAZON_LLENO;
+    } else if (restante >= 1) {
+      corazon.textContent = CORAZON_ROTO;
+      corazon.classList.add("roto");
+    } else {
+      corazon.textContent = CORAZON_VACIO;
+      corazon.classList.add("vacio");
+    }
+
+    cont.appendChild(corazon);
+  }
+
+  const numero = document.getElementById("hp-corazones-numero");
+  if (numero) {
+    numero.textContent = `${Math.ceil(hp)} / ${hpMax}`;
+  }
 }
 
 function actualizarSlotsEquipados() {

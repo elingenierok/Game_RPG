@@ -17,6 +17,7 @@
 window.CombateUI = (() => {
   let abierto = false;
   let contenedor = null;
+  let derrotaContenedor = null;
   let callbacks = { huir: null };
 
   // ─── Abrir el overlay ───
@@ -184,6 +185,69 @@ window.CombateUI = (() => {
     });
   }
 
+  // ─── Marcar al mob como derrotado (animación + fade) ───
+  function marcarMuerteMob() {
+    if (!abierto) return;
+    const panel = document.getElementById("combate-mob");
+    if (panel) panel.classList.add("combate-mob-muerto");
+
+    const btnHuir = document.getElementById("combate-btn-huir");
+    if (btnHuir) {
+      btnHuir.disabled = true;
+      btnHuir.textContent = "💀 Derrotado";
+    }
+  }
+
+  // ─── Pantalla de derrota con botón de reinicio ───
+  function mostrarDerrota(datos) {
+    if (derrotaContenedor) return;
+
+    const {
+      nombreMob = "El enemigo",
+      hp = 0,
+      hpMax = 20,
+      onReiniciar = null,
+    } = datos || {};
+
+    const cont = document.createElement("div");
+    cont.id = "derrota-overlay";
+    cont.innerHTML = `
+      <div id="derrota-panel">
+        <div id="derrota-icono">💀</div>
+        <div id="derrota-titulo">DERROTA</div>
+        <div id="derrota-mensaje"></div>
+        <div id="derrota-hp"></div>
+        <button id="derrota-btn-reiniciar">🔄 Reiniciar mundo</button>
+        <div id="derrota-hint">Se reinicia con la misma semilla.</div>
+      </div>
+    `;
+    document.body.appendChild(cont);
+    derrotaContenedor = cont;
+
+    const mensaje = document.getElementById("derrota-mensaje");
+    const hpTexto = document.getElementById("derrota-hp");
+    if (mensaje) mensaje.textContent = `${nombreMob} te derrotó.`;
+    if (hpTexto) hpTexto.textContent = `HP final: ${Math.ceil(hp)} / ${hpMax}`;
+
+    const btn = document.getElementById("derrota-btn-reiniciar");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        if (typeof onReiniciar === "function") onReiniciar();
+      });
+      setTimeout(() => btn.focus(), 60);
+    }
+
+    requestAnimationFrame(() => cont.classList.add("visible"));
+  }
+
+  // ─── Quitar la pantalla de derrota ───
+  function ocultarDerrota() {
+    if (derrotaContenedor && derrotaContenedor.parentNode) {
+      derrotaContenedor.parentNode.removeChild(derrotaContenedor);
+    }
+    derrotaContenedor = null;
+  }
+
   return {
     abrir,
     cerrar,
@@ -193,5 +257,8 @@ window.CombateUI = (() => {
     onHuir,
     estaAbierto,
     confirmarHuida,
+    marcarMuerteMob,
+    mostrarDerrota,
+    ocultarDerrota,
   };
 })();

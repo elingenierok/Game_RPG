@@ -9,6 +9,7 @@
 //  global del juego.
 // ═══════════════════════════════════════════════════════════════
 
+const HP_POR_MANZANA = 1;
 const _cacheItemsPorChunk = new Map();
 
 // ─── Genera los ítems de un chunk (0-3 por chunk) ───
@@ -68,22 +69,34 @@ function iconoDeItem(tipo) {
   return ICONOS[tipo] || "?";
 }
 
-// ─── Recoger un ítem en coordenadas del mundo ───
-function recogerItemEn(wx, wy) {
+// ─── Buscar un ítem sin recogerlo ───
+function buscarItemEn(wx, wy) {
   const clave = wx + "," + wy;
   if (estado.itemsRecogidos.has(clave)) return null;
 
   const info = coordsMundoATile(wx, wy);
   const items = generarItemsDeChunk(info.cx, info.cy);
-  const item = items.find(it => it.wx === wx && it.wy === wy);
+  return items.find(it => it.wx === wx && it.wy === wy) || null;
+}
+
+// ─── Recoger un ítem en coordenadas del mundo ───
+function recogerItemEn(wx, wy) {
+  const item = buscarItemEn(wx, wy);
   if (!item) return null;
 
   const tileBase = tileEnMundo(wx, wy);
   if (BLOQUEANTES.has(tileBase)) return null;
 
+  const clave = wx + "," + wy;
+
   estado.itemsRecogidos.add(clave);
-  const nombre = tipoItemANombre(item.tipo);
-  estado.inventario[nombre] = (estado.inventario[nombre] || 0) + 1;
+
+  // Las manzanas son comida: se consumen al pisarlas, no van al inventario.
+  if (item.tipo !== MANZANA) {
+    const nombre = tipoItemANombre(item.tipo);
+    estado.inventario[nombre] = (estado.inventario[nombre] || 0) + 1;
+  }
+
   return item;
 }
 

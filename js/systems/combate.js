@@ -23,13 +23,13 @@ const estadoCombate = {
   pausado: false,             // true mientras hay confirmación de huida abierta
   derrota: false,             // true mientras se muestra la pantalla de derrota
   timeoutPendiente: null,     // ID del setTimeout entre turnos (para poder cancelarlo)
-  derrotaTimeout: null,       // ID del setTimeout de reinicio tras la derrota
 };
 
 const COMBATE = {
   DURACION_TIMING_MS: 1500,
   DELAY_ENTRE_TURNOS_MS: 800,
   DELAY_MENSAJE_MS: 600,
+  DELAY_MUERTE_MOB_MS: 900,
 };
 // ═══════════════════════════════════════════════════════════════
 //  FÓRMULAS DE HUIDA (placeholder · F30 futuro)
@@ -62,6 +62,13 @@ function calcularPenalizacionHuida(nivelJug, nivelMob) {
   return Math.max(2, Math.min(40, 5 + (nivelMob - nivelJug)));
 }
 
+// Etiqueta de calidad para el feedback de precisión.
+function etiquetaPrecision(precision) {
+  if (precision >= 0.8) return "✨ ¡PERFECTO!";
+  if (precision >= 0.4) return "👍 Bien.";
+  return "😕 Débil.";
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  INICIAR COMBATE
 // ═══════════════════════════════════════════════════════════════
@@ -82,9 +89,11 @@ function iniciarCombate(mob) {
   // Abrir overlay (también pausa el juego)
   CombateUI.abrir(estado.jugador, mob);
 
-    // ─── Huir con probabilidad + penalización (F28 fix 3) ───
+  // ─── Huir con probabilidad + penalización (F28 fix 3) ───
   CombateUI.onHuir(() => {
     if (estadoCombate.pausado) return;
+    if (estado.jugador.hp <= 0) return;
+    if (estadoCombate.mob && estadoCombate.mob.hpActual <= 0) return;
     estadoCombate.pausado = true;
     if (estadoCombate.timeoutPendiente) {
       clearTimeout(estadoCombate.timeoutPendiente);
@@ -151,7 +160,23 @@ function turnoJugador() {
         CombateUI.mostrarMensaje("¡Fallaste! (sin daño)");
       } else {
         aplicarDañoAlMob(daño);
-        CombateUI.mostrarMensaje(`¡Acertaste! Daño: ${daño.toFixed(1)}`);
+        CombateUI.mostrarMensaje(`${etiquetaPrecision(precision)} Daño: ${daño.toFixed(1)}`);
+      }
+
+      // ─── Muerte del mob: mostrar feedback y cerrar con delay ───
+      if (estadoCombate.mob.hpActual <= 0) {
+        const nombreMob = datosMob.nombre || "Mob";
+        CombateUI.mostrarMensaje(`💀 ¡Derrotaste al ${nombreMob}!`);
+        if (typeof CombateUI.marcarMuerteMob === "function") {
+          CombateUI.marcarMuerteMob();
+        }
+
+        estadoCombate.timeoutPendiente = setTimeout(() => {
+          estadoCombate.timeoutPendiente = null;
+          if (!estadoCombate.activo) return;
+          cerrarCombate("muerte_mob");
+        }, COMBATE.DELAY_MUERTE_MOB_MS);
+        return;
       }
 
       estadoCombate.timeoutPendiente = setTimeout(() => {
@@ -161,10 +186,6 @@ function turnoJugador() {
         if (estadoCombate.derrota) return;
         if (estado.jugador.hp <= 0) {
           cerrarCombate("muerte_jugador");
-          return;
-        }
-        if (estadoCombate.mob.hpActual <= 0) {
-          cerrarCombate("muerte_mob");
           return;
         }
         turnoMob();
@@ -203,10 +224,13 @@ function turnoMob() {
       const daño = Math.max(1, ataque - defensa) * (1 - reduccion);
 
       if (daño <= 0.1) {
-        CombateUI.mostrarMensaje("¡Bloqueo perfecto! Sin daño.");
+        CombateUI.mostrarMensaje("🛡️ ¡Bloqueo perfecto! Sin daño.");
       } else {
         aplicarDañoAlJugador(daño);
-        CombateUI.mostrarMensaje(`¡Recibiste ${daño.toFixed(1)} de daño!`);
+        const bloqueo = precision >= 0.8 ? "🛡️ ¡Gran bloqueo!" :
+                        precision >= 0.4 ? "🛡️ Bloqueaste parte del daño." :
+                        "💥 ¡Te golpearon fuerte!";
+        CombateUI.mostrarMensaje(`${bloqueo} -${daño.toFixed(1)} HP`);
       }
 
       // Si el golpe mató al jugador, cerrar apenas se vea el mensaje.
@@ -362,7 +386,9 @@ function cerrarCombate(motivo) {
       derrotarMobEn(mob.wx, mob.wy);
     }
     if (typeof mostrarCartelRapido === "function") {
-      mostrarCartelRapido("⚔️ ¡Mob derrotado!");
+      const datosMob = mob && typeof MOBS !== "undefined" ? MOBS[mob.tipo] : null;
+      const nombreMob = datosMob && datosMob.nombre ? datosMob.nombre : "Mob";
+      mostrarCartelRapido(`💀 ${nombreMob} derrotado`);
     }
     if (typeof forzarRedibujadoGrid === "function") forzarRedibujadoGrid();
     if (typeof render === "function") render();
@@ -371,7 +397,7 @@ function cerrarCombate(motivo) {
     // El cartel ya se mostró en intentarHuir (con el -HP)
 
   } else if (motivo === "muerte_jugador") {
-    mostrarPantallaDerrota();
+    mostrarPantallaDerrota(mob);
 
   } else if (motivo === "cancelado") {
     // Sin mensaje (reinicio)
@@ -396,31 +422,37 @@ function verificarMuerteJugador() {
   }
 }
 
-function mostrarPantallaDerrota() {
+function mostrarPantallaDerrota(mobDerrotante) {
   // Bloquear combate, IA y movimiento durante la pantalla de derrota.
   estadoCombate.derrota = true;
   estado.pausado = true;
   if (typeof pausarTicks === "function") pausarTicks();
 
+  const datosMob = mobDerrotante && typeof MOBS !== "undefined"
+    ? MOBS[mobDerrotante.tipo]
+    : null;
+  const nombreMob = datosMob && datosMob.nombre ? datosMob.nombre : "El enemigo";
+
+  if (typeof CombateUI !== "undefined" && typeof CombateUI.mostrarDerrota === "function") {
+    CombateUI.mostrarDerrota({
+      nombreMob,
+      hp: estado.jugador.hp,
+      hpMax: estado.jugador.hpMax,
+      onReiniciar: () => {
+        if (typeof reiniciarMundo === "function") reiniciarMundo(SEMILLA);
+      },
+    });
+    return;
+  }
+
+  // Fallback mínimo si la UI de derrota no está disponible.
   const overlay = document.getElementById("overlay");
   const titulo = document.getElementById("ovTitulo");
   const subtitulo = document.getElementById("ovSubtitulo");
-
   if (overlay && titulo && subtitulo) {
     titulo.textContent = "💀 DERROTA";
-    subtitulo.textContent = "Reiniciando mundo...";
+    subtitulo.textContent = `HP: ${Math.ceil(estado.jugador.hp)} / ${estado.jugador.hpMax} · recargá la página`;
     overlay.classList.add("visible");
-
-    estadoCombate.derrotaTimeout = setTimeout(() => {
-      estadoCombate.derrotaTimeout = null;
-      overlay.classList.remove("visible");
-      if (typeof reiniciarMundo === "function") {
-        reiniciarMundo(SEMILLA);
-      }
-    }, 2000);
-  } else {
-    // Fallback: reiniciar directo
-    if (typeof reiniciarMundo === "function") reiniciarMundo(SEMILLA);
   }
 }
 
@@ -443,9 +475,8 @@ function reiniciarEstadoCombate() {
     estadoCombate.timeoutPendiente = null;
   }
 
-  if (estadoCombate.derrotaTimeout) {
-    clearTimeout(estadoCombate.derrotaTimeout);
-    estadoCombate.derrotaTimeout = null;
+  if (typeof CombateUI !== "undefined" && typeof CombateUI.ocultarDerrota === "function") {
+    CombateUI.ocultarDerrota();
   }
 
   if (typeof BarraTiming !== "undefined") BarraTiming.cancelar();

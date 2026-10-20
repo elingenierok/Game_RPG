@@ -64,6 +64,18 @@ function intentarMover(dx, dy) {
   if (dx < 0) estado.jugador.mirandoIzquierda = false;   // va a la izquierda
 }
 
+// ─── Curar al jugador sin superar nunca su HP máximo ───
+function curarJugador(cantidad) {
+  if (!Number.isFinite(cantidad) || cantidad <= 0) return 0;
+
+  const hpMax = estado.jugador.hpMax;
+  const hpAntes = estado.jugador.hp;
+  if (hpAntes >= hpMax) return 0;
+
+  estado.jugador.hp = Math.min(hpMax, hpAntes + cantidad);
+  return estado.jugador.hp - hpAntes;
+}
+
 // ─── Efectos al terminar de moverse (pisar celda) ───
 function alPisarCelda(wx, wy) {
   // ─── ¿Es la llave? ───
@@ -73,14 +85,31 @@ function alPisarCelda(wx, wy) {
   }
 
   // ─── ¿Es una manzana? ───
-  const item = recogerItemEn(wx, wy);
-  if (item) {
-    const nombre = tipoItemANombre(item.tipo);
+  const itemEnCelda = buscarItemEn(wx, wy);
+  if (itemEnCelda && itemEnCelda.tipo === MANZANA) {
     const icono = ICONOS[MANZANA] || "🍎";
-    if (typeof mostrarCartelRapido === "function") {
-      mostrarCartelRapido(`${icono} +1 ${nombre}`);
+    if (estado.jugador.hp >= estado.jugador.hpMax) {
+      // Al estar al máximo no se consume: queda en el suelo para después.
+      if (typeof mostrarCartelRapido === "function") {
+        mostrarCartelRapido(`${icono} Vida al máximo`);
+      }
+    } else if (recogerItemEn(wx, wy)) {
+      const curado = curarJugador(HP_POR_MANZANA);
+      if (typeof mostrarCartelRapido === "function") {
+        mostrarCartelRapido(`${icono} +${curado} HP`);
+      }
+      console.log(`🍎 Manzana: +${curado} HP`);
     }
-    console.log("🍎 Recogiste:", nombre);
+  } else {
+    const item = recogerItemEn(wx, wy);
+    if (item) {
+      const nombre = tipoItemANombre(item.tipo);
+      const icono = "🎒";
+      if (typeof mostrarCartelRapido === "function") {
+        mostrarCartelRapido(`${icono} +1 ${nombre}`);
+      }
+      console.log("🎒 Recogiste:", nombre);
+    }
   }
 
   // ─── ¿Es un equipable? ───
