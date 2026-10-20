@@ -88,3 +88,16 @@ function derrotarMobEn(wx, wy) {
   mobs.splice(idx, 1);
   console.log(`⚔️ Mob derrotado en ${wx},${wy}`);
 }
+
+// ─── Remover un mob del chunk (huida u otra salida) ───
+function removerMobEn(wx, wy) {
+  const info = coordsMundoATile(wx, wy);
+  const mobs = cacheMobs.get(info.cx + "," + info.cy);
+  if (!mobs) return;
+
+  const idx = mobs.findIndex(m => m.wx === wx && m.wy === wy);
+  if (idx === -1) return;
+
+  mobs.splice(idx, 1);
+  console.log(`🏃 Mob removido en ${wx},${wy}`);
+}

@@ -681,3 +681,196 @@ body {
   text-transform: uppercase;
   letter-spacing: 2px;
 }
+/* ═══════════════════════════════════════════════════════════════
+   OVERLAY DE COMBATE (v2.5-alpha · F28 fase 4)
+   ═══════════════════════════════════════════════════════════════ */
+#combate-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+  font-family: monospace;
+}
+
+#combate-panel {
+  background: #111;
+  border: 2px solid #6cf;
+  border-radius: 12px;
+  padding: 20px 28px;
+  box-shadow: 0 0 40px rgba(102, 204, 255, 0.4);
+  min-width: 560px;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Header ─── */
+#combate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #333;
+}
+
+#combate-titulo {
+  font-size: 18px;
+  color: #6cf;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-shadow: 0 0 8px rgba(102, 204, 255, 0.5);
+}
+
+#combate-btn-huir {
+  background: #1a1a1a;
+  border: 1px solid #f66;
+  color: #f66;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#combate-btn-huir:hover {
+  background: #f66;
+  color: #0a0a0a;
+  box-shadow: 0 0 12px rgba(255, 102, 102, 0.6);
+}
+
+/* ─── Paneles jugador vs mob ─── */
+#combate-paneles {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.combate-panel-lado {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+.combate-emoji {
+  font-size: 56px;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(102, 204, 255, 0.4);
+}
+
+.combate-nombre {
+  font-size: 13px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.combate-barra-hp {
+  width: 100%;
+  height: 14px;
+  background: #181818;
+  border: 2px solid #333;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.combate-barra-hp-relleno {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #d33, #e85, #5c5);
+  transition: width 0.3s ease-out;
+}
+
+.combate-hp-texto {
+  font-size: 12px;
+  color: #ddd;
+  font-weight: bold;
+}
+
+#combate-vs {
+  font-size: 28px;
+  color: #f4a;
+  font-weight: bold;
+  text-shadow: 0 0 12px rgba(255, 68, 170, 0.6);
+}
+
+/* ─── Mensaje ─── */
+#combate-mensaje {
+  text-align: center;
+  font-size: 14px;
+  color: #6cf;
+  padding: 12px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Contenedor del timing (futuro) ─── */
+#combate-timing-container {
+  min-height: 0;
+  /* Cuando se implemente F28 fase 5, se inyecta la barra acá */
+}
+/* ═══════════════════════════════════════════════════════════════
+   CONFIRMACIÓN DE HUIDA (F28)
+   ═══════════════════════════════════════════════════════════════ */
+#combate-confirmar-huida {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#combate-confirmar-huida span {
+  color: #f66;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+#combate-confirmar-huida button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-combate-si {
+  background: #1a1a1a;
+  border: 1px solid #f66;
+  color: #f66;
+}
+
+.btn-combate-si:hover {
+  background: #f66;
+  color: #0a0a0a;
+  box-shadow: 0 0 12px rgba(255, 102, 102, 0.6);
+}
+
+.btn-combate-no {
+  background: #1a1a1a;
+  border: 1px solid #6cf;
+  color: #6cf;
+}
+
+.btn-combate-no:hover {
+  background: #6cf;
+  color: #0a0a0a;
+  box-shadow: 0 0 12px rgba(102, 204, 255, 0.6);
+}

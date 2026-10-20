@@ -143,5 +143,24 @@ window.BarraTiming = (() => {
     return "fallo";
   }
 
-  return { iniciar };
+  // ─── Cancelar el minijuego sin disparar callback ───
+  function cancelar() {
+    if (!activo) return;
+    activo = false;
+
+    if (frameId) { cancelAnimationFrame(frameId); frameId = null; }
+    if (teclaHandler) {
+      document.removeEventListener("keydown", teclaHandler);
+      teclaHandler = null;
+    }
+
+    if (contenedor && contenedor.parentNode) {
+      contenedor.parentNode.removeChild(contenedor);
+    }
+    contenedor = null;
+    marcador = null;
+    onResultado = null;
+  }
+
+  return { iniciar, cancelar };
 })();

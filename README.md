@@ -3,7 +3,7 @@
 > Motor de mundo procedural con semilla, mundo 2D circular, cámara fluida,
 > chunks de 32×32, biomas por celda con ruido, ítems recolectables,
 > mobs con IA en tiempo real, sistema de efectos visuales genéricos,
-> y módulo de combate por reflejos en desarrollo paralelo.
+> sistema de combate con timing, y módulo de combate por reflejos en desarrollo paralelo.
 
 ---
 
@@ -11,9 +11,9 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.4.2-alpha · sistema de efectos visuales genéricos |
-| **Última actualización** | 2026-10-20 (docs: F29 escalado de timing, corazones en F28, velocidad por equipables) |
-| **Estado global** | ✅ Jugable · Base del motor completa · 0 bugs conocidos |
+| **Versión actual** | v2.5-alpha · sistema de combate con timing (F28 fase 1-6) |
+| **Última actualización** | 2026-10-20 (F28 fase 1-6 funcional + 2 bugs conocidos F28.1) |
+| **Estado global** | ✅ Jugable · Combate funcional · 2 bugs conocidos (F28.1) |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
 | **Ejecución local** | Live Server en VS Code |
@@ -25,7 +25,8 @@
 📖 **Documentos complementarios:**
 
 - [CHANGELOG.md](CHANGELOG.md) — Historial completo de versiones
-- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F29)
+- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F30)
+- [AGENTS.md](AGENTS.md) — Configuración para agentes de IA (OpenCode)
 
 ---
 
@@ -68,6 +69,7 @@ Se actualiza automáticamente al hacer `git push`.
 - Enter en el input de semilla → aplicar.
 - Botón 🎲 → semilla aleatoria.
 - Click en el mundo → romper (con objeto equipado) / colocar barco / desembarcar.
+- **Espacio** → atacar / defender durante el combate (minijuego de timing).
 - Botón 🌍 / 🚀 (arriba a la derecha) → cambiar tema (tierra ↔ espacio).
 - Botón 🎁 (arriba a la derecha, junto al de tema) → **cheat de test** (carga/limpia equipables).
 
@@ -92,7 +94,9 @@ Game_RPG/
 ├── index.html                    ← Solo HTML (estructura + <script src>)
 ├── README.md                     ← Este documento
 ├── CHANGELOG.md                  ← Historial de versiones
-├── BACKLOG.md                    ← Ideas futuras (F1-F29)
+├── BACKLOG.md                    ← Ideas futuras (F1-F30)
+├── AGENTS.md                     ← Configuración para agentes de IA
+├── opencode.json                 ← Configuración de OpenCode
 ├── .gitignore                    ← Archivos ignorados por Git
 ├── css/
 │   └── estilo.css                ← Todo el CSS del juego
@@ -119,17 +123,19 @@ Game_RPG/
     ├── entities/                 ← Todo lo que "vive" en el mundo
     │   ├── jugador.js            ← BLOQUE 12: movimiento 360° + recolección
     │   ├── mobs.js               ← BLOQUE 7.7: wrapper de mobs del tema
-    │   ├── enemigos.js           ← BLOQUE 7.8: spawn, colisión, derrota
+    │   ├── enemigos.js           ← BLOQUE 7.8: spawn, colisión, derrota, removerMobEn
     │   └── items.js              ← BLOQUE 7.5: ítems y equipables
     │
     ├── ui/                       ← Render visual y pantallas
     │   ├── render.js             ← BLOQUES 9, 10, 11: render y HUD
-    │   └── victoria.js           ← BLOQUES 13, 13.5: victoria + batalla
+    │   ├── combate-ui.js         ← BLOQUE 13.7: overlay de combate
+    │   └── victoria.js           ← BLOQUES 13, 13.5: victoria + batalla (delega a combate.js)
     │
     └── systems/                  ← Sistemas transversales
         ├── camara.js             ← BLOQUE 20: cámara fluida
         ├── efectos.js            ← BLOQUE 7.12: efectos visuales genéricos
-        ├── barra-timing.js       ← BLOQUE 7.13: minijuego de timing (F28 fase 3)
+        ├── barra-timing.js       ← BLOQUE 7.13: minijuego de timing
+        ├── combate.js            ← BLOQUE 7.14: lógica de combate por turnos
         ├── ia.js                 ← BLOQUE 7.9: IA de mobs en tiempo real
         ├── rotura.js             ← BLOQUE 7.10: sistema de rotura
         ├── barco.js              ← BLOQUE 7.11: sistema del barco
@@ -140,11 +146,10 @@ Game_RPG/
 
 ```text
 tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas → mundo
-→ camara → estado → chunks → items → mobs → enemigos → efectos → render
-→ ia → jugador → victoria → input → rotura → barco → cheats → main
+→ camara → estado → chunks → items → mobs → enemigos → efectos → barra-timing
+→ render → ia → jugador → combate-ui → combate → victoria → input → rotura
+→ barco → cheats → main
 ```
-
-*(barra-timing.js y combate-ui.js, combate.js se cargan cuando se implemente F28 fase 4-5)*
 
 **Criterio de organización en carpetas:**
 
@@ -154,7 +159,7 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 | `world/` | Generación y gestión del terreno: chunks 2D, biomas |
 | `entities/` | Todo lo que "vive" en el mundo: jugador, mobs, ítems |
 | `ui/` | Render visual, pantallas y overlays |
-| `systems/` | Sistemas transversales: cámara, efectos, IA, rotura, barco, cheats |
+| `systems/` | Sistemas transversales: cámara, efectos, timing, combate, IA, rotura, barco, cheats |
 | `auditor/` | Herramientas de diagnóstico y experimentación |
 | `pruebas/` | Archivos HTML aislados para experimentar (no se cargan desde el juego) |
 
@@ -167,9 +172,12 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 - `camara.js` **antes** de `estado.js`.
 - `estado.js` **antes** de `chunks.js`, `items.js`, `mobs.js`, `enemigos.js`.
 - `efectos.js` **antes** de `render.js` (lo usa `actualizarEfectosEnGrid`).
-- `efectos.js` **antes** de `rotura.js` (lo usa `aplicarEfecto` y `quitarEfecto`).
+- `efectos.js` **antes** de `rotura.js` y `combate.js` (lo usan `aplicarEfecto` y `quitarEfecto`).
+- `barra-timing.js` **antes** de `combate.js` (lo usa `BarraTiming`).
 - `render.js` **antes** de `ia.js`.
 - `ia.js` **antes** de `jugador.js`.
+- `combate-ui.js` **antes** de `combate.js` (lo usa `CombateUI`).
+- `combate.js` **antes** de `victoria.js` (que delega a `iniciarCombate`).
 - `cheats.js` **antes** de `main.js`.
 
 ---
@@ -264,16 +272,17 @@ cd Game_RPG
 |:--:|----------|:------:|--------------|-------|
 | J1 | Objetivo del juego | 🧪 | Encontrar la 🔑 (o 🔋 en espacio) | Test de exploración |
 | J2 | Condición de victoria | 🧪 | Pisar la llave | Pantalla de "¡Ganaste!" |
-| J3 | Condición de derrota | ⏸️ | No hay | Sin HP todavía (F28 lo agrega) |
-| J4 | Progresión | ⏸️ | No hay | Fase futura |
-| J5 | Muerte definitiva | ⏸️ | No aplica | Fase futura |
-| J6 | Turnos vs tiempo real | 🟢 | Tiempo real para mobs | Ticks cada 400ms |
+| J3 | Condición de derrota | 🧪 | HP del jugador en 0 durante combate | v2.5-alpha (F28) |
+| J4 | Progresión | ⏸️ | No hay | Ver BACKLOG · F30 (niveles) |
+| J5 | Muerte definitiva | 🧪 | Reinicia el mundo | v2.5-alpha |
+| J6 | Turnos vs tiempo real | 🟢 | Mobs en tiempo real, combate por turnos | Ticks 400ms, turnos 1500ms |
 | J7 | Sistema de iniciativa | ⏸️ | No aplica | Fase futura |
-| J8 | Pantallas/menús | 🧪 | Mapa + overlay de batalla | v1.2 |
-| J9 | Cambio entre pantallas | 🧪 | Overlay simple | FSM cuando crezca |
+| J8 | Pantallas/menús | 🧪 | Mapa + overlay de combate con timing | v2.5-alpha |
+| J9 | Cambio entre pantallas | 🧪 | Overlay con pausa global (`estado.pausado`) | v2.5-alpha |
 | J10 | Diálogos con NPCs | ⏸️ | No | Fase futura |
-| J11 | Sistema de combate | ⏸️ | Turnos + minijuego de timing. Ver BACKLOG · F28 | Pendiente |
-| J12 | Escalado del timing | ⏸️ | Por mob y por fase del día. Ver BACKLOG · F29 | Pendiente |
+| J11 | Sistema de combate | 🧪 | Turnos + minijuego de timing (F28 fase 1-6) | v2.5-alpha |
+| J12 | Escalado del timing | ⏸️ | Por mob y por fase del día | Ver BACKLOG · F29 |
+| J13 | Sistema de niveles del jugador | ⏸️ | Placeholder (nivel 1 hardcodeado) | Ver BACKLOG · F30 |
 
 ---
 
@@ -282,8 +291,8 @@ cd Game_RPG
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
 | P1 | Cantidad de personajes | 🟢 | 1 | Sin clases por ahora |
-| P2 | Estadísticas | 🧪 | HP 20, ataque 3, defensa 1, velocidad 1 (base) | v2.5-alpha (F28 fase 1) |
-| P3 | Controles | 🟢 | WASD + flechas + botones | v2.0 |
+| P2 | Estadísticas | 🧪 | HP 20, ataque 3, defensa 1, velocidad 1, nivel 1 | v2.5-alpha (F28 fase 1) |
+| P3 | Controles | 🟢 | WASD + flechas + botones + Espacio (combate) | v2.5-alpha |
 | P4 | Inventario | 🧪 | Contador de ítems | Ventana visual futura (F8) |
 | P5 | Tipos de objetos | 🧪 | 🍎 + 4 equipables (🪓 ⛏️ 🕯️ 🛶) | v1.9 |
 | P6 | Habilidades especiales | ⏸️ | Ninguna | Fase futura |
@@ -293,6 +302,7 @@ cd Game_RPG
 | P10 | Movimiento | 🟢 | 360° fluido (100ms por celda) | v2.0 |
 | P11 | Animación de movimiento | 🟢 | Alterna 2 emojis cada 150ms | v2.3-alpha |
 | P12 | Velocidad del jugador | 🟢 | Constante (100ms/celda) | Solo equipables la modifican (F12) |
+| P13 | Huida del combate | 🧪 | Probabilística con penalización + mob desaparece | v2.5-alpha (F28 fase 6) |
 
 ---
 
@@ -329,7 +339,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 
 | Mob | Emoji | Actitud | Spawn por chunk | Biomas | Rango detección | Al chocar |
 |-----|:-----:|---------|:---------------:|--------|:---------------:|-----------|
-| Tigre | 🐅 | Hostil | 2-3 | Bosque, Costa, Ruina, Nieve | 6 tiles | ⚔️ Batalla |
+| Tigre | 🐅 | Hostil | 2-3 | Bosque, Costa, Ruina, Nieve | 6 tiles | ⚔️ Combate |
 | Gallina | 🐓 | Pacífico | 0-2 | Pradera | 4 tiles | Nada (bloquea) |
 | Cerdo | 🐖 | Neutral | 0-2 | Pradera, Costa | — | Nada (bloquea) |
 
@@ -357,17 +367,18 @@ Cada mob es un **objeto de datos** con una estructura común.
 | E1 | Tipos de mobs | 🧪 | 3 por tema (🐅 🐓 🐖 / 👽 🤖 🦎) | Escalable |
 | E2 | Movimiento de mobs | 🟢 | Tiempo real (ticks 400ms) | v1.5 |
 | E3 | Detección del jugador | 🟢 | Por distancia Manhattan | v1.5 |
-| E4 | Entrada al combate | 🧪 | Choque jugador↔mob | Overlay simulado (a reemplazar en F28) |
-| E5 | Tipo de combate | 🟢 | Combate por turnos + timing (F28) | Reemplazará al combate por reflejos (MARCO 11) |
-| E6 | Huida del combate | ⏸️ | No | Fase futura (F28 fase 5) |
-| E7 | Loot y XP | ⏸️ | No | Campos definidos (F13) |
+| E4 | Entrada al combate | 🧪 | Choque jugador↔mob → overlay real | v2.5-alpha |
+| E5 | Tipo de combate | 🧪 | Combate por turnos + timing | v2.5-alpha (F28 fase 1-6) |
+| E6 | Huida del combate | 🧪 | Probabilística: penalización + mob desaparece | v2.5-alpha (F28 fase 6) |
+| E7 | Loot y XP | ⏸️ | No | Campos definidos (F13, F30) |
 | E8 | Combate grupal (1vN) | ⏸️ | No | Fase avanzada |
 | E9 | Jefes (bosses) | ⏸️ | No | Ver BACKLOG · F27 |
 | E10 | Tamaño de enemigos | 🟢 | 1×1 | v1.1 |
 | E11 | Separación de semillas | 🟢 | `SEMILLA` + `SEMILLA_MOBS` | v1.3 |
 | E12 | Pausa global en batalla | 🟢 | Todo se detiene durante el combate | v2.0 |
-| E13 | Categorías de mobs | ⏸️ | 1: normales. 2: especiales (drops únicos, quests). 3: bosses (fases). Ver BACKLOG · F26 y F27 | Pendiente |
-| E14 | Timing por mob | ⏸️ | Cada mob tiene su propia `duracionTimingMs`. Ver BACKLOG · F29 | Pendiente |
+| E13 | Categorías de mobs | ⏸️ | 1: normales. 2: especiales. 3: bosses. | Ver BACKLOG · F26, F27 |
+| E14 | Timing por mob | ⏸️ | Cada mob con su `duracionTimingMs` | Ver BACKLOG · F29 |
+| E15 | Nivel de mob | 🧪 | `(hp + ataque + defensa) / 4` | v2.5-alpha (F28 fase 6) |
 
 ---
 
@@ -544,10 +555,10 @@ Ver BACKLOG · F12 para el detalle completo.
 
 | ID | Decisión | Estado | Valor actual | Notas |
 |:--:|----------|:------:|--------------|-------|
-| U1 | HUD | 🟢 | Pos + Zona (chunk) + Inventario + HP | v2.5-alpha |
+| U1 | HUD | 🟢 | Pos + Zona + Inventario + HP | v2.5-alpha |
 | U2 | Minimapa | ⏸️ | No | Fase futura |
 | U3 | Log de mensajes | 🧪 | Console.log + carteles temporales | v1.7 |
-| U4 | Estilo de menús | 🧪 | Overlay simple + overlay de batalla | v1.2 |
+| U4 | Estilo de menús | 🧪 | Overlay simple + overlay de combate | v2.5-alpha |
 | U5 | Sonido/música | ⏸️ | No | Fase muy tardía |
 | U6 | Plataforma | 🟢 | Navegador (PC) | Móvil → futuro |
 | U7 | Guardado/carga | ⏸️ | No | Fase futura |
@@ -561,6 +572,7 @@ Ver BACKLOG · F12 para el detalle completo.
 | U15 | Botón de cheat (temporal) | 🧪 | Arriba a la derecha, junto al de tema | v2.4.1-alpha |
 | U16 | Barra de HP | 🟢 | Arriba del mapa, gradiente rojo→verde | v2.5-alpha (F28 fase 2) |
 | U17 | Inventario visual | ⏸️ | Ventana nueva con todo pausado | Futuro (F8) |
+| U18 | Overlay de combate | 🟢 | Paneles jugador vs mob + barras HP + timing + botón huir | v2.5-alpha (F28 fase 4) |
 
 ---
 
@@ -573,7 +585,7 @@ Ver BACKLOG · F12 para el detalle completo.
 | R3 | Requiere servidor HTTP | 🟢 | Sí (Live Server / Pages) | CORS |
 | R4 | CSS separado | 🟢 | `css/estilo.css` | v1.0 |
 | R5 | Bloques referenciables | 🟢 | `// ═══ BLOQUE N ═══` | v1.0 |
-| R6 | Orden de carga | 🟢 | temas → config → ruido → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → efectos → render → ia → jugador → victoria → input → rotura → barco → cheats → main | v2.4.2-alpha |
+| R6 | Orden de carga | 🟢 | temas → config → ruido → tiles → rng → biomas → mundo → camara → estado → chunks → items → mobs → enemigos → efectos → barra-timing → render → ia → jugador → combate-ui → combate → victoria → input → rotura → barco → cheats → main | v2.5-alpha |
 | R7 | Versionado | 🟢 | Git + GitHub | v1.0 |
 | R8 | Deploy público | 🟢 | GitHub Pages | v1.0 |
 | R9 | Centralización de tamaño | 🟢 | Todo derivado de `config.js` | v1.1 |
@@ -582,7 +594,7 @@ Ver BACKLOG · F12 para el detalle completo.
 | R12 | Organización en subcarpetas | 🟢 | `core/`, `world/`, `entities/`, `ui/`, `systems/` | v1.4 |
 | R13 | IA en `systems/` | 🟢 | `js/systems/ia.js` | v1.5 |
 | R14 | Tick de IA configurable | 🟢 | `TICK_MS = 400` | v1.5 |
-| R15 | Documentación modular | 🟢 | README + CHANGELOG + BACKLOG | v1.5.1 |
+| R15 | Documentación modular | 🟢 | README + CHANGELOG + BACKLOG + AGENTS.md | v2.5-alpha |
 | R16 | Sistema de "forma" | 🟢 | `forma: "franja"` en `biomas.js` | v1.7.1 |
 | R17 | Chunks 2D | 🟢 | `{cx, cy}` en lugar de `zona` | v2.0 |
 | R18 | Cámara fluida | 🟢 | Jugador fijo en el centro | v2.0 |
@@ -594,8 +606,10 @@ Ver BACKLOG · F12 para el detalle completo.
 | R24 | Cheats de test temporales | 🧪 | `js/systems/cheats.js` (borrar antes de producción) | v2.4.1-alpha |
 | R25 | Sistema de efectos visuales | 🟢 | `js/systems/efectos.js` + clases CSS | v2.4.2-alpha |
 | R26 | Efectos por coordenada del mundo | 🟢 | `Map<"wx,wy", efectos[]>`, independientes del render | v2.4.2-alpha |
-| R27 | Herramientas de experimentación | 🟢 | `auditor/laboratorio-v1.html` + `pruebas/catalogo.html` | v2.4.2-alpha |
-| R28 | Minijuego de timing autocontenido | 🟢 | `js/systems/barra-timing.js` (module pattern) | v2.5-alpha (F28 fase 3) |
+| R27 | Herramientas de experimentación | 🟢 | `auditor/laboratorio-v1.html` + `pruebas/*` | v2.4.2-alpha |
+| R28 | Minijuego de timing autocontenido | 🟢 | `js/systems/barra-timing.js` (module pattern) | v2.5-alpha |
+| R29 | Combate por turnos con módulos separados | 🟢 | `combate.js` (lógica) + `combate-ui.js` (UI) | v2.5-alpha |
+| R30 | Configuración para agentes de IA | 🟢 | `AGENTS.md` + `opencode.json` | v2.5-alpha |
 
 ---
 
@@ -620,14 +634,14 @@ Ver BACKLOG · F12 para el detalle completo.
 | Botón de cheat | Rojo, arriba a la derecha | v2.4.1-alpha |
 | Biomas orgánicos | Manchas sin bordes rectos (ruido) | v2.4-alpha |
 | **Efectos visuales genéricos** | Vibrar, parpadear, destello, glow, pulse | v2.4.2-alpha |
+| **Overlay de combate** | Paneles con glow + barras HP + barra de timing | v2.5-alpha |
+| **Barra de timing** | Zonas verde/naranja/roja con marcador | v2.5-alpha |
 
 **Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
 
 ### Color de fondo por bioma (v2.3-alpha)
 
 Cada bioma tiene un campo `color` (hexadecimal) que define el fondo sutil de sus tiles.
-
-**Colores actuales:**
 
 | Bioma | Tierra | Espacio |
 |-------|--------|---------|
@@ -641,16 +655,12 @@ Cada bioma tiene un campo `color` (hexadecimal) que define el fondo sutil de sus
 
 ### Biomas orgánicos (v2.4-alpha)
 
-A partir de v2.4-alpha, los biomas **no son cuadrados**. Se generan con ruido:
+Cada celda tiene **temperatura** y **humedad** (con `ruido2D`). El bioma es el más cercano a ese par `(temp, hum)`.
 
-- Cada celda tiene una **temperatura** y una **humedad** (calculadas con `ruido2D`).
-- El bioma de la celda es el más cercano a ese par `(temp, hum)`.
-- Escala: `ESCALA_BIOMA = 0.01` → 1 bioma ≈ 100 celdas ≈ 3 chunks.
-- Los bordes son suaves y curvos (nada de líneas rectas).
+- `ESCALA_BIOMA = 0.01` → 1 bioma ≈ 100 celdas ≈ 3 chunks.
+- Bordes suaves y curvos.
 
 ### Animación del jugador (v2.3-alpha)
-
-El jugador tiene 4 estados visuales, definidos en cada tema:
 
 | Estado | Tierra | Espacio |
 |--------|:------:|:-------:|
@@ -659,22 +669,15 @@ El jugador tiene 4 estados visuales, definidos en cada tema:
 | Corriendo B | 🚶‍♂️ | 🏎️ |
 | En barco | 🚣 | 🛸 |
 
-**Cómo funciona:**
-
-- Si `estado.jugador.enBarco === true` → emoji de barco.
-- Si `estado.jugador.animando === true` o hay tecla apretada → alterna entre `correrA` y `correrB` cada 150ms.
-- Si no → emoji `quieto`.
-
-**Orientación:** se aplica `transform: scaleX(-1)` cuando `mirandoIzquierda === true`.
+- `enBarco === true` → emoji de barco.
+- `animando` o tecla → alterna `correrA`/`correrB` cada 150ms.
+- Si no → `quieto`.
+- Orientación con `scaleX(-1)`.
 
 ### Efectos visuales genéricos (v2.4.2-alpha)
 
-Sistema desacoplado que permite aplicar efectos a cualquier tile, mob, ítem o entidad. Ver BACKLOG · F25 para el detalle completo.
-
-**Efectos disponibles:**
-
-| Clase CSS | Efecto | Cuándo usarla |
-|-----------|--------|---------------|
+| Clase CSS | Efecto | Cuándo |
+|-----------|--------|--------|
 | `.efecto-ataque` | Vibrar + parpadear + destello rojo (~0.5s) | Ente recibe golpe |
 | `.efecto-golpe` | Vibrar + parpadear lentos (~1s) | Picar/talar (una vez) |
 | `.efecto-golpe-loop` | Vibrar + parpadear infinitos | Mientras dura la rotura |
@@ -683,6 +686,8 @@ Sistema desacoplado que permite aplicar efectos a cualquier tile, mob, ítem o e
 | `.efecto-glow` | Halo celeste permanente | Ítem importante |
 | `.efecto-pulse` | Pulsación permanente | Portal, orbe |
 
+**Usado por:** `rotura.js` (`efecto-golpe-loop`), `combate.js` (`efecto-ataque` al mob, `efecto-danio` al jugador).
+
 **Uso:**
 
 ```js
@@ -690,6 +695,23 @@ aplicarEfecto(wx, wy, "efecto-ataque", 500);       // temporal
 aplicarEfecto(wx, wy, "efecto-glow");              // permanente
 quitarEfecto(wx, wy, "efecto-glow");               // quitar
 ```
+
+### Overlay de combate (v2.5-alpha)
+
+Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
+
+**Componentes:**
+- Dos paneles: jugador (izq) y mob (der), con emoji + barra de HP.
+- Mensaje central de estado del turno.
+- Barra de timing horizontal con zonas coloreadas.
+- Botón "Huir" con confirmación y probabilidad.
+
+**Flujo:**
+- Turno jugador → ataque con timing → daño al mob.
+- Turno mob → defensa con timing → reducción de daño.
+- Repetir hasta que uno muera.
+
+**Pausa:** al abrir el overlay, `estado.pausado = true`. Bloquea movimiento, IA, rotura, barco.
 
 ### Herramientas de experimentación
 
@@ -719,9 +741,12 @@ quitarEfecto(wx, wy, "efecto-glow");               // quitar
 - **Sistema de rotura** (click + barra de stamina + efecto de golpe).
 - **Sistema del barco** (navegar sobre agua).
 - **Mobs con IA** (deambular, perseguir, huir).
-- **Pausa global en batalla**.
-- **Inventario en HUD** con íconos correctos.
 - **HP del jugador** con barra en el HUD.
+- **Sistema de combate por turnos** con timing (F28 fase 1-6).
+- **Huida probabilística** con penalización + mob desaparece.
+- **Muerte del jugador** → pantalla derrota + reinicio.
+- **Pausa global en combate** (bloquea movimiento, IA, rotura, barco).
+- **Inventario en HUD** con íconos correctos.
 - **Control de semilla en UI**.
 - **Botones de movimiento** en pantalla.
 - **Botón de cambio de tema** (arriba a la derecha).
@@ -730,9 +755,9 @@ quitarEfecto(wx, wy, "efecto-glow");               // quitar
 - **Animación del jugador** (quieto, corriendo, en barco).
 - **Ruido (Value Noise)** para generación de biomas.
 - **Sistema de efectos visuales genéricos**.
-- **Minijuego de timing** (barra-timing.js, en pruebas).
+- **Minijuego de timing** integrado en el combate.
 
-### Bugs conocidos
+### Bugs conocidos (ver BACKLOG · F28.1)
 
 Todos los bugs de v2.4-alpha fueron resueltos en v2.4.1-alpha:
 
@@ -743,35 +768,25 @@ Todos los bugs de v2.4-alpha fueron resueltos en v2.4.1-alpha:
 | B3 | Mobs de tierra aparecen en el agua | ✅ Arreglado |
 | B4 | Atravesar mob no dispara pelea | ✅ Arreglado |
 | B5 | Romper roca en agua genera arena | ✅ Arreglado |
+| B6 | HP jugador en 0 no cierra combate | ⏸️ Pendiente |
+| B7 | Matar mob con HP 0 cura al jugador | ⏸️ Pendiente |
 
-**Ver detalle en [BACKLOG.md](BACKLOG.md) · F24.**
+**Ver detalle en [BACKLOG.md](BACKLOG.md) · F24 y F28.1.**
 
 ### Lo que falta
 
-- **F28 · Fases 4-9** del sistema de combate:
-  - Fase 4: overlay de combate (`combate-ui.js`).
-  - Fase 5: lógica de turnos (`combate.js`).
-  - Fase 6: conectar `victoria.js` → `iniciarCombate`.
-  - Fase 7: muerte del mob + cierre.
-  - Fase 8: muerte del jugador + derrota.
-  - Fase 9: balance + corazones.
-- Aplicar `efecto-ataque` / `efecto-danio` en el combate real.
-- Aplicar `efecto-recoger` al recoger ítems y equipables.
-- Reemplazar el glow hardcodeado de la llave por `aplicarEfecto(..., "efecto-glow")`.
-- Pulir emojis y nombres del tema espacio.
+- **F28.1:** resolver bugs B6 y B7.
+- **F28 fase 7-9:** pulir muerte jugador, pantalla derrota, balance final, corazones.
+- Aplicar `efecto-recoger` al recoger ítems.
+- Reemplazar glow hardcodeado de la llave.
+- Pulir tema espacio.
 - Adaptar `auditor/` al sistema de temas.
-- Adaptar `victoria.js` con mensaje temático.
 - Barco: mob bloqueando la única celda de tierra.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
-- **Ciclo día-noche (F1).**
-- **Mobs especiales y bosses (F26, F27).**
-- **Equipables mejorados y stats modificables (F12).**
-- **Escalado de timing (F29).**
-- **Inventario visual (F8).**
+- **F30 (niveles del jugador):** sistema de XP.
+- **F1 (día-noche)**, **F26 (especiales)**, **F27 (bosses)**, **F29 (escalado)**.
 
 ### ⚠️ Recordatorio: borrar cheats antes de producción
-
-Al cerrar la fase de test:
 
 1. Borrar `js/systems/cheats.js`.
 2. Borrar `<script src="js/systems/cheats.js"></script>` de `index.html`.
@@ -837,7 +852,7 @@ Interfaz radial con 6 sectores anidados. El jugador **bloquea** arrastrando el m
 
 **Movido a [BACKLOG.md](BACKLOG.md).**
 
-Ideas futuras: F1-F29.
+Ideas futuras: F1-F30.
 
 ---
 
@@ -878,25 +893,25 @@ Ideas futuras: F1-F29.
 - [x] **Biomas por celda con ruido (F24)** ← v2.4-alpha
 - [x] **Bugs de biomas por celda (F24)** ← v2.4.1-alpha
 - [x] **Sistema de efectos visuales genéricos (F25)** ← v2.4.2-alpha
-- [x] **F28 fase 1-3** (stats, barra HP, minijuego de timing) ← v2.5-alpha (en progreso)
+- [x] **F28 fase 1-6** (stats, barra HP, minijuego de timing, overlay, lógica de turnos, huida) ← v2.5-alpha
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🔥 Alta | **F28 fase 4-6** (overlay, lógica, conexión) | ⏸️ | Turnos + timing en el juego real |
-| 🟡 Media | F28 fase 7-9 (muerte, derrota, corazones) | ⏸️ | Balance final |
-| 🟡 Media | Prototipo 2 del módulo de combate | ⏸️ | SVG radial (MARCO 11) |
-| 🟡 Media | Loot y XP de mobs (F13) | ⏸️ | Campos ya definidos |
-| 🟡 Media | Pulir tema espacio (emojis, nombres, biomas) | ⏸️ | Ver BACKLOG · F19 |
-| 🟡 Media | Equipables mejorados (F12) | ⏸️ | Velocidad, linterna por nivel, stats |
-| 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de F28 |
+| 🔥 Alta | **F28.1: resolver B6 y B7** | ⏸️ | HP 0 no cierra combate + matar mob con HP 0 cura |
+| 🟡 Media | F28 fase 7-9 (muerte jugador, derrota, corazones) | ⏸️ | Balance final |
+| 🟡 Media | F30: sistema de niveles del jugador | ⏸️ | Placeholder actual es nivel 1 |
+| 🟡 Media | Loot y XP de mobs (F13) | ⏸️ | Depende de F30 |
+| 🟡 Media | Equipables mejorados (F12) | ⏸️ | Velocidad, stats, linterna |
+| 🟡 Media | Pulir tema espacio | ⏸️ | F19 |
+| 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de F28.1 |
 | 🟢 Baja | Escalado de timing (F29) | ⏸️ | Después de F28 + F1 |
-| 🟢 Baja | Mobs especiales (F26) | ⏸️ | Después de F1 + F15 + quests |
+| 🟢 Baja | Mobs especiales (F26) | ⏸️ | Fase tardía |
 | 🟢 Baja | Mobs bosses (F27) | ⏸️ | Fase tardía |
-| 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis pintadas |
-| 🟢 Baja | Sonidos simples | ⏸️ | Feedback al recoger ítem |
-| 🟢 Baja | Inventario visual (F8) | ⏸️ | Ventana con todo pausado |
+| 🟢 Baja | Inventario visual (F8) | ⏸️ | Ventana con pausa |
+| 🟢 Baja | Sonidos simples | ⏸️ | Feedback |
+| 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis |
 
 ### 🌟 Ideas para más adelante
 
@@ -905,10 +920,10 @@ Ideas futuras: F1-F29.
 - Refactorización a módulos ES
 - Entidades multi-tile (mobs 2×2)
 - Sprites reales (PNG) — ver F20
-- Sistema de misiones / quests — ver BACKLOG · F26
-- Sistema de bosses con fases — ver BACKLOG · F27
-- Persistencia de progreso (localStorage) — ver BACKLOG · F8
-- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F29)
+- Sistema de misiones (F26)
+- Sistema de bosses con fases (F27)
+- Persistencia de progreso (F8 fase 3)
+- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F30)
 
 ---
 
@@ -933,13 +948,15 @@ Ideas futuras: F1-F29.
 | 7.11 | Sistema del barco | `js/systems/barco.js` |
 | 7.12 | Efectos visuales genéricos | `js/systems/efectos.js` |
 | 7.13 | Minijuego de timing | `js/systems/barra-timing.js` |
+| 7.14 | Lógica de combate | `js/systems/combate.js` |
 | 8 | Carga e inicialización de chunks | `js/world/chunks.js` |
 | 9 | Render del mundo | `js/ui/render.js` |
 | 10 | (Eliminado en v2.0 — barra de zonas) | — |
 | 11 | HUD | `js/ui/render.js` |
 | 12 | Movimiento del jugador | `js/entities/jugador.js` |
 | 13 | Victoria | `js/ui/victoria.js` |
-| 13.5 | Batalla simulada (a reemplazar en F28) | `js/ui/victoria.js` |
+| 13.5 | Batalla (delega a combate.js) | `js/ui/victoria.js` |
+| 13.7 | UI de combate | `js/ui/combate-ui.js` |
 | 14 | Input | `js/core/input.js` |
 | 15 | Estilos CSS | `css/estilo.css` |
 | 16 | Inicio | `js/main.js` |
@@ -973,7 +990,7 @@ Ideas futuras: F1-F29.
 
 ### Al cambiar de versión
 
-1. Bump en el encabezado (`v2.4.2-alpha` → `v2.5-alpha`).
+1. Bump en el encabezado (`v2.5-alpha` → `v2.6-alpha`).
 2. Agregar entrada en `CHANGELOG.md`.
 3. Actualizar la fecha.
 
@@ -1009,8 +1026,10 @@ Ideas futuras: F1-F29.
 - **Biomas por celda**: `obtenerBiomaDeCelda(wx, wy)` reemplaza al viejo `obtenerBiomaDeChunk` para el render. El chunk mantiene un "bioma dominante" para spawns.
 - **Ruido autocontenido**: `ruido.js` no depende de nada más.
 - **Efectos visuales**: `efectos.js` guarda por coordenada `(wx, wy)`. Cualquier sistema puede llamar `aplicarEfecto(...)`. El render solo aplica clases CSS, sin saber qué es un efecto.
-- **Barra de timing**: `barra-timing.js` usa module pattern (IIFE), autocontenido. Se invoca con `BarraTiming.iniciar({...})`.
+- **Barra de timing**: `barra-timing.js` usa module pattern (IIFE), autocontenido. Se invoca con `BarraTiming.iniciar({...})` y `BarraTiming.cancelar()`.
+- **Combate por turnos**: `combate.js` usa `estado.pausado = true` para pausar el juego. Al cerrar lo desactiva. Usa `estadoCombate.timeoutPendiente` para poder cancelar `setTimeout` entre turnos y `estadoCombate.pausado` para bloquear doble huida.
 - **Cheats temporales**: `cheats.js` es un archivo aparte. **Borrar antes de producción.**
+- **Configuración para IA**: `AGENTS.md` + `opencode.json` para trabajar con OpenCode u otros agentes.
 
 ---
 
@@ -1021,8 +1040,9 @@ Ideas futuras: F1-F29.
 - Los IDs (M1, J1, R1, X1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
 - Los bloques del código (BLOQUE 1 a 99) son referenciables para modificaciones puntuales.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
-- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F29).
-- **Prioridad actual:** F28 (sistema de combate con timing). Es la base de F1, F26, F27 y F29.
+- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F30).
+- La configuración de agentes vive en **[AGENTS.md](AGENTS.md)**.
+- **Prioridad actual:** F28.1 (resolver bugs B6 y B7).
 
 ---
 

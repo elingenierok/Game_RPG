@@ -21,6 +21,7 @@ const estado = {
     ataque: 3,
     defensa: 1,
     velocidad: 1,
+    nivel: 1,   // ← NUEVO (placeholder, F30 futuro: sistema de niveles real)
     // Animación en curso
     animando: false,
     animInicioX: 0,

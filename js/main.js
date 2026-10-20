@@ -62,6 +62,9 @@ function reiniciarMundo(nuevaSemilla) {
   SEMILLA_MOBS = Date.now();
   SEMILLA_OBJETOS = SEMILLA;
 
+  // ─── Cancelar combate si había uno activo (F28) ───
+  if (typeof cancelarCombateSiActivo === "function") cancelarCombateSiActivo();
+
   limpiarCacheBiomas();
   cacheChunks.clear();
 

@@ -17,7 +17,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F9 · Sistema de mouse / interacción con click · 🧪 PARCIAL
 - F10 · Bioma "playa" como bioma separado
 - F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
-- F12 · Objetos equipables de mejor nivel (+ linterna por niveles)
+- F12 · Objetos equipables de mejor nivel (+ linterna + stats)
 - F13 · Drops alternativos de objetos
 - F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 - F15 · Biomas forzados + chunks de transición
@@ -33,8 +33,10 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F25 · Sistema de efectos visuales genéricos · 🧪 PARCIAL en v2.4.2-alpha
 - F26 · Sistema de mobs especiales (categoría 2)
 - F27 · Sistema de mobs bosses (categoría 3)
-- F28 · Sistema de combate con timing (HP + daño real)
+- F28 · Sistema de combate con timing · 🧪 FASES 1-6 IMPLEMENTADAS en v2.5-alpha
+- F28.1 · Bugs conocidos del combate con timing · ⏸️ PENDIENTE
 - F29 · Escalado dinámico de dificultad del timing
+- F30 · Sistema de niveles del jugador
 
 ---
 
@@ -57,63 +59,53 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 
 ### Visibilidad
 
-**De día:**
-- Todos los tiles visibles con sus colores normales.
+**De día:** todos los tiles visibles con sus colores normales.
 
 **De noche:**
-- **Oscuridad global:** todos los tiles se oscurecen (bajan saturación/brillo hasta casi negro).
+- **Oscuridad global:** todos los tiles se oscurecen hasta casi negro.
 - **Excepciones:**
-  1. **Tiles que emiten luz** (fogatas, faroles, máquinas con luces): quedan visibles con su color normal.
-  2. **Radio de visión del jugador:** 5 celdas alrededor del jugador quedan visibles (aunque no haya luz). Centro en el jugador.
+  1. **Tiles que emiten luz** (fogatas, faroles, máquinas con luces): quedan visibles.
+  2. **Radio de visión del jugador:** 5 celdas alrededor del jugador quedan visibles.
 
-**Durante la transición:** el oscurecimiento es **gradual** (interpolar entre 1.0 y 0.0 de brillo).
+**Transición:** interpolación gradual de brillo entre 1.0 y 0.0.
 
 ### Avisos
 
 - Al entrar a la noche: cartel *"🌙 Se hace de noche. Es peligroso."*
-- Al entrar al día: cartel *"☀️ Amanece."* (opcional, para dar feedback)
+- Al entrar al día: cartel *"☀️ Amanece."* (opcional).
 
 ### Linterna (equipable)
 
 - La 🕯️ Linterna ilumina un radio alrededor del jugador mientras esté equipada.
-- **Radio según nivel** (ver F12):
-  - Vela: 6×6
-  - Linterna de mano: 10×10
-  - Linterna militar: 13×13
-- Se combina con el radio de visión base del jugador (5×5): el mayor gana.
+- **Radio según nivel** (ver F12): vela 6×6, mano 10×10, militar 13×13, farol 16×16.
+- Se combina con el radio base del jugador (5×5): el mayor gana.
 
 ### Mobs de noche
 
-- **Mobs normales (categoría 1):** desaparecen al entrar la noche. Vuelven al amanecer.
-- **Mobs especiales nocturnos (categoría 2):** aparecen solo de noche. Más rápidos, más peligrosos, con mayor daño y drops únicos. Ver F26.
-- **Bosses (categoría 3):** independiente del ciclo. Ver F27.
+- **Mobs normales (cat. 1):** desaparecen al entrar la noche. Vuelven al amanecer.
+- **Mobs especiales nocturnos (cat. 2):** aparecen solo de noche. Ver F26.
+- **Bosses (cat. 3):** independiente del ciclo. Ver F27.
 
 ### Implementación técnica (futura)
 
-- Nueva variable global `estado.ciclo = { fase, tiempoRestante }`.
-- En `render.js`: aplicar `filter: brightness()` según fase + radio de visión + tiles de luz.
+- Nueva `estado.ciclo = { fase, tiempoRestante }`.
+- En `render.js`: `filter: brightness()` según fase + radio + tiles de luz.
 - Tiles nuevos: propiedad `emiteLuz: true` y radio.
-- Nueva `js/systems/ciclo.js` (o dentro de `render.js`).
-- Pausa: `estado.pausado` detiene el avance del ciclo.
+- Nueva `js/systems/ciclo.js`.
 
 ### Preguntas pendientes
 
-- ¿Los efectos visuales (vibrar, glow) se ven de noche? ¿O quedan ocultos por la oscuridad?
-- ¿Los mobs especiales nocturnos reaparecen cada noche o solo aparecen una vez?
-- ¿El ciclo afecta el gameplay (regeneración de mobs normales, eventos)?
-- ¿Los tiles de luz consumen algo o son estáticos?
+- ¿Los efectos visuales (vibrar, glow) se ven de noche o quedan ocultos?
+- ¿Los mobs especiales nocturnos reaparecen cada noche?
+- ¿Los tiles de luz consumen algo?
 
-### Herramientas de experimentación
-
-Hoy no hay prueba. Cuando se implemente, se puede empezar con un HTML de prueba (`pruebas/ciclo.html`) antes de meter al motor.
-
-**Estado:** ⏸️ Anotado. Depende de HP + daño (F28) para que "peligroso" tenga sentido.
+**Estado:** ⏸️ Anotado. Depende de F28 (combate) para que "peligroso" tenga sentido.
 
 ---
 
 ## 🚶 F2 · Movimiento amortiguado entre celdas (Modelo 2 · Pokémon) · ✅ IMPLEMENTADO en v2.0
 
-**Idea:** el jugador se mueve **casilla a casilla**, pero con una **animación visual suave** entre una y la siguiente. La lógica de grilla queda intacta.
+**Idea:** el jugador se mueve **casilla a casilla**, pero con una **animación visual suave** entre una y la siguiente.
 
 **Diferencia con Modelo 1 (viejo):**
 
@@ -121,68 +113,54 @@ Hoy no hay prueba. Cuando se implemente, se puede empezar con un HTML de prueba 
 |--------|----------------|
 | **1 · Viejo** | El jugador salta de casilla en casilla **instantáneamente** |
 | **2 · Pokémon** | El jugador se **desliza** de casilla a casilla en ~120-150ms |
-| **3 · Zelda** | El jugador se mueve libremente por píxeles (no viable sin reescribir) |
-
-**Concepto clave:** el jugador **nunca está entre casillas lógicamente**. Solo **visualmente** durante la animación. Al terminar la animación, está en la nueva casilla.
+| **3 · Zelda** | El jugador se mueve libremente por píxeles |
 
 **Estado:** ✅ Implementado en v2.0 (`DURACION_MOVIMIENTO_MS = 100`).
 
-**Extensión (v2.3-alpha):** animación de "correr" alternando 2 emojis cada 150ms mientras se mueve, y orientación según dirección.
+**Extensión (v2.3-alpha):** animación de "correr" alternando 2 emojis cada 150ms. Orientación según dirección.
 
 ---
 
 ## 🗂️ F3 · Sistema de capas del mundo
 
-**Idea:** separar el mundo en **capas independientes**, cada una con su responsabilidad.
+**Idea:** separar el mundo en **capas independientes**.
 
 | Capa | Contenido |
 |:----:|-----------|
-| 1 | Terreno base (pasto, agua, arena, árboles) |
-| 2 | Objetos estáticos (estructuras, cofres, letreros) |
-| 3 | Entidades móviles (jugador, mobs, NPCs) |
+| 1 | Terreno base |
+| 2 | Objetos estáticos |
+| 3 | Entidades móviles |
 | 4 | Iluminación / visión (vinculada a F1) |
-| 5 | Clima / ambiental (lluvia, nieve, niebla) |
-| 6 | Efectos especiales (visión infrarroja, detección mágica) |
+| 5 | Clima / ambiental |
+| 6 | Efectos especiales |
 
-**Ventajas:** encender/apagar capas sin reescribir código. Cada capa tiene su lógica propia.
+**Relación con F1:** el sistema de iluminación podría ir en la capa 4.
 
-**Preguntas pendientes:** ¿cómo se renderiza? ¿canvas múltiple? ¿puede una capa leer otra? ¿impacto en performance?
-
-**Relación con F1:** el sistema de iluminación (día-noche) podría ir en la capa 4.
-
-**Estado:** ⏸️ Anotado. Pendiente para después de HP + daño.
+**Estado:** ⏸️ Anotado. Pendiente para después de F28.
 
 ---
 
 ## 🎲 F4 · Semillas independientes por sistema · ✅ IMPLEMENTADO en v1.3
 
-**Estado:** implementado. Ver `SEMILLA_MOBS` en `js/core/config.js`.
-
 | Sistema | Semilla | ¿Editable? |
 |---------|---------|:----------:|
-| Mundo (terreno, biomas, estructuras) | `SEMILLA` | ✅ Sí |
-| Mobs | `SEMILLA_MOBS` | ⏸️ Automática (`Date.now()`) |
-| Objetos | `SEMILLA_OBJETOS` | ⏸️ Ligada a `SEMILLA` por ahora |
+| Mundo | `SEMILLA` | ✅ Sí |
+| Mobs | `SEMILLA_MOBS` | ⏸️ Automática |
+| Objetos | `SEMILLA_OBJETOS` | ⏸️ Ligada a `SEMILLA` |
 
-**Pendiente futuro:** permitir que `SEMILLA_MOBS` sea editable por el jugador.
+**Pendiente futuro:** permitir que `SEMILLA_MOBS` sea editable.
 
 ---
 
 ## 📌 F5 · Spawn forzado por bioma o estructura
 
-**Idea:** permitir forzar la aparición de un mob en un lugar específico.
+**Idea:** forzar la aparición de un mob en un lugar específico.
 
-**Ejemplos:**
+**Ejemplos:** 🐉 dragón en ruinas una vez por mundo, 🐟 pez en agua de noche, 👻 fantasma en castillo.
 
-- Un 🐉 dragón que aparece **solo en ruinas** y **solo una vez** por mundo.
-- Un 🐟 pez que aparece **solo en agua** y **solo de noche**.
-- Un 👻 fantasma que aparece **solo dentro de una estructura "castillo"**.
+**Campos ya definidos:** `spawn.forzarEnEstructura`, `spawn.tipoAparicion`, `spawn.porMapa`.
 
-**Campos ya definidos en la plantilla:** `spawn.forzarEnEstructura`, `spawn.tipoAparicion`, `spawn.porMapa`.
-
-**Falta:** lógica de detección de estructura, control de "veces que puede aparecer", condiciones especiales.
-
-**Relación con F26 y F27:** esta es la base técnica para spawnear mobs especiales y bosses.
+**Relación con F26 y F27:** base técnica para mobs especiales y bosses.
 
 **Estado:** ⏸️ Anotado.
 
@@ -190,68 +168,52 @@ Hoy no hay prueba. Cuando se implemente, se puede empezar con un HTML de prueba 
 
 ## 🧭 F6 · Pathfinding con obstáculos (IA avanzada)
 
-**Idea:** los mobs actualmente se mueven en **línea recta**. Si hay un obstáculo en el camino (árbol, otro mob, muro), **se quedan quietos ese tick**.
+**Idea:** los mobs actualmente se mueven en **línea recta**. Si hay obstáculo, se quedan quietos.
 
-**Mejora propuesta:** que puedan **rodear** obstáculos para llegar al jugador.
+**Mejora:** que puedan **rodear** obstáculos (A*).
 
-**Consideraciones:**
+**Aplica a:** persecución (tigre) y huida (gallina). No aplica a deambulación.
 
-- Requiere algoritmo **A\*** o similar sobre la grilla.
-- El cálculo es más costoso → hay que optimizarlo (cachear caminos, recalcular cada N ticks).
-- Aplica a: persecución (tigre) y huida (gallina).
-- No aplica a deambulación (el moverse al azar ya funciona bien).
-
-**Estado:** ⏸️ Anotado. Se implementará si el juego lo necesita.
+**Estado:** ⏸️ Anotado.
 
 ---
 
 ## 🚶 F7 · Deambulación más realista
 
-**Idea:** actualmente los mobs deambulan de forma **totalmente aleatoria**: cada 2 ticks eligen una dirección al azar entre las 4 posibles.
+**Idea:** los mobs deambulan **totalmente al azar** cada 2 ticks. Se ve "zigzagueante".
 
-**Problema:** el movimiento se ve "zigzagueante" e impredecible. No parece que estén "paseando".
+**Mejoras:**
+- **Momentum:** preferir seguir la misma dirección.
+- **Puntos de interés:** 1-3 puntos y rotar entre ellos.
+- **Descansos:** pausas de 2-4 ticks.
+- **Zonas preferidas.**
 
-**Mejoras propuestas:**
-
-- **Momentum:** preferir seguir la misma dirección que venían (ej: 70% de mantener, 30% de cambiar).
-- **Puntos de interés:** que el mob tenga 1-3 puntos de interés en el chunk y vaya rotando entre ellos.
-- **Descansos:** pausas aleatorias de 2-4 ticks entre movimientos.
-- **Zonas preferidas:** que cada mob prefiera deambular en un área específica del chunk.
-
-**Estado:** ⏸️ Anotado. Se implementará si la deambulación actual se siente demasiado errática.
+**Estado:** ⏸️ Anotado.
 
 ---
 
 ## 🎒 F8 · Objetos equipables y modificar el mundo · 🧪 FASES 1-2 IMPLEMENTADAS
 
-**Idea:** permitir al jugador **equipar ítems** (cascos, botas, hachas) y **modificar el mundo** (picar, talar, construir). Los cambios deben **persistir** entre sesiones.
+**Idea:** equipar ítems + modificar mundo, con persistencia.
 
 **Modelo de persistencia:** deltas.
 
-```text
+```
 mundo = función(semilla, chunk) + deltas
 ```
-
-- Los deltas guardan solo los cambios del jugador (`"cx,cy:lx,ly" → tile nuevo`).
-- Se combinan con el mundo generado al cargar un chunk.
-- Es el modelo estándar de Minecraft, Terraria, etc.
-
-**Capas del sistema:**
-
-| Capa | Semilla | Estado |
-|------|---------|:------:|
-| Terreno | `SEMILLA` | ✅ Implementado |
-| Estructuras | `SEMILLA_ESTRUCTURAS` | ⏸️ Pendiente |
-| Mobs | `SEMILLA_MOBS` | ✅ Implementado |
-| Objetos de terreno | `SEMILLA_OBJETOS` | 🧪 Ligado a `SEMILLA` |
-| Loot de contenedores | `SEMILLA_LOOT` | ⏸️ Pendiente |
 
 **Fases propuestas:**
 
 1. Objetos equipables (slots + stats). ✅ v1.7
 2. Modificar mundo en memoria (picar/talar). ✅ v2.0
 3. Persistencia con deltas (localStorage). ⏸️
-4. Inventario visual completo. ⏸️
+4. Inventario visual completo (ventana con todo pausado). ⏸️
+
+**Inventario visual (fase 4):**
+- Ventana nueva que se abre con tecla (ej: I o Tab).
+- Todo el juego se pausa (`estado.pausado = true`).
+- Muestra todos los ítems recolectados con íconos y cantidades.
+- Cerrar con la misma tecla o Esc.
 
 **Estado:** Fases 1-2 completadas. Fases 3-4 pendientes.
 
@@ -259,36 +221,29 @@ mundo = función(semilla, chunk) + deltas
 
 ## 🖱️ F9 · Sistema de mouse / interacción con click · 🧪 PARCIAL
 
-**Idea:** usar el mouse para **interactuar con entidades y objetos** en el mapa, en lugar de solo caminar sobre ellos.
-
-**Comportamiento por tipo de objetivo:**
+**Idea:** usar el mouse para interactuar con entidades.
 
 | Objetivo | Acción al hacer click |
 |----------|----------------------|
-| Mob hostil | Atacar (inicia batalla) |
+| Mob hostil | Atacar |
 | Mob neutral | Interactuar |
-| Mob pacífico | Interactuar |
-| NPC | Hablar (abre diálogo) |
+| NPC | Hablar |
 | Cofre | Abrir |
-| Cueva / puerta | Ingresar |
-| Ítem en el suelo | Recoger |
-| Tile rompible | Romper (con objeto) |
+| Cueva | Ingresar |
+| Ítem | Recoger |
+| Tile rompible | Romper |
 
-**Estado:** 🧪 Parcialmente implementado en v2.0 (click → romper, click → barco, click → desembarcar).
+**Estado:** 🧪 Parcial en v2.0 (romper, barco, desembarcar).
 
-**Pendiente:** interacción con NPCs, cofres, cuevas.
-
-**Relación con F26:** los mobs especiales con quests requieren interacción por click (o algún mecanismo similar).
+**Pendiente:** NPCs, cofres, cuevas.
 
 ---
 
 ## 🏖️ F10 · Bioma "playa" como bioma separado
 
-**Idea:** actualmente "playa" NO es un bioma. Es un conjunto de tiles (arena 🟨) dentro del bioma "costa".
+**Idea:** "playa" NO es bioma, es conjunto de tiles dentro de "costa".
 
-**Consecuencia:** no se puede hacer un objeto equipable específico para "playa", ni un mob de playa, ni transiciones suaves.
-
-**Propuesta:** separar "playa" como un bioma propio en el futuro.
+**Propuesta:** separar "playa" como bioma propio.
 
 **Estado:** ⏸️ Anotado.
 
@@ -296,18 +251,17 @@ mundo = función(semilla, chunk) + deltas
 
 ## 🎒 F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
 
-**Estado:** completo. Los objetos equipables se recogen, se muestran en slots, y permiten romper tiles del mundo.
+**Estado:** completo.
 
 **Referencia:**
-
-- `ROTURA_POR_TILE` en `tiles.js` — define qué se rompe con qué.
-- `tileBase` en `biomas.js` — a qué tile se convierte el objeto roto.
+- `ROTURA_POR_TILE` en `tiles.js`.
+- `tileBase` en `biomas.js`.
 
 ---
 
-## ⚙️ F12 · Objetos equipables de mejor nivel (+ linterna por niveles)
+## ⚙️ F12 · Objetos equipables de mejor nivel (+ linterna + stats)
 
-**Idea:** cada equipable tiene versiones de mejor nivel. Reducen tiempos de rotura, aumentan radio de luz, etc.
+**Idea:** cada equipable tiene versiones de mejor nivel. También hay equipables que modifican stats del jugador.
 
 ### Hachas / Picos
 
@@ -375,7 +329,7 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 - ¿Los equipables se dropean de mobs, se craftean o se encuentran en el mundo?
 - ¿Hay equipables que modifican HP máximo, o solo ataque/defensa/velocidad?
 - ¿Cómo se visualiza el cambio de stats en el HUD? (¿números? ¿íconos?)
-- ¿Cómo interactúa con la barra de HP cuando cambia `hpMax`? (¿se mantiene el % o el número?)
+- ¿Cómo interactúa con la barra de HP cuando cambia `hpMax`?
 
 **Requiere:** F28 (stats base ya existen).
 
@@ -395,7 +349,6 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 **Idea:** los objetos equipables pueden obtenerse de formas alternativas además del spawn en el mundo.
 
 **Fuentes propuestas:**
-
 - Al matar ciertos mobs.
 - Al romper vehículos/piedras específicas.
 - Al abrir cofres.
@@ -409,29 +362,19 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 
 ## 🗺️ F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 
-**Motivo:** el sistema viejo (`permutacionBiomas()`) era rígido, difícil de escalar y tenía bugs. Se reemplazó por una **tabla JSON/JS externa**.
-
 **Estado:** completado. Ver `js/world/biomas.js`.
 
-**Concepto:**
-
 - 7 biomas definidos como datos.
-- Cada bioma tiene: `nombre`, `emoji`, `tileBase`, `vecinos` (con pesos), `tiles` (con pesos).
-- El motor `obtenerBiomaDeChunk()` decide el bioma de cada chunk por hash determinista.
-- Determinista por semilla.
+- Cada bioma tiene: `nombre`, `emoji`, `tileBase`, `vecinos`, `tiles`.
+- `obtenerBiomaDeChunk()` decide por hash determinista.
 
 **Biomas actuales:** pradera, bosque, costa, ruina, oceano, desierto, nieve.
-
-**Referencia:**
-
-- `js/world/biomas.js` — tabla de biomas.
-- `js/world/mundo.js` — motor de asignación y pintado.
 
 ---
 
 ## 🏙️ F15 · Biomas forzados + chunks de transición
 
-**Idea:** después de generar el mundo natural, una **segunda pasada** inserta biomas forzados (ciudades, puertos, islas, ruinas temáticas) que reemplazan chunks existentes.
+**Idea:** segunda pasada que inserta biomas forzados (ciudades, puertos, islas, ruinas temáticas).
 
 ### Reglas confirmadas
 
@@ -451,27 +394,19 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 - 🏝️ Isla — aparece dentro de océano.
 - 🏰 Castillo — reemplaza ruina.
 
-**Relación con F26 y F27:** los mobs especiales y bosses suelen spawnear en estructuras (castillo, cueva, ruina). F15 es requisito para eso.
+**Relación con F26 y F27:** prerequisito para spawnear mobs especiales y bosses en estructuras.
 
-**Estado:** ⏸️ Planificado. Se implementará después de HP + daño.
+**Estado:** ⏸️ Planificado. Después de F28.
 
 ---
 
 ## 🏖️ F16 · Rediseño del bioma "costa" · ✅ IMPLEMENTADO en v1.7.1
 
-**Problema:** el bioma "costa" pintaba los tiles con probabilidad uniforme. El resultado eran "charcos" de agua salpicados por el chunk.
-
-**Solución:** la costa ahora usa **forma de franja**:
-
-- Agua en un lateral (~1/3 del chunk).
-- Arena en el medio (~1/3).
-- Pasto en el otro lateral (~1/3).
-- Bordes irregulares (con ondulación) para naturalidad.
-
-**Implementación:**
-
-- `js/world/biomas.js`: campo `forma: "franja"` en el bioma costa.
-- `js/world/mundo.js`: función `pintarCosta()`.
+**Solución:** forma de franja.
+- Agua en un lateral (~1/3), arena en el medio (~1/3), pasto en el otro (~1/3).
+- Bordes irregulares.
+- `forma: "franja"` en `biomas.js`.
+- `pintarCosta()` en `mundo.js`.
 
 **Estado:** ✅ Completado.
 
@@ -482,99 +417,55 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 **Idea:** algunos biomas no se generan con probabilidad uniforme por celda. Tienen **forma**.
 
 **Formas previstas:**
-
-- **Franja:** agua en un lateral (costa) — ✅ implementado.
+- **Franja:** agua en un lateral — ✅ implementado.
 - **Lago:** masa circular en el centro.
 - **Río:** franja atravesando el chunk.
 - **Isla:** tierra rodeada de agua.
 - **Montaña:** elevación con cordillera.
 
-**Estado actual:**
-
-- ✅ `pintarCosta()` implementado (franja).
-- ⏸️ Otras formas pendientes.
-
-**Extensible a:** motor genérico de formas basado en el campo `forma` de cada bioma.
-
-**Estado:** ⏸️ Planificado.
+**Estado:** ⏸️ Planificado. Extensible a motor genérico basado en el campo `forma`.
 
 ---
 
 ## 🛶 F18 · Barco (atravesar agua) · ✅ IMPLEMENTADO en v2.0
 
-**Idea:** un objeto equipable que permite al jugador caminar sobre tiles de agua.
-
 ### Objeto: 🛶 (Canoa)
 
-- **Aparece:** en cada chunk de costa (porChunk), en tierra, pegado a agua, lejos de los bordes.
-- **Recolección:** al pisarlo, se suma al inventario.
-- **Slot:** slot de equipados (junto a 🪓 ⛏️ 🕯️).
+- **Aparece:** en cada chunk de costa, en tierra, pegado a agua.
+- **Recolección:** al pisarlo.
+- **Slot:** slot de equipados.
 
 ### Uso
 
-1. El jugador tiene 🛶 en el inventario.
-2. Hace **click** sobre un tile de agua **adyacente**.
-3. Se inicia una **barra de 5 segundos**.
-4. Al terminar: el jugador se sube al barco (🚣 / 🛸) y puede moverse sobre agua.
-5. Click sobre tierra adyacente → barra de 2 seg → se baja del barco.
+1. Click sobre agua adyacente → barra (5s) → jugador se sube (🚣 / 🛸).
+2. Mientras navega, solo se mueve sobre agua.
+3. Click sobre tierra adyacente → barra (2s) → se baja.
+4. Puede romper tiles desde el barco.
 
-### Detalles
-
-- **Solo atraviesa `WATER`.**
-- **El barco es del jugador.** Una vez conseguido, siempre lo tiene.
-- **No se consume.**
-- **Puede romper tiles desde el barco** (ej: rocas en el agua).
-
-**Estado:** ✅ Completado en v2.0. Animación de "en barco" agregada en v2.3-alpha.
+**Estado:** ✅ Completado en v2.0. Animación "en barco" en v2.3-alpha.
 
 ---
 
 ## 🌌 F19 · Tema "espacio" (nueva piel) · 🧪 PARCIAL en v2.3-alpha
 
-**Idea:** reutilizar el motor completo del juego con un cambio temático de "roguelike" a "explorador espacial".
-
-**Regla clave:** **no se toca el motor.** Solo se cambian **datos**.
-
-### Estado actual (v2.3-alpha)
-
 **Infraestructura completa:**
-
-- `js/core/temas/tema-tierra.js` — datos originales.
-- `js/core/temas/tema-espacio.js` — datos espaciales.
+- `js/core/temas/tema-tierra.js` / `tema-espacio.js`.
 - `TEMA_ACTIVO` en `config.js`.
-- `tiles.js`, `biomas.js`, `mobs.js` son wrappers que leen del tema activo.
+- Wrappers en `tiles.js`, `biomas.js`, `mobs.js`.
 
 **Tema espacio funcional:**
+- 25 iconos espaciales, 7 biomas, 3 mobs.
+- Botón de cambio en UI, persistencia en `localStorage`.
 
-- 25 iconos espaciales (nave, meteorito, alien, etc.).
-- 7 biomas espaciales (llanura lunar, zona de naves, borde de cráter, ruinas alienígenas, mar de metano, dunas rojas, campo de hielo).
-- 3 mobs espaciales (alien hostil, dron pacífico, reptiliano neutral).
-- Botón de cambio de tema en la UI (arriba a la derecha).
-- Persistencia en `localStorage`.
+**Falta:**
+- Pulir emojis y nombres (🪐 como TALLGRASS, 🦎 como CERDO, 🏍️/🏎️ como correr).
+- Más biomas específicos de espacio.
+- Mobs nuevos (jefe final, drones hostiles).
+- Ítems nuevos.
+- Narrativa.
+- Adaptar `items.js`, `auditor/`, `victoria.js`.
 
-**Extras que surgieron durante la implementación:**
-
-- Color de fondo por bioma (tierra y espacio).
-- Animación del jugador (quieto, corriendo, en barco).
-- Emojis del jugador por tema (🧍‍♂️/👨‍🚀, 🏃‍♂️/🏍️, 🚣/🛸).
-
-### Falta
-
-**Diseño:**
-
-- Revisar y ajustar los emojis actuales (los más dudosos: 🪐 como TALLGRASS, 🦎 como CERDO, 🏍️/🏎️ como correr).
-- Diseñar más biomas específicos de espacio.
-- Diseñar mobs nuevos (jefe final, drones hostiles, robots mineros).
-- Diseñar ítems nuevos.
-- Definir la narrativa.
-
-**Técnico:**
-
-- Adaptar `items.js` para que `EQUIPABLES` use nombres y emojis del tema.
-- Adaptar `auditor/` para que muestre el tema activo.
-- Adaptar `victoria.js` para que el mensaje final dependa del tema.
-
-### Ejemplos de conversión (referencia)
+### Ejemplos de conversión
 
 | Original | Espacio |
 |----------|---------|
@@ -597,56 +488,40 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 | 🕯️ LINTERNA | 💡 Lámpara |
 | 🛶 BARCO | 🚀 Módulo de escape |
 
-**Estado:** 🧪 Funcional pero con mucho por pulir. El motor está intacto.
+**Estado:** 🧪 Funcional con mucho por pulir. Motor intacto.
 
 ---
 
 ## 🎨 F20 · Sistema de sprites animados (atlas + animaciones)
 
-**Idea:** reemplazar los emojis del jugador, mobs y objetos interactivos por **imágenes (sprites) animadas**.
+**Idea:** reemplazar emojis por **imágenes (sprites) animadas**.
 
 ### Concepto
 
-**Atlas (imagen):** un PNG con una grilla de frames.
-
-**Metadatos (JSON):** un archivo que dice qué celdas componen cada animación.
-
-**Motor de animación:** un sistema que sabe qué objeto animar, en qué estado está, en qué frame va, y cuándo cambiar al siguiente.
-
-**Render:** dibuja la celda correcta del atlas con `background-image` + `background-position`.
+**Atlas (PNG):** grilla de frames.
+**Metadatos (JSON):** qué celdas componen cada animación.
+**Motor:** sabe qué objeto animar, en qué estado, en qué frame, cuándo cambiar.
+**Render:** `background-image` + `background-position`.
 
 ### Fases propuestas
 
 | Fase | Descripción | Estado |
 |:----:|-------------|:------:|
-| 1 | Sprite estático (sin animación) del jugador | ⏸️ Pendiente |
-| 2 | Animación de quieto + caminar | ⏸️ Pendiente |
+| 1 | Sprite estático del jugador | ⏸️ Pendiente |
+| 2 | Animación quieto + caminar | ⏸️ Pendiente |
 | 3 | Animaciones de acción (talar, picar, remar) | ⏸️ Pendiente |
 | 4 | Animación de objetos (árbol, piedra, cofre) | ⏸️ Pendiente |
 | 5 | Animación de enemigos | ⏸️ Pendiente |
 
-### Herramientas recomendadas
+**Herramientas:** Piskel (gratis), Aseprite (~$20), LibreSprite.
 
-- **Piskel** (navegador, gratis).
-- **Aseprite** (~$20).
-- **LibreSprite** (gratis).
-
-**Estado:** ⏸️ Anotado. Se implementará después de HP + daño real (F28).
+**Estado:** ⏸️ Anotado. Después de F28.
 
 ---
 
 ## 🎥 F21 · Migración a chunks 2D + cámara fluida · ✅ IMPLEMENTADO (base) en v2.0
 
-**Estado:** base completa.
-
-### Concepto general
-
-- El **jugador queda fijo en el centro** de la pantalla.
-- El **mundo se desplaza** debajo.
-- El **movimiento entre tiles es fluido** (100ms por tile).
-- **Mundo circular** en X e Y (tipo Pac-Man).
-
-### Valores finales
+**Valores finales:**
 
 | Aspecto | Valor |
 |---------|-------|
@@ -656,198 +531,131 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 | `ANCHO_VENTANA` | 32 |
 | `ALTO_VENTANA` | 24 |
 | `DURACION_MOVIMIENTO_MS` | 100 |
-| `LIMITE_CHUNKS` | 4 (±4 en X e Y) |
+| `LIMITE_CHUNKS` | 4 |
 
-### Fases de la migración
+**Todas las fases ✅ completadas** (fronteras resueltas por v2.4-alpha).
 
-| Fase | Descripción | Estado |
-|:----:|-------------|:------:|
-| 0 | Prototipo aprobado | ✅ |
-| 1 | Constantes nuevas | ✅ |
-| 2 | Sistema de cámara aislado | ✅ |
-| 3 | Chunks 2D | ✅ |
-| 4 | Render de ventana + movimiento 360° | ✅ |
-| 5 | Ítems y mobs en 2D | ✅ |
-| 6 | Rotura y barco en coordenadas del mundo | ✅ |
-| 7 | Victoria y pausa global en batalla | ✅ |
-| 8 | Fronteras compartidas en 2D | ✅ Resuelto por v2.4-alpha |
-| 9 | Limpieza de código muerto | ✅ (parcial) |
-
-### Otras mejoras posibles
-
-- Barco: si un mob bloquea la única celda de tierra, no se puede desembarcar.
+**Otras mejoras posibles:**
+- Barco: mob bloqueando la única celda de tierra.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
 
-### Ubicación de trabajo
-
-- **Branch de git:** `2d` (a mergear a `main` cuando se cierre la migración).
-
-### Estado
-
-✅ **Base completa.**
+**Estado:** ✅ Base completa.
 
 ---
 
 ## ⚙️ F22 · Limitar generación de equipables
 
-**Idea:** hoy los equipables (🪓 ⛏️ 🕯️ 🛶) se generan en **todos** los chunks de su bioma (`porChunk: true`). Eso sirve para test pero no para producción.
+**Idea:** hoy los equipables se generan en **todos** los chunks de su bioma (`porChunk: true`).
 
-**Preparado:** el flag `porChunk` en `EQUIPABLES` (`items.js`) ya controla ambos modos:
+**Preparado:** `porChunk: false` → un solo chunk por semilla.
 
-- `porChunk: true` → todos los chunks del bioma (modo test actual).
-- `porChunk: false` → un solo chunk del bioma, elegido por semilla (modo producción).
-
-**Relación con F12:** al agregar niveles, hay que decidir qué nivel usa `porChunk: true` y cuál `false`.
+**Relación con F12:** al agregar niveles, decidir qué nivel usa `porChunk: true`.
 
 **Falta:**
-
 - Decidir qué objetos van en cada modo.
 - Poder limitar por condiciones más finas.
 - Documentar bien el flag en `items.js`.
 
-**Estado:** ⏸️ Anotado. Se define cuando el sistema base esté estable.
+**Estado:** ⏸️ Anotado.
 
 ---
 
 ## 🎨 F23 · Transformaciones visuales de tiles y mobs
 
-**Idea:** aprovechar el hecho de que los tiles y mobs son **emojis** para aplicarles transformaciones CSS sin cambiar el emoji en sí.
+**Nota:** gran parte implementada en v2.4.2-alpha como **F25**.
 
-**Nota:** gran parte de F23 fue implementada en v2.4.2-alpha como **F25 (sistema de efectos visuales)**.
+### Pendiente
+- **Mobs 2×2** (colisiones multi-celda).
+- **Secuencias de emojis** (ciclar).
+- **Rotación animada continua**.
+- **Flip vertical**.
 
-### Lo que sigue pendiente
+**Herramientas:** `pruebas/catalogo.html`, `auditor/laboratorio-v1.html`.
 
-- **Mobs 2×2** (sistema de colisiones multi-celda). Cambio medio-alto.
-- **Secuencias de emojis** (ciclar emojis como animación).
-- **Rotación animada continua** (portal, engranaje).
-- **Flip vertical** para fuego, antorchas, flechas.
-
-### Herramientas de experimentación
-
-| Archivo | Función |
-|---------|---------|
-| `pruebas/catalogo.html` | Catálogo de efectos con ejemplos prácticos. |
-| `auditor/laboratorio-v1.html` | Laboratorio libre para probar cualquier emoji con cualquier efecto. |
-
-**Estado:** 🧪 Parcialmente implementado en v2.4.2-alpha. Lo que queda (mobs 2×2, secuencias) sigue pendiente.
+**Estado:** 🧪 Parcial en v2.4.2-alpha.
 
 ---
 
 ## 🐛 F24 · Bugs conocidos de v2.4-alpha · ✅ TODOS RESUELTOS en v2.4.1
 
-Bugs detectados al implementar biomas por celda (v2.4-alpha). Todos fueron arreglados en v2.4.1-alpha.
+### B1 · Romper tile usa bioma del chunk · ✅ ARREGLADO
 
-### B1 · Romper un tile usa el bioma del chunk en vez de la celda · ✅ ARREGLADO
+**Solución:** `rotura.js` usa `obtenerBiomaDeCelda(wx, wy)`.
 
-**Síntoma:** rompés una roca en el desierto y aparece hielo abajo.
-**Causa:** `rotura.js` consultaba `chunk.bioma` en vez de `obtenerBiomaDeCelda(wx, wy)`.
-**Solución:** `intentarIniciarRotura` ahora usa `obtenerBiomaDeCelda(SEMILLA, wx, wy)`.
-**Prioridad:** 🔥 Alta.
-**Estado:** ✅ Arreglado en v2.4.1-alpha.
+### B2 · Filas de pasto entre chunks · ✅ ARREGLADO
 
-### B2 · Filas horizontales de pasto entre chunks · ✅ ARREGLADO
-
-**Síntoma:** las filas en los bordes de cada chunk (y=0, y=31) quedaban con pasto por defecto.
-**Causa:** `generarPantalla` solo pintaba `yMin=1` a `yMax=ALTO_CHUNK-2`.
 **Solución:** `yMin = 0`, `yMax = ALTO_CHUNK - 1`.
-**Prioridad:** 🔥 Alta.
-**Estado:** ✅ Arreglado en v2.4.1-alpha.
 
 ### B3 · Mobs de tierra aparecen en el agua · ✅ ARREGLADO
 
-**Síntoma:** tigres / cerdos / alienígenas aparecían sobre agua.
-**Causa:** `ia.js` seguía usando coordenadas 1D.
-**Solución:** `ia.js` reescrito completo para 2D.
-**Prioridad:** 🟡 Media.
-**Estado:** ✅ Arreglado en v2.4.1-alpha.
+**Solución:** `ia.js` reescrito para 2D.
 
-### B4 · Atravesar un mob no dispara animación de pelea · ✅ ARREGLADO
+### B4 · Atravesar mob no dispara pelea · ✅ ARREGLADO
 
-**Síntoma:** el jugador caminaba sobre un mob no sólido y no pasaba nada.
-**Causa:** mismo problema que B3.
-**Solución:** con `ia.js` reescrito, `moverMob` verifica si el jugador está en la celda destino.
-**Prioridad:** 🟡 Media.
-**Estado:** ✅ Arreglado en v2.4.1-alpha.
+**Solución:** mismo fix que B3.
 
 ### B5 · Romper roca en agua genera arena · ✅ ARREGLADO
 
-**Síntoma:** rompés una roca en el agua y aparece arena.
-**Causa:** mismo problema que B1.
-**Solución:** mismo fix. `intentarIniciarRotura` usa `obtenerBiomaDeCelda(wx, wy)`.
-**Prioridad:** 🔥 Alta.
-**Estado:** ✅ Arreglado en v2.4.1-alpha.
+**Solución:** mismo fix que B1.
 
 ---
 
 ## ✨ F25 · Sistema de efectos visuales genéricos · 🧪 PARCIAL en v2.4.2-alpha
 
-**Idea:** unificar todos los efectos visuales en un sistema **desacoplado de las entidades**. Cualquier tile, mob, ítem o entidad puede "recibir" un efecto (vibrar, parpadear, glow, pulse, etc.) sin código específico por entidad.
+**Idea:** efectos desacoplados de las entidades. Cualquier tile, mob, ítem o entidad puede "recibir" un efecto.
 
-### Estado actual (v2.4.2-alpha)
+### Estado actual
 
-**`js/systems/efectos.js` (NUEVO)**
+**`js/systems/efectos.js`:**
+- `aplicarEfecto(wx, wy, clase, duracionMs?)`.
+- `quitarEfecto(wx, wy, clase)`.
+- `quitarTodosLosEfectos(wx, wy)`.
+- `obtenerEfectosDe(wx, wy)`.
+- `limpiarEfectos()`.
+- `Map<"wx,wy", [{ clase, hasta }]>`.
 
-- `aplicarEfecto(wx, wy, clase, duracionMs?)` — temporal o permanente.
-- `quitarEfecto(wx, wy, clase)` — quitar uno puntual.
-- `quitarTodosLosEfectos(wx, wy)` — quitar todos de una celda.
-- `obtenerEfectosDe(wx, wy)` — devuelve las clases activas.
-- `limpiarEfectos()` — limpiar todo.
-- Los efectos viven en `Map<"wx,wy", [{ clase, hasta }]>`.
+**CSS:** `.efecto-ataque`, `.efecto-golpe`, `.efecto-golpe-loop`, `.efecto-recoger`, `.efecto-danio`, `.efecto-glow`, `.efecto-pulse`.
 
-**CSS (`css/estilo.css`)**
-
-- Keyframes: `vibrar-random`, `parpadeo`, `destello-rojo`, `pulse`.
-- Clases: `.efecto-ataque`, `.efecto-golpe`, `.efecto-golpe-loop`, `.efecto-recoger`, `.efecto-danio`, `.efecto-glow`, `.efecto-pulse`.
-
-**`js/ui/render.js`**
-
-- `actualizarEfectosEnGrid()` se ejecuta **cada frame**.
-- Solo actualiza `className` si el valor cambió.
-- Se mantiene todo lo demás: `dibujarCeldaEnGrid`, `llenarGrid`, HUD, orientación del jugador.
-
-**`js/systems/rotura.js`**
-
-- Al iniciar la rotura: `aplicarEfecto(wx, wy, "efecto-golpe-loop")`.
-- Al terminar la barra o al cancelar: `quitarEfecto(...)` en el mismo instante.
+**`render.js`:** `actualizarEfectosEnGrid()` cada frame.
 
 ### Efectos disponibles
 
-| Clase | Efecto | Cuándo usarla |
-|-------|--------|---------------|
+| Clase | Efecto | Cuándo |
+|-------|--------|--------|
 | `.efecto-ataque` | Vibrar + parpadear + destello rojo (~0.5s) | Ente recibe golpe |
 | `.efecto-golpe` | Vibrar + parpadear lentos (~1s) | Picar/talar (una vez) |
 | `.efecto-golpe-loop` | Vibrar + parpadear infinitos | Mientras dura la rotura |
 | `.efecto-recoger` | Parpadeo rápido (0.3s) | Recoger ítem |
-| `.efecto-danio` | Vibrar + parpadear + destello rojo (~0.5s) | Jugador recibe daño |
+| `.efecto-danio` | Vibrar + parpadear + destello rojo | Jugador recibe daño |
 | `.efecto-glow` | Halo celeste permanente | Ítem importante |
 | `.efecto-pulse` | Pulsación permanente | Portal, orbe |
 
+### Usado por
+
+- `rotura.js`: `efecto-golpe-loop`.
+- `combate.js`: `efecto-ataque` (mob) y `efecto-danio` (jugador).
+
 ### Pendiente
+- Aplicar `efecto-recoger` al recoger ítems.
+- Reemplazar el glow hardcodeado de la llave por `efecto-glow`.
 
-- Aplicar `efecto-ataque` al iniciar combate.
-- Aplicar `efecto-danio` al jugador cuando reciba daño (con F28).
-- Aplicar `efecto-recoger` al recoger ítems y equipables.
-- Reemplazar el glow hardcodeado de la llave por `aplicarEfecto(..., "efecto-glow")`.
-
-**Estado:** 🧪 Funcional. Solo la rotura lo usa hoy. F28 lo va a usar en combate.
+**Estado:** 🧪 Funcional. Rotura y combate lo usan.
 
 ---
 
 ## 🌟 F26 · Sistema de mobs especiales (categoría 2)
 
-**Idea:** separar los mobs en 3 categorías. Esta es la **categoría 2**: mobs especiales que dropean objetos raros, son parte de misiones, o tienen condiciones especiales de aparición.
+**Idea:** mobs especiales que dropean objetos raros, son parte de misiones, o tienen condiciones especiales de aparición.
 
 ### Categorías de mobs
 
 | Categoría | Nombre | Spawn | Drops | Misiones |
 |:---------:|--------|-------|-------|:--------:|
 | 1 | Normales | Por chunk + bioma | Comunes | No |
-| **2** | **Especiales** | **Único por mundo, por estructura, o condicional** | **Únicos + comunes** | **Sí** |
-| 3 | Bosses | Único por mundo, en estructura | Legendarios | Sí (implícito) |
+| **2** | **Especiales** | **Único o condicional** | **Únicos + comunes** | **Sí** |
+| 3 | Bosses | Único en estructura | Legendarios | Sí (implícito) |
 
-### Estructura de datos propuesta
-
-Array nuevo `MOBS_ESPECIALES` (en `js/entities/mobs-especiales.js`):
+### Estructura propuesta (`MOBS_ESPECIALES`)
 
 ```js
 {
@@ -884,23 +692,21 @@ Array nuevo `MOBS_ESPECIALES` (en `js/entities/mobs-especiales.js`):
 
 | Requisito | Estado | Depende de |
 |-----------|:------:|------------|
-| Spawn condicional (noche, nivel) | ⏸️ | F1 (día-noche) |
-| Spawn por estructura | ⏸️ | F15 (biomas forzados) |
+| Spawn condicional (noche, nivel) | ⏸️ | F1 (día-noche) + F30 (niveles) |
+| Spawn por estructura | ⏸️ | F15 |
 | Drops únicos garantizados | ⏸️ | Extender `loot` en `enemigos.js` |
-| Sistema de misiones | ⏸️ | Archivo nuevo `js/systems/misiones.js` |
-| Persistencia de progreso | ⏸️ | F8 fase 3 (localStorage) |
+| Sistema de misiones | ⏸️ | `js/systems/misiones.js` (nuevo) |
+| Persistencia de progreso | ⏸️ | F8 fase 3 |
 
-**Estado:** ⏸️ Anotado. Depende de F1, F15, F28 y sistema de misiones.
+**Estado:** ⏸️ Anotado. Depende de F1, F15, F28, F30 y sistema de misiones.
 
 ---
 
 ## 👑 F27 · Sistema de mobs bosses (categoría 3)
 
-**Idea:** mobs muy poderosos, únicos por mundo, con **pelea por fases**, efectos al jugador, inmunidades, y drops legendarios.
+**Idea:** mobs muy poderosos, únicos por mundo, con **pelea por fases**, efectos al jugador, inmunidades y drops legendarios.
 
-### Estructura de datos propuesta
-
-Array nuevo `MOBS_BOSS` (en `js/entities/mobs-boss.js`):
+### Estructura propuesta (`MOBS_BOSS`)
 
 ```js
 {
@@ -946,21 +752,21 @@ Array nuevo `MOBS_BOSS` (en `js/entities/mobs-boss.js`):
 | Fases según HP | ⏸️ | Lógica en combate |
 | Invocación de esbirros | ⏸️ | Spawn dinámico en combate |
 | Inmunidades / resistencias | ⏸️ | Sistema de tipos de daño |
-| Spawn por estructura | ⏸️ | F15 (biomas forzados) |
+| Spawn por estructura | ⏸️ | F15 |
 
-**Estado:** ⏸️ Anotado. Depende de F28 + F15 + sistema de estados. Fase tardía.
+**Estado:** ⏸️ Anotado. Depende de F28 + F15 + sistema de estados + F30. Fase tardía.
 
 ---
 
-## ⚔️ F28 · Sistema de combate con timing (HP + daño real)
+## ⚔️ F28 · Sistema de combate con timing · 🧪 FASES 1-6 IMPLEMENTADAS en v2.5-alpha
 
-**Idea:** reemplazar el overlay de batalla simulada por un **combate real por turnos** con un **minijuego de timing** que define la precisión del ataque y la defensa. Introducir HP del jugador, daño real, muerte y pantalla de derrota.
+**Idea:** reemplazar el overlay de batalla simulada por un **combate real por turnos** con **minijuego de timing**. Introducir HP del jugador, daño real, muerte y pantalla de derrota.
 
 ### Motivación
 
-Hoy cuando el jugador choca con un tigre, se abre un overlay que dice "¡Batalla!" y al cerrarlo el tigre desaparece. **No hay HP, no hay daño, no hay consecuencias.** Es un placeholder.
+Antes de F28 el overlay de batalla era simulado (sin HP, sin daño, sin consecuencias).
 
-**F28 es la base técnica para F1 (día-noche), F26 (mobs especiales), F27 (bosses), y el módulo de combate por reflejos (MARCO 11).**
+**F28 es la base técnica para F1 (día-noche), F26 (mobs especiales), F27 (bosses), F29 (escalado) y F30 (niveles).**
 
 ### Modelo de combate
 
@@ -970,66 +776,33 @@ Hoy cuando el jugador choca con un tigre, se abre un overlay que dice "¡Batalla
 2. Overlay, pausa global (`estado.pausado = true`).
 3. Se copia el HP del mob: `mob.hpActual = mob.hp` (solo si no existe).
 4. **Turno del jugador (ataque):**
-   - Barra horizontal con marcador que recorre izq→der en **1500ms** (una sola pasada, no rebota).
-   - El jugador aprieta **Espacio** (o click en botón).
-   - Se calcula precisión:
-
-```
-posicion = 0 a 100
-distanciaAlCentro = |posicion - 50|
-precision = max(0, 1 - distanciaAlCentro / 50)   → 0 a 1
-multiplicadorDaño = precision * 2   → 0 a 2
-dañoFinal = max(1, ataqueJugador - defensaMob) * multiplicadorDaño
-```
-
-| Momento del click | Precisión | Daño |
-|:-----------------:|:---------:|------|
-| Centro (50%) | 1.0 | **x2.0** (máximo) |
-| Mitad (25% o 75%) | 0.5 | x1.0 (normal) |
-| Borde (0% o 100%) | 0.0 | x0.0 (miss) |
-| **No aprieta** | — | **miss** (sin daño) |
-
-   - `aplicarEfecto(mob.wx, mob.wy, "efecto-ataque", 500)`.
-   - Actualizar barra de HP del mob en overlay.
+   - Barra horizontal con marcador izq→der en **1500ms** (una sola pasada, no rebota).
+   - Jugador aprieta **Espacio**.
+   - `precision = max(0, 1 - |posicion - 50| / 50)` → 0 a 1.
+   - `multiplicadorDaño = precision * 2` → 0 a 2.
+   - `dañoFinal = max(1, ataqueJug - defMob) * multiplicadorDaño`.
+   - `aplicarEfecto(mob, "efecto-ataque", 500)`.
    - Esperar 800ms.
-
-5. **Si el mob muere:** quitar del chunk, cerrar overlay, `estado.pausado = false`. (Futuro: loot + XP.)
+5. Si el mob muere → quitar del chunk, cerrar overlay, `estado.pausado = false`.
 6. **Turno del mob (defensa):**
-   - Barra horizontal con marcador.
-   - El jugador aprieta Espacio.
-   - Precisión → reducción de daño:
-
-```
-reduccionDaño = precision   → 0 a 1
-dañoRecibido = max(1, ataqueMob - defensaJugador) * (1 - reduccionDaño)
-```
-
-| Momento del click | Reducción | Daño recibido |
-|:-----------------:|:---------:|:-------------:|
-| Centro (50%) | 100% | **0** (bloqueo perfecto) |
-| Mitad (25% o 75%) | 50% | Mitad |
-| Borde (0% o 100%) | 0% | **Full** |
-| **No aprieta** | 0% | Full |
-
-   - `aplicarEfecto(jugador.wx, jugador.wy, "efecto-danio", 500)`.
-   - Actualizar barra de HP del jugador.
+   - Barra de timing.
+   - `reduccion = precision`.
+   - `dañoRecibido = max(1, ataqueMob - defJug) * (1 - reduccion)`.
+   - `aplicarEfecto(jugador, "efecto-danio", 500)`.
    - Esperar 800ms.
-
-7. **Si el jugador muere:** overlay cambia a pantalla de derrota + botón "Reiniciar" → `reiniciarMundo(SEMILLA)`.
-8. **Si ambos viven:** volver al paso 4.
+7. Si el jugador muere → pantalla derrota + reinicio.
+8. Si ambos viven → volver al paso 4.
 
 ### Visual del minijuego
 
-Barra horizontal con zonas coloreadas:
+Barra con zonas coloreadas:
 - 🟩 Centro (40-60%): verde = "perfecto"
 - 🟧 Cerca del centro (25-40% y 60-75%): naranja = "aceptable"
 - 🟥 Extremos (0-25% y 75-100%): rojo = "miss"
 
-Marcador (línea vertical) recorre la barra en 1500ms.
+Marcador recorre la barra en 1500ms.
 
 ### Stats del jugador
-
-Definidas en `estado.jugador`:
 
 ```js
 jugador: {
@@ -1038,7 +811,8 @@ jugador: {
   hpMax: 20,
   ataque: 3,
   defensa: 1,
-  velocidad: 1,   // para futuro
+  velocidad: 1,
+  nivel: 1,   // placeholder (ver F30)
 }
 ```
 
@@ -1046,7 +820,7 @@ jugador: {
 
 ### Balance con mobs actuales
 
-Mobs actuales: tigre (HP 12, ataque 5, defensa 2), gallina (HP 3, ataque 0), cerdo (HP 6, ataque 2).
+Mobs: tigre (HP 12, ataque 5, defensa 2), gallina (HP 3, ataque 0), cerdo (HP 6, ataque 2).
 
 | Escenario | Turnos para matar al tigre | Turnos para morir del tigre |
 |-----------|:--------------------------:|:---------------------------:|
@@ -1054,23 +828,39 @@ Mobs actuales: tigre (HP 12, ataque 5, defensa 2), gallina (HP 3, ataque 0), cer
 | Jugador promedio | 4 turnos | 10 turnos |
 | Jugador sin timing | ∞ (miss) | 5 turnos |
 
-Balanceado para test: el jugador gana fácil si juega bien, muere si no defiende.
-
 ### HP en el HUD normal
 
 - **Barra de HP** arriba del mapa, junto a la barra de stamina.
 - **Número** en el HUD lateral: "HP: 20/20".
-- **Futuro (F28 fase 9):** íconos de corazón.
-  - ❤️❤️❤️❤️❤️ = 10 HP lleno (2 HP por corazón).
-  - ❤️❤️❤️❤️💔 = 9 HP (medio corazón).
-  - ❤️❤️❤️❤️💔 = 8 HP (corazón entero menos).
+- **Futuro (fase 9):** íconos de corazón.
+  - 10 HP lleno = ❤️❤️❤️❤️❤️ (2 HP por corazón).
+  - 9 HP = ❤️❤️❤️❤️💔 (medio corazón).
+  - 8 HP = ❤️❤️❤️❤️🖤 (un corazón menos).
 
-### Huir
+### Huida (probabilística) — implementado en fase 6
 
-- Botón "Huir" arriba a la derecha del overlay.
-- Cierra overlay, jugador queda en su celda original.
-- **El mob mantiene su HP actual** (no se resetea).
-- El jugador puede volver a pelear después.
+**Flujo:**
+
+1. Botón "🏃 Huir" arriba a la derecha del overlay.
+2. Al apretar: cancela la barra de timing activa + cancela `setTimeout` pendiente entre turnos.
+3. Diálogo "¿De verdad querés huir? (X%)".
+4. Si **NO**: el combate sigue desde el turno actual.
+5. Si **SÍ**: roll de probabilidad.
+   - **Éxito:** el mob **desaparece del mapa** + HP del jugador baja por penalización (% del hpMax).
+   - **Fallo:** el mob ataca (turno del mob).
+
+**Fórmulas:**
+
+```
+nivelMob = max(1, floor((hp + ataque + defensa) / 4))
+nivelJug = estado.jugador.nivel  // placeholder = 1
+probHuida = clamp(0.5 + (nivelJug - nivelMob) * 0.05, 0.1, 0.9)
+penalizacion% = clamp(5 + (nivelMob - nivelJug), 2, 40)
+```
+
+**Ejemplo:** tigre nivel 4, jugador nivel 1 → 35% de huida, penalización 8% del hpMax.
+
+**Pendiente:** que el nivel del jugador suba (ver F30).
 
 ### Muerte del jugador
 
@@ -1078,69 +868,99 @@ Balanceado para test: el jugador gana fácil si juega bien, muere si no defiende
 - Botón "Reiniciar" → `reiniciarMundo(SEMILLA)`.
 - (Futuro: opción de "cargar partida" si hay persistencia.)
 
-### Archivos nuevos
+### Archivos
+
+**Nuevos:**
 
 | Archivo | Función |
 |---------|---------|
-| `js/systems/barra-timing.js` | Minijuego de timing (barra, marcador, cálculo de precisión). Reutilizable. |
-| `js/systems/combate.js` | Lógica de combate: iniciar, atacar, defender, terminar, muerte. |
-| `js/ui/combate-ui.js` | Overlay de combate: paneles de HP, botones, barras de timing. |
+| `js/systems/barra-timing.js` | Minijuego de timing (barra, marcador, precisión) |
+| `js/systems/combate.js` | Lógica de combate: iniciar, atacar, defender, huir, muerte |
+| `js/ui/combate-ui.js` | Overlay de combate |
 
-### Archivos modificados
+**Modificados:**
 
 | Archivo | Cambio |
 |---------|--------|
-| `js/core/estado.js` | Agregar `hp`, `hpMax`, `ataque`, `defensa`, `velocidad` al jugador |
-| `js/entities/enemigos.js` | Al spawnear mob: `hpActual: mob.hp` |
+| `js/core/estado.js` | `hp`, `hpMax`, `ataque`, `defensa`, `velocidad`, `nivel` al jugador |
+| `js/entities/enemigos.js` | `hpActual: mob.hp` + `hpMax: mob.hp` al spawnear + función `removerMobEn` |
 | `js/ui/render.js` | Barra de HP del jugador en el HUD |
-| `js/ui/victoria.js` | Eliminar overlay simulado; llamar a `iniciarCombate(mob)` |
-| `index.html` | `<script>` de los 3 nuevos + barra de HP en el HUD |
-| `css/estilo.css` | Estilos del overlay + barra de HP + barra de timing |
+| `js/ui/victoria.js` | `iniciarBatalla` delega a `iniciarCombate` |
+| `js/systems/combate.js` | `pausado` + `timeoutPendiente` + `BarraTiming.cancelar()` |
+| `js/systems/barra-timing.js` | `cancelar()` para abortar sin disparar callback |
+| `js/entities/jugador.js` | `intentarMover` verifica `estado.pausado` |
+| `js/main.js` | `cancelarCombateSiActivo()` al reiniciar |
+| `index.html` | Scripts nuevos + `<div id="barra-hp">` |
+| `css/estilo.css` | Estilos de overlay + barra HP + timing + confirmación huida |
 
-### Fases propuestas
+### Fases
 
-| Fase | Qué se hace | Riesgo |
+| Fase | Qué se hace | Estado |
 |:----:|-------------|:------:|
-| 1 | Stats del jugador en `estado.js` + HP en mobs (`enemigos.js`) | 🟢 |
-| 2 | Barra de HP en el HUD (`render.js` + `index.html` + CSS) | 🟢 |
-| 3 | `barra-timing.js` — mecánica del timing sola, con HTML de prueba | 🟢 |
-| 4 | `combate-ui.js` — overlay con paneles y botones | 🟡 |
-| 5 | `combate.js` — lógica de turnos integrando todo | 🟡 |
-| 6 | Conectar `victoria.js` → `iniciarCombate(mob)` | 🟡 |
-| 7 | Muerte del mob + cierre de overlay | 🟢 |
-| 8 | Muerte del jugador + pantalla de derrota | 🟢 |
-| 9 | Balance final + pruebas + íconos de corazón | 🟢 |
-
-**Tiempo estimado:** 2-3 sesiones.
+| 1 | Stats del jugador en `estado.js` + HP en mobs | ✅ |
+| 2 | Barra de HP en el HUD | ✅ |
+| 3 | `barra-timing.js` (con `pruebas/barra-timing.html`) | ✅ |
+| 4 | `combate-ui.js` (overlay con paneles) | ✅ |
+| 5 | `combate.js` (lógica de turnos) | ✅ |
+| 6 | Huida probabilística + conectar `victoria.js` | ✅ |
+| 7 | Muerte del mob pulida | ⏸️ |
+| 8 | Muerte del jugador + pantalla derrota | ⏸️ (básico funciona) |
+| 9 | Balance final + íconos de corazón | ⏸️ |
 
 ### Decisiones confirmadas
 
-- Turnos (modelo A), no tiempo real.
+- Turnos (no tiempo real).
 - Marcador izq→der una sola vez (no rebota).
 - Jugador forzado a atacar (no puede pasar turno).
 - Overlay (no combate en el mapa).
-- HP del mob se mantiene al huir.
+- Huida probabilística con penalización (el mob desaparece).
+- HP del mob se mantiene si el jugador huye sin éxito (fallo del roll).
 - HUD: barra + número (después corazones).
-- Combate por reflejos (MARCO 11) reemplazará este sistema en el futuro. Por ahora, este es la base.
+- Combate por reflejos (MARCO 11) reemplazará este sistema en el futuro.
 
 ### Pendiente futuro
 
+- **Bugs B6 y B7** (ver F28.1).
 - Loot y XP (F13).
 - Íconos de corazón (❤️/💔) en el HUD.
 - Stats modificables por equipables (F12).
-- Efectos negativos (veneno, lentitud) — necesarios para bosses (F27).
+- Efectos negativos (veneno, lentitud) para bosses (F27).
 - Integración con combate por reflejos (MARCO 11).
 
-**Estado:** ⏸️ Anotado. **Es la próxima tarea urgente del roadmap.**
+**Estado:** 🧪 Fases 1-6 implementadas en v2.5-alpha. Fases 7-9 pendientes. Bugs B6 y B7 conocidos (F28.1).
 
 ---
+
+## 🐛 F28.1 · Bugs conocidos del combate con timing · ⏸️ PENDIENTE
+
+Bugs detectados al probar F28 (fases 1-6). No bloquean el test pero deben resolverse antes de producción.
+
+### B6 · HP del jugador en 0 no cierra el combate
+
+**Síntoma:** el HP del jugador llega a 0 pero el combate sigue. El jugador puede seguir atacando.
+
+**Causa probable:** `aplicarDañoAlJugador` baja el HP pero el chequeo `if (estado.jugador.hp <= 0)` solo ocurre al final del `setTimeout` del turno del mob. Si el jugador mata al mob en el turno siguiente (antes del próximo turno del mob), el chequeo nunca se ejecuta.
+
+**Solución tentativa:** agregar chequeo `if (estado.jugador.hp <= 0)` también después de cada ataque del jugador (en el `onResultado` de `turnoJugador`), y también en `aplicarDañoAlJugador`.
+
+### B7 · Matar al mob con HP 0 cura al jugador
+
+**Síntoma:** estando en 0 HP, el jugador mata al tigre y su HP se recupera al máximo.
+
+**Causa probable:** `cerrarCombate("muerte_mob")` no resetea `estado.jugador.hp`. Pero algo en el flujo (probablemente el `render` o `actualizarHUD` después de derrotar el mob) puede estar reseteando la barra de HP visual, y/o `estado.jugador.hp` no se está seteando correctamente cuando llega a 0.
+
+**Hipótesis secundaria:** si `derrotarMobEn` remueve el mob y el jugador queda en 0 HP, el siguiente render podría no mostrar el HP en 0 por algún cálculo con `Math.max(0, ...)`. Hay que revisar en detalle.
+
+**Prioridad:** 🟡 Media.
+**Estado:** ⏸️ Pendiente. Resolver en la próxima sesión con OpenCode.
+
+---
+
 ## 📊 F29 · Escalado dinámico de dificultad del timing
 
-**Idea:** la dificultad del minijuego de timing (F28) se ajusta según dos ejes: el **tipo de mob** y la **fase del ciclo día-noche**. Se anota aparte de F28 porque es una capa de dificultad, no la base del combate.
+**Idea:** la dificultad del minijuego de timing (F28) se ajusta según el **tipo de mob** y la **fase del ciclo día-noche**. Se anota aparte de F28 porque es una capa de dificultad, no la base del combate.
 
 ### Eje 1 · Por tipo de mob
-
-Cada mob tiene su propia `duracionMs` y tamaño de zonas. A mayor dificultad del mob, menor tiempo y zonas más chicas.
 
 | Mob | `duracionMs` | Zona verde | Zona naranja (cada lado) |
 |-----|:------------:|:----------:|:------------------------:|
@@ -1158,58 +978,124 @@ De noche el timing se hace **más difícil**: las zonas verde y naranja se achic
 
 | Fase | Multiplicador de zona |
 |------|:---------------------:|
-| Día | 1.0 (sin cambio) |
-| Transición día→noche | 0.75 (achica gradual) |
-| Noche | 0.5 (achica a la mitad) |
-| Transición noche→día | 0.75 (achica gradual) |
+| Día | 1.0 |
+| Transición día→noche | 0.75 |
+| Noche | 0.5 |
+| Transición noche→día | 0.75 |
 
 **Ejemplo con tigre:**
 - Día: barra 1500ms, zona verde 20%.
 - Noche: barra 1500ms, zona verde 10% (la mitad).
 
-**Pregunta:** ¿el achique de zona por noche aplica a **todos** los mobs o solo a los normales? Yo sugiero que a todos (mobs especiales y bosses también son más difíciles de noche).
+**Pregunta:** ¿el achique de zona por noche aplica a **todos** los mobs o solo a los normales? Sugerencia: a todos.
 
 ### Eje 3 (futuro) · Por nivel del jugador
 
-Cuando haya sistema de niveles (no existe todavía):
+Cuando exista F30:
 
-- Jugador nivel 1: sin cambio.
-- Jugador nivel 10: zona verde -2% (más difícil).
-- Jugador nivel 20: zona verde -4%.
+- Nivel 1: sin cambio.
+- Nivel 10: zona verde -2%.
+- Nivel 20: zona verde -4%.
 
 Fórmula tentativa: `zonaVerde = base - (nivel * 0.2)`.
 
 ### Implementación técnica
 
-- `BarraTiming.iniciar()` recibe `duracionMs`, `zonaVerde`, `zonaNaranja` como parámetros (en lugar de leerlos del CSS).
-- CSS con variables (`--zona-verde`, `--zona-naranja`) para cambiar dinámicamente.
-- `combate.js` calcula estos valores antes de iniciar cada ronda de timing, según el mob y la fase del ciclo.
+- `BarraTiming.iniciar()` recibe `duracionMs`, `zonaVerde`, `zonaNaranja` como parámetros.
+- CSS con variables (`--zona-verde`, `--zona-naranja`).
+- `combate.js` calcula estos valores antes de cada ronda, según mob y fase del ciclo.
 
 ### Requisitos técnicos
 
-| Requisito | Estado | Depende de |
-|-----------|:------:|------------|
-| BarraTiming parametrizable | ⏸️ | F28 fase 3 (ya tiene `duracionMs`, falta zonas) |
-| Zona verde/naranja dinámica (CSS variables) | ⏸️ | F28 + CSS variables |
-| Detección de fase día-noche | ⏸️ | F1 |
-| Configuración por mob (`duracionMs`, `zonaVerde`) | ⏸️ | Agregar campos a la data de cada mob |
-| Sistema de niveles del jugador | ⏸️ | Fase futura (no existe) |
+| Requisito | Depende de |
+|-----------|------------|
+| BarraTiming parametrizable | F28 fase 3 (ya tiene `duracionMs`, falta zonas) |
+| Zona verde/naranja dinámica | F28 + CSS variables |
+| Detección de fase día-noche | F1 |
+| Configuración por mob | Data de mobs |
+| Sistema de niveles | F30 |
 
 ### Decisiones confirmadas
 
-- F29 va aparte de F28 (es una capa de dificultad, no la base).
-- Cada mob tiene su propia velocidad base.
+- F29 va aparte de F28 (capa de dificultad).
+- Cada mob tiene su velocidad base.
 - De noche las zonas se achican a la mitad.
 
 ### Pendiente
 
-- Definir valores exactos para cada mob.
+- Definir valores exactos por mob.
 - Confirmar si el achique nocturno aplica a todos los mobs.
 - Calibrar el multiplicador de zona nocturna (¿50%? ¿60%? ¿40%?).
-- ¿El efecto del día-noche afecta también a la `duracionMs` de la barra, o solo a las zonas? (Yo sugiero **solo zonas**, para no complicar demasiado).
-- ¿Hay otras condiciones que afecten el timing? (lluvia, boss en furia, etc. — anotar para futuro).
+- ¿Afecta también `duracionMs` o solo zonas? (Sugerido: solo zonas).
+- ¿Otras condiciones que afecten el timing? (lluvia, boss en furia, etc.).
 
-**Estado:** ⏸️ Anotado. Depende de F28 (combate) y F1 (día-noche). Se implementa después de F28.
+**Estado:** ⏸️ Anotado. Depende de F28 + F1.
+
+---
+
+## 📈 F30 · Sistema de niveles del jugador
+
+**Idea:** sistema de progresión del jugador basado en experiencia (XP). Afecta probabilidades de huida (F28 fase 6) y dificultad del timing (F29 eje 3).
+
+### Estado actual (placeholder)
+
+- `estado.jugador.nivel = 1` (hardcodeado en `estado.js`).
+- La fórmula de huida (`calcularProbHuida`, `calcularPenalizacionHuida`) ya usa `nivelJug` y `nivelMob`.
+- `calcularNivelMob(mob)` = `(hp + ataque + defensa) / 4` (heurística, en `combate.js`).
+
+### Cómo ganar XP (a definir)
+
+**Opciones:**
+- **A)** Matar mobs → +XP según el mob (`loot.xp` ya existe en la data).
+- **B)** Completar quests → +XP.
+- **C)** Romper tiles → +XP chico.
+- **D)** Explorar chunks nuevos → +XP.
+- **E)** Combinación de las anteriores.
+
+### Progresión de nivel
+
+**Opciones:**
+- **A)** Lineal: 100 XP por nivel.
+- **B)** Exponencial: `XP_necesaria = 100 * nivel^1.5`.
+- **C)** Curva: rápido al principio, lento después.
+
+### Qué se gana por nivel
+
+**Futuro (a definir):**
+- +HP máximo cada N niveles.
+- +Ataque / +Defensa cada N niveles.
+- Mejor probabilidad de huida (ya parcialmente en F28).
+- Zona verde más chica en timing (F29 eje 3).
+
+### Fórmulas actuales (placeholder, ya en `combate.js`)
+
+```js
+function calcularNivelMob(mob) {
+  return Math.max(1, Math.floor((datos.hp + datos.ataque + datos.defensa) / 4));
+}
+
+function calcularProbHuida(nivelJug, nivelMob) {
+  return Math.max(0.1, Math.min(0.9, 0.5 + (nivelJug - nivelMob) * 0.05));
+}
+
+function calcularPenalizacionHuida(nivelJug, nivelMob) {
+  return Math.max(2, Math.min(40, 5 + (nivelMob - nivelJug)));
+}
+```
+
+**Cuando exista F30 real**, estas fórmulas se pueden ajustar o mantener.
+
+### Preguntas pendientes
+
+- ¿Cómo se gana XP? (ver opciones arriba)
+- ¿Cómo se sube de nivel? (ver opciones arriba)
+- ¿Qué se gana por nivel? (ver opciones arriba)
+- ¿El nivel del jugador se persiste entre sesiones? (requiere F8 fase 3)
+- ¿El nivel del mob se deriva de sus stats o es un dato explícito?
+
+**Requiere:** F28 (fase 6 ya lo usa) + sistema de XP + persistencia (F8 fase 3).
+
+**Estado:** ⏸️ Anotado. Se implementa después de F28.1.
 
 ---
 

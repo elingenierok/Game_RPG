@@ -20,6 +20,7 @@ function celdaBloqueante(wx, wy) {
 // ─── Iniciar movimiento hacia una dirección ───
 function intentarMover(dx, dy) {
   if (estado.ganado) return;
+  if (estado.pausado) return;       // ← NUEVO (F28)
   if (estado.jugador.animando) return;
 
   const actualX = estado.jugador.wx;

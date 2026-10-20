@@ -3,6 +3,138 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v2.5-alpha · 2026-10-20 (sistema de combate con timing · F28 fase 1-6)
+
+### 🎯 Objetivo
+
+Reemplazar el overlay de batalla simulada por un **combate real por turnos** con **minijuego de timing**. Introducir HP del jugador, daño real, ataques, defensas, huida probabilística y muerte.
+
+### ✅ Completado
+
+**Fase 1 · Stats del jugador + HP en mobs**
+
+- `estado.jugador` ahora tiene: `hp`, `hpMax`, `ataque`, `defensa`, `velocidad`, `nivel` (placeholder).
+- Valores base: HP 20/20, ataque 3, defensa 1, velocidad 1, nivel 1.
+- `enemigos.js`: al spawnear mob se agrega `hpActual: mob.hp` y `hpMax: mob.hp`.
+- `main.js`: al reiniciar mundo se resetea `hp` a `hpMax`.
+
+**Fase 2 · Barra de HP en HUD**
+
+- `index.html`: nuevo `<div id="barra-hp">` arriba del mapa.
+- `css/estilo.css`: gradiente rojo→naranja→verde, texto `X / Y` superpuesto.
+- `render.js`: nueva `actualizarBarraHP()` llamada desde `actualizarHUD()`.
+
+**Fase 3 · Minijuego de timing (`js/systems/barra-timing.js` — NUEVO)**
+
+- Barra horizontal con marcador que recorre izq→der en `duracionMs`.
+- Zonas coloreadas: rojo (miss) → naranja (aceptable) → verde (perfecto) → naranja → rojo.
+- Precición calculada: `max(0, 1 - |posicion - 50| / 50)`.
+- Función pública `BarraTiming.iniciar({duracionMs, titulo, onResultado})`.
+- Función pública `BarraTiming.cancelar()` para abortar sin disparar callback.
+- HTML de prueba en `pruebas/barra-timing.html`.
+
+**Fase 4 · Overlay de combate (`js/ui/combate-ui.js` — NUEVO)**
+
+- Pantalla completa con dos paneles: jugador (izq) vs mob (der).
+- Barras de HP en cada panel.
+- Botón "Huir" arriba a la derecha con confirmación.
+- Mensaje central de estado del turno.
+- Contenedor para la barra de timing (que se inyecta desde combate.js).
+- Al abrir: `estado.pausado = true` (bloquea movimiento, IA, rotura, barco).
+- Al cerrar: `estado.pausado = false`.
+
+**Fase 5 · Lógica de combate (`js/systems/combate.js` — NUEVO)**
+
+- Turnos alternados: jugador ataca → mob defiende → mob ataca → jugador defiende.
+- **Fórmula ataque:** `daño = max(1, ataqueJug - defMob) * (precision * 2)`.
+- **Fórmula defensa:** `daño = max(1, ataqueMob - defJug) * (1 - precision)`.
+- Aplica `efecto-ataque` al mob cuando recibe daño.
+- Aplica `efecto-danio` al jugador cuando recibe daño.
+- Al morir el mob: `derrotarMobEn()` + cartel + cierre del overlay.
+- Al morir el jugador: pantalla de derrota + reinicio del mundo.
+
+**Fase 6 · Huida probabilística**
+
+- Fórmulas helper:
+  - `calcularNivelMob(mob)` = `(hp + ataque + defensa) / 4`.
+  - `calcularProbHuida(nivelJug, nivelMob)` = `0.5 + (nivelJug - nivelMob) * 0.05`, entre 10% y 90%.
+  - `calcularPenalizacionHuida(nivelJug, nivelMob)` = `5 + (nivelMob - nivelJug)`, entre 2% y 40% del hpMax.
+- Al apretar Huir:
+  - Barra de timing activa se cancela.
+  - Se abre diálogo "¿De verdad querés huir? (X%)".
+  - Si el jugador dice NO: combate sigue desde el turno actual.
+  - Si dice SÍ: roll de probabilidad.
+    - **Éxito:** el mob desaparece del mapa + HP del jugador baja por la penalización.
+    - **Fallo:** el mob ataca (turno del mob).
+
+**Fixes técnicos**
+
+- `BarraTiming.cancelar()` para abortar sin disparar callback.
+- Sistema de `timeoutPendiente` en `estadoCombate` para poder cancelar `setTimeout` entre turnos.
+- `pausado` en `estadoCombate` para bloquear doble huida.
+- `intentarMover` verifica `estado.pausado` (bloquea movimiento en combate).
+- `cerrarCombate("cancelado")` al reiniciar mundo.
+
+### 🐛 Bugs conocidos (ver BACKLOG · F28.1)
+
+- **B6:** HP del jugador en 0 no cierra el combate.
+- **B7:** matar al mob con HP 0 cura al jugador.
+
+### ⏸️ Pendiente (F28 fase 7-9)
+
+- Fase 7-8: muerte del jugador + pantalla de derrota (básico ya funciona, falta pulir).
+- Fase 9: balance final + íconos de corazón (❤️/💔).
+
+### 📖 Documentación
+
+- BACKLOG: F28 marcada como parcialmente implementada. F28.1, F30 agregadas.
+- CHANGELOG: esta entrada.
+- README: versión actualizada a v2.5-alpha.
+
+### ⚠️ Estado
+
+- **v2.5-alpha funcional con 2 bugs conocidos (F28.1).**
+- El combate se siente adecuado y es jugable. Los bugs son de casos extremos (HP 0).
+
+---
+
+
+## Docs · 2026-10-20 (anotaciones: F29 escalado, corazones, velocidad, inventario)
+
+### 📝 Documentación
+
+**BACKLOG expandido con F29 (va aparte de F28):**
+
+- **F29 nueva** — Escalado dinámico de dificultad del timing:
+  - **Por tipo de mob:** cada mob tiene su propia `duracionMs` y tamaño de zonas (gallina 2000ms → boss 700ms).
+  - **Por fase del día (F1):** de noche las zonas verde/naranja se achican a la mitad.
+  - **Por nivel del jugador (futuro):** requiere sistema de niveles.
+  - Requiere: F28 (combate) + F1 (día-noche) + configuración por mob.
+
+**F12 expandido con equipables que modifican stats del jugador:**
+
+- Nueva subsección en F12: "Equipables que modifican stats del jugador".
+- Bicicleta, botas, armaduras, cascos → modifican velocidad, defensa, ataque, HP máximo.
+- Velocidad del jugador: constante por defecto (100ms por celda). Solo equipables la modifican.
+- Reglas: aditivos con máximos por stat.
+
+**F28 confirmado con corazones dentro:**
+
+- Los íconos de corazón (❤️/💔) quedan dentro de F28 fase 9 (no son feature aparte).
+- Se implementan después de que la barra de HP esté funcionando.
+
+**Inventario visual anotado en F8:**
+
+- Ventana nueva con todo pausado (`estado.pausado = true`) para ver inventario completo.
+- Se desglosa más adelante, no ahora.
+
+### ⚠️ Estado
+
+- **v2.4.2-alpha sigue estable.** Solo cambios en documentación.
+- F28 sigue siendo la próxima tarea urgente. F29 es una capa encima, se hace después.
+
+---
+
 ## Docs · 2026-10-19 (anotaciones: F28 sistema de combate con timing)
 
 ### 📝 Documentación
