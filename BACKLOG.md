@@ -34,6 +34,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F26 · Sistema de mobs especiales (categoría 2)
 - F27 · Sistema de mobs bosses (categoría 3)
 - F28 · Sistema de combate con timing (HP + daño real)
+- F29 · Escalado dinámico de dificultad del timing
 
 ---
 
@@ -346,6 +347,37 @@ mundo = función(semilla, chunk) + deltas
 | Spawn natural | `porChunk: true` en biomas específicos (ruina, castillo) |
 | Único por mundo | `porChunk: false` (determinista por semilla) |
 | Drop de mob | Campo `dropDe: "id_mob"` (vinculado a F26 y F27) |
+
+### Equipables que modifican stats del jugador
+
+Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **equipables que modifican las stats del personaje**. Ver F28 para las stats base (`hp`, `hpMax`, `ataque`, `defensa`, `velocidad`).
+
+| Slot | Objeto | Efecto | Notas |
+|------|--------|--------|-------|
+| Pies | Botas | +1 velocidad | Desplazamiento más rápido |
+| Pies | Bicicleta | +3 velocidad | Item desbloqueable |
+| Cabeza | Casco de hierro | +1 defensa | |
+| Torso | Armadura | +2 defensa | |
+| Cabeza | Amuleto | +5 HP máximo | |
+
+**Velocidad del jugador:**
+- Por defecto es **constante** (100ms por celda, `DURACION_MOVIMIENTO_MS`).
+- Solo equipables como bicicleta o botas la reducen (menos ms = más rápido).
+- Fórmula: `duracionEfectiva = DURACION_MOVIMIENTO_MS / (1 + bonusVelocidad)`.
+
+**Reglas de aplicación:**
+- Los modificadores son **aditivos** (se suman).
+- Hay un **máximo** por stat (para evitar valores rotos). Ej: `velocidad` máximo +5.
+- Al quitarse el equipable, la stat vuelve al valor base + bonificaciones restantes.
+
+**Pendiente definir:**
+- ¿Cuántos slots tiene el jugador? (cabeza, torso, piernas, pies, manos, accesorio)
+- ¿Los equipables se dropean de mobs, se craftean o se encuentran en el mundo?
+- ¿Hay equipables que modifican HP máximo, o solo ataque/defensa/velocidad?
+- ¿Cómo se visualiza el cambio de stats en el HUD? (¿números? ¿íconos?)
+- ¿Cómo interactúa con la barra de HP cuando cambia `hpMax`? (¿se mantiene el % o el número?)
+
+**Requiere:** F28 (stats base ya existen).
 
 ### Pendiente
 
@@ -1100,6 +1132,84 @@ Balanceado para test: el jugador gana fácil si juega bien, muere si no defiende
 - Integración con combate por reflejos (MARCO 11).
 
 **Estado:** ⏸️ Anotado. **Es la próxima tarea urgente del roadmap.**
+
+---
+## 📊 F29 · Escalado dinámico de dificultad del timing
+
+**Idea:** la dificultad del minijuego de timing (F28) se ajusta según dos ejes: el **tipo de mob** y la **fase del ciclo día-noche**. Se anota aparte de F28 porque es una capa de dificultad, no la base del combate.
+
+### Eje 1 · Por tipo de mob
+
+Cada mob tiene su propia `duracionMs` y tamaño de zonas. A mayor dificultad del mob, menor tiempo y zonas más chicas.
+
+| Mob | `duracionMs` | Zona verde | Zona naranja (cada lado) |
+|-----|:------------:|:----------:|:------------------------:|
+| Gallina 🐓 | 2000 | 25% | 15% |
+| Cerdo 🐖 | 1700 | 22% | 15% |
+| Tigre 🐅 | 1500 | 20% | 15% |
+| Mobs especiales (F26) | 1000 | 15% | 10% |
+| Bosses (F27) | 700 | 10% | 8% |
+
+**Valores iniciales para test.** Se calibran después.
+
+### Eje 2 · Por fase del día (F1)
+
+De noche el timing se hace **más difícil**: las zonas verde y naranja se achican.
+
+| Fase | Multiplicador de zona |
+|------|:---------------------:|
+| Día | 1.0 (sin cambio) |
+| Transición día→noche | 0.75 (achica gradual) |
+| Noche | 0.5 (achica a la mitad) |
+| Transición noche→día | 0.75 (achica gradual) |
+
+**Ejemplo con tigre:**
+- Día: barra 1500ms, zona verde 20%.
+- Noche: barra 1500ms, zona verde 10% (la mitad).
+
+**Pregunta:** ¿el achique de zona por noche aplica a **todos** los mobs o solo a los normales? Yo sugiero que a todos (mobs especiales y bosses también son más difíciles de noche).
+
+### Eje 3 (futuro) · Por nivel del jugador
+
+Cuando haya sistema de niveles (no existe todavía):
+
+- Jugador nivel 1: sin cambio.
+- Jugador nivel 10: zona verde -2% (más difícil).
+- Jugador nivel 20: zona verde -4%.
+
+Fórmula tentativa: `zonaVerde = base - (nivel * 0.2)`.
+
+### Implementación técnica
+
+- `BarraTiming.iniciar()` recibe `duracionMs`, `zonaVerde`, `zonaNaranja` como parámetros (en lugar de leerlos del CSS).
+- CSS con variables (`--zona-verde`, `--zona-naranja`) para cambiar dinámicamente.
+- `combate.js` calcula estos valores antes de iniciar cada ronda de timing, según el mob y la fase del ciclo.
+
+### Requisitos técnicos
+
+| Requisito | Estado | Depende de |
+|-----------|:------:|------------|
+| BarraTiming parametrizable | ⏸️ | F28 fase 3 (ya tiene `duracionMs`, falta zonas) |
+| Zona verde/naranja dinámica (CSS variables) | ⏸️ | F28 + CSS variables |
+| Detección de fase día-noche | ⏸️ | F1 |
+| Configuración por mob (`duracionMs`, `zonaVerde`) | ⏸️ | Agregar campos a la data de cada mob |
+| Sistema de niveles del jugador | ⏸️ | Fase futura (no existe) |
+
+### Decisiones confirmadas
+
+- F29 va aparte de F28 (es una capa de dificultad, no la base).
+- Cada mob tiene su propia velocidad base.
+- De noche las zonas se achican a la mitad.
+
+### Pendiente
+
+- Definir valores exactos para cada mob.
+- Confirmar si el achique nocturno aplica a todos los mobs.
+- Calibrar el multiplicador de zona nocturna (¿50%? ¿60%? ¿40%?).
+- ¿El efecto del día-noche afecta también a la `duracionMs` de la barra, o solo a las zonas? (Yo sugiero **solo zonas**, para no complicar demasiado).
+- ¿Hay otras condiciones que afecten el timing? (lluvia, boss en furia, etc. — anotar para futuro).
+
+**Estado:** ⏸️ Anotado. Depende de F28 (combate) y F1 (día-noche). Se implementa después de F28.
 
 ---
 
