@@ -69,6 +69,10 @@ function reiniciarMundo(nuevaSemilla) {
   // ─── Cancelar combate si había uno activo (F28) ───
   if (typeof cancelarCombateSiActivo === "function") cancelarCombateSiActivo();
 
+  if (typeof MenuJugador !== "undefined" && MenuJugador.estaAbierto()) MenuJugador.cerrar();
+  if (typeof Progresion !== "undefined") Progresion.reiniciarProgresion();
+  if (typeof Loot !== "undefined") Loot.reiniciarLoot();
+
   limpiarCacheBiomas();
   cacheChunks.clear();
 

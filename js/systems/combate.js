@@ -730,20 +730,18 @@ function verificarMuerteJugador() {
   }
 }
 
-// ─── Recompensas de prueba (el loot real llega con F13) ───
+// ─── Recompensas reales (F13) ───
 function calcularRecompensasVictoria(mob) {
+  if (typeof Loot !== "undefined" && typeof Loot.entregarRecompensasVictoria === "function") {
+    return Loot.entregarRecompensasVictoria(mob);
+  }
+
   const datosMob = mob && typeof MOBS !== "undefined" ? MOBS[mob.tipo] : null;
   const nombreMob = datosMob && datosMob.nombre ? datosMob.nombre : "El enemigo";
-  const nivelMob = mob ? calcularNivelMob(mob) : 1;
-  const xp = 5 + nivelMob * 3;
-
   return {
     nombreMob,
-    xp,
-    items: [
-      { icono: "💰", nombre: "Moneda antigua", cantidad: 2 },
-      { icono: "🦴", nombre: `Resto de ${nombreMob}`, cantidad: 1 },
-    ],
+    xp: 0,
+    items: [],
   };
 }
 

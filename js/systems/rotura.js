@@ -82,8 +82,12 @@ function intentarIniciarRotura(wx, wy) {
   const bioma = obtenerBiomaDeCelda(SEMILLA, wx, wy);
   rotura.tileBase = NOMBRE_A_TILE[BIOMAS[bioma].tileBase];
 
+  const multiplicador = typeof obtenerMultiplicadorRotura === "function"
+    ? obtenerMultiplicadorRotura()
+    : 1;
+
   rotura.tiempoInicio = Date.now();
-  rotura.duracionMs = config.duracionMs;
+  rotura.duracionMs = config.duracionMs / multiplicador;
 
   // ─── Efecto visual de golpe en bucle (permanente hasta quitar) ───
   if (typeof aplicarEfecto === "function") {

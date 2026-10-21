@@ -134,7 +134,10 @@ if (nombre === "BARCO")    icono = ICONOS[BARCO];
 function actualizarJugador() {
   if (!estado.jugador.animando) return;
 
-  const t = Math.min(1, (performance.now() - estado.jugador.animInicio) / DURACION_MOVIMIENTO_MS);
+  const duracion = typeof obtenerDuracionMovimiento === "function"
+    ? obtenerDuracionMovimiento()
+    : DURACION_MOVIMIENTO_MS;
+  const t = Math.min(1, (performance.now() - estado.jugador.animInicio) / duracion);
 
   // Interpolar la posición del jugador
   estado.jugador.wx = estado.jugador.animInicioX + (estado.jugador.animFinX - estado.jugador.animInicioX) * t;

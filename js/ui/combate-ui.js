@@ -414,14 +414,18 @@ window.CombateUI = (() => {
       (total, item) => total + (Number(item.cantidad) || 0),
       0
     );
-    const textoObjetos = totalObjetos === 1 ? "1 objeto" : `${totalObjetos} objetos`;
-    const itemsHTML = items.map((item) => `
-      <li>
-        <span class="victoria-item-icono">${item.icono}</span>
-        <span class="victoria-item-nombre">${item.nombre}</span>
-        <span class="victoria-item-cantidad">x${item.cantidad}</span>
-      </li>
-    `).join("");
+    const textoObjetos = totalObjetos === 0
+      ? "ningún objeto"
+      : (totalObjetos === 1 ? "1 objeto" : `${totalObjetos} objetos`);
+    const itemsHTML = items.length > 0
+      ? items.map((item) => `
+        <li>
+          <span class="victoria-item-icono">${item.icono}</span>
+          <span class="victoria-item-nombre">${item.nombre}</span>
+          <span class="victoria-item-cantidad">x${item.cantidad}</span>
+        </li>
+      `).join("")
+      : `<li><span class="victoria-item-icono">—</span><span class="victoria-item-nombre">Sin drops esta vez</span><span class="victoria-item-cantidad">—</span></li>`;
 
     const cont = document.createElement("div");
     cont.id = "victoria-overlay";
@@ -446,7 +450,7 @@ window.CombateUI = (() => {
           </ul>
         </div>
         <button id="victoria-btn-continuar">Continuar</button>
-        <div id="victoria-hint">Recompensas de prueba · el loot real llegará con F13.</div>
+        <div id="victoria-hint">XP y drops reales (F13) · presioná I para abrir el menú del jugador.</div>
       </div>
     `;
     document.body.appendChild(cont);

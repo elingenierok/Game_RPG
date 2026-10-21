@@ -1486,3 +1486,274 @@ body {
   letter-spacing: 1px;
   text-align: center;
 }
+
+/* ---------------------------------------------------------------
+   MEN� DEL JUGADOR (F30)
+   --------------------------------------------------------------- */
+
+#btn-jugador {
+  position: fixed;
+  top: 12px;
+  right: 220px;
+  z-index: 1000;
+  background: #101a1a;
+  border: 1px solid #6cf;
+  color: #6cf;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#btn-jugador:hover {
+  background: #6cf;
+  color: #0a0a0a;
+  box-shadow: 0 0 10px rgba(102, 204, 255, 0.6);
+}
+
+.menu-jugador-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 550;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.78);
+  font-family: monospace;
+}
+.menu-jugador-overlay.visible {
+  display: flex;
+}
+
+.menu-jugador-panel {
+  width: min(720px, 94vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: #101418;
+  border: 2px solid #6cf;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(102, 204, 255, 0.35);
+  overflow: hidden;
+}
+
+.menu-jugador-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #141c24;
+  border-bottom: 1px solid #24384a;
+}
+.menu-jugador-titulo-grupo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.menu-jugador-titulo {
+  color: #6cf;
+  font-size: 18px;
+  font-weight: bold;
+}
+.menu-jugador-nivel {
+  color: #ffd76a;
+  font-size: 13px;
+  border: 1px solid #554422;
+  background: #221a10;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+.menu-jugador-cerrar {
+  background: transparent;
+  border: 1px solid #334;
+  color: #ccd;
+  border-radius: 6px;
+  padding: 4px 9px;
+  cursor: pointer;
+  font-family: monospace;
+}
+.menu-jugador-cerrar:hover {
+  border-color: #f66;
+  color: #f66;
+}
+
+.menu-jugador-xp {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 16px;
+  color: #aeb;
+  background: #0d1318;
+  border-bottom: 1px solid #1c2a36;
+  font-size: 12px;
+}
+.menu-jugador-xp strong { color: #ffd76a; }
+
+.menu-jugador-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px 0;
+  background: #0d1318;
+  border-bottom: 1px solid #24384a;
+  overflow-x: auto;
+}
+.menu-jugador-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: #8aa;
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.menu-jugador-tab:hover { color: #cde; background: #131d26; }
+.menu-jugador-tab.activa {
+  color: #6cf;
+  background: #101418;
+  border-color: #24384a;
+  border-bottom: 1px solid #101418;
+  margin-bottom: -1px;
+}
+
+.menu-jugador-contenido {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.menu-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.menu-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: #131a20;
+  border: 1px solid #22323f;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.menu-stat-titulo { color: #9ab; font-size: 12px; }
+.menu-stat-valor { color: #e8f4ff; font-size: 20px; }
+.menu-stat-detalle { color: #667; font-size: 10px; }
+
+.menu-nota {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-left: 3px solid #6cf;
+  background: #0e161c;
+  color: #9ab;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.menu-habilidades { display: flex; flex-direction: column; gap: 10px; }
+.menu-habilidad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #131a20;
+  border: 1px solid #22323f;
+  border-radius: 9px;
+  padding: 10px 12px;
+}
+.menu-habilidad.maxima { opacity: 0.72; }
+.menu-habilidad-icono {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #0c1216;
+  border: 1px solid #24384a;
+  font-size: 22px;
+  flex: 0 0 auto;
+}
+.menu-habilidad-info { flex: 1; min-width: 0; }
+.menu-habilidad-titulo { color: #dff; font-size: 13px; font-weight: bold; }
+.menu-habilidad-titulo span { color: #ffd76a; font-weight: normal; }
+.menu-habilidad-desc { color: #8aa; font-size: 11px; margin-top: 2px; }
+.menu-rangos { display: flex; gap: 4px; margin-top: 6px; }
+.menu-rango {
+  width: 16px;
+  height: 5px;
+  border-radius: 3px;
+  background: #26333d;
+}
+.menu-rango.lleno { background: #6cf; box-shadow: 0 0 6px rgba(102, 204, 255, 0.5); }
+.menu-comprar {
+  background: #102a22;
+  border: 1px solid #3c9;
+  color: #7fe;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-family: monospace;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.menu-comprar:hover:not(:disabled) { background: #1a4638; }
+.menu-comprar:disabled {
+  background: #1a1e22;
+  border-color: #333c44;
+  color: #667;
+  cursor: default;
+}
+
+.menu-inventario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #131a20;
+  border: 1px solid #22323f;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.menu-item-icono { font-size: 22px; }
+.menu-item-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.menu-item-info strong { color: #dff; font-size: 12px; }
+.menu-item-info small { color: #667; font-size: 10px; }
+.menu-item-cantidad {
+  color: #ffd76a;
+  font-size: 12px;
+  border: 1px solid #443a20;
+  background: #1d1810;
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+.menu-vacio {
+  text-align: center;
+  color: #8aa;
+  padding: 30px 12px;
+  font-size: 14px;
+}
+
+.menu-jugador-pie {
+  padding: 8px 16px;
+  color: #667;
+  font-size: 10px;
+  text-align: center;
+  background: #0d1318;
+  border-top: 1px solid #1c2a36;
+}
+
+@media (max-width: 620px) {
+  .menu-stats, .menu-inventario { grid-template-columns: 1fr; }
+  .menu-habilidad { align-items: flex-start; flex-wrap: wrap; }
+  .menu-comprar { margin-left: 54px; }
+}

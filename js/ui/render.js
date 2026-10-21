@@ -237,6 +237,7 @@ const ICONO_POR_NOMBRE = {
 };
 
 function iconoPorNombre(nombre) {
+  if (typeof obtenerDatosItem === "function") return obtenerDatosItem(nombre).icono;
   return ICONO_POR_NOMBRE[nombre] || "❓";
 }
 
@@ -251,6 +252,14 @@ function actualizarHUD() {
   document.getElementById("pos").textContent =
     `${Math.floor(estado.jugador.wx)},${Math.floor(estado.jugador.wy)}`;
   document.getElementById("zona").textContent = `${info.cx},${info.cy}`;
+
+  const nivelEl = document.getElementById("nivel-jugador");
+  const xpEl = document.getElementById("xp-jugador");
+  if (nivelEl && xpEl && typeof Progresion !== "undefined") {
+    const resumen = Progresion.obtenerResumen();
+    nivelEl.textContent = resumen.nivel;
+    xpEl.textContent = resumen.xp;
+  }
 
   const entradas = Object.entries(estado.inventario);
   if (entradas.length === 0) {

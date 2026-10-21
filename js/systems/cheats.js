@@ -39,6 +39,16 @@ function debugCombate(tipo = "cerdo", ataque = "ATAQUE_8") {
 
 window.debugCombate = debugCombate;
 
+// Prueba rápida de progresión desde consola:
+//   debugXP(500)
+function debugXP(cantidad = 100) {
+  if (typeof Progresion === "undefined") return "Progresión no disponible.";
+  const otorgada = Progresion.otorgarXP(cantidad);
+  return `+${otorgada} XP · total disponible: ${Progresion.obtenerResumen().xp}`;
+}
+
+window.debugXP = debugXP;
+
 function toggleCheatEquipables() {
   const tieneTodo =
     (estado.inventario.HACHA    || 0) > 0 &&

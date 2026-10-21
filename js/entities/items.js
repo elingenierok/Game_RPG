@@ -248,3 +248,52 @@ function tipoEquipableANombre(tipo) {
   if (tipo === BARCO)    return "BARCO";
   return "DESCONOCIDO";
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  BLOQUE 7.5c · CATÁLOGO E INVENTARIO (F13)
+// ═══════════════════════════════════════════════════════════════
+
+const CATALOGO_ITEMS = {
+  MANZANA:  { id: "MANZANA",  nombre: "Manzana",         icono: ICONOS[MANZANA],  tipo: "consumible" },
+  HACHA:    { id: "HACHA",    nombre: "Hacha",           icono: ICONOS[HACHA],    tipo: "herramienta" },
+  PICO:     { id: "PICO",     nombre: "Pico",            icono: ICONOS[PICO],     tipo: "herramienta" },
+  LINTERNA: { id: "LINTERNA", nombre: "Linterna",        icono: ICONOS[LINTERNA], tipo: "equipable" },
+  BARCO:    { id: "BARCO",    nombre: "Barco",           icono: ICONOS[BARCO],    tipo: "equipable" },
+  PLUMA:    { id: "PLUMA",    nombre: "Pluma",           icono: "🪶",             tipo: "material" },
+  CARNE:    { id: "CARNE",    nombre: "Carne",           icono: "🥩",             tipo: "material" },
+  COLMILLO: { id: "COLMILLO", nombre: "Colmillo",        icono: "🦷",             tipo: "material" },
+  HUEVO:    { id: "HUEVO",    nombre: "Huevo",           icono: "🥚",             tipo: "material" },
+  HUESO:    { id: "HUESO",    nombre: "Hueso",           icono: "🦴",             tipo: "material" },
+  MONEDA:   { id: "MONEDA",   nombre: "Moneda antigua",  icono: "🪙",             tipo: "material" },
+  CHATARRA: { id: "CHATARRA", nombre: "Chatarra",        icono: "⚙️",             tipo: "material" },
+  NUCLEO:   { id: "NUCLEO",   nombre: "Núcleo",          icono: "🔮",             tipo: "material" },
+  LLAVE_BOSQUE: { id: "LLAVE_BOSQUE", nombre: "Llave del bosque", icono: "🗝️", tipo: "único" },
+  TROFEO_TIGRE: { id: "TROFEO_TIGRE", nombre: "Trofeo del tigre", icono: "🏆", tipo: "único" },
+};
+
+function normalizarIdItem(id) {
+  return String(id || "").trim().toUpperCase();
+}
+
+function obtenerDatosItem(id) {
+  const clave = normalizarIdItem(id);
+  return CATALOGO_ITEMS[clave] || {
+    id: clave || "DESCONOCIDO",
+    nombre: clave || "Desconocido",
+    icono: "❓",
+    tipo: "material",
+  };
+}
+
+function agregarItemInventario(id, cantidad) {
+  const datos = obtenerDatosItem(id);
+  const n = Math.max(1, Math.floor(Number(cantidad) || 1));
+  estado.inventario[datos.id] = (estado.inventario[datos.id] || 0) + n;
+  return { ...datos, cantidad: n };
+}
+
+function listarInventario() {
+  return Object.entries(estado.inventario)
+    .filter(([, cantidad]) => cantidad > 0)
+    .map(([id, cantidad]) => ({ ...obtenerDatosItem(id), cantidad }));
+}

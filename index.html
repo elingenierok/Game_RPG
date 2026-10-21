@@ -2,12 +2,13 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Roguelike · v2.7-alpha</title>
+<title>Roguelike · v2.8-alpha</title>
 <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
 <button id="btn-tema" title="Cambiar tema">🌍 Tema: Tierra</button>
 <button id="btn-cheat" title="Cheat: cargar/limpiar equipables">🎁</button>
+<button id="btn-jugador" title="Menú del jugador">👤 Nv.1</button>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!--  LAYOUT PRINCIPAL: 3 columnas (20% / 60% / 20%)             -->
@@ -75,11 +76,13 @@
     <div id="hud">
       <div>🏃‍♂️ Pos: <strong id="pos">0,0</strong></div>
       <div>🗺️ Zona: <strong id="zona">0</strong></div>
+      <div>⭐ Nivel: <strong id="nivel-jugador">1</strong> · XP: <strong id="xp-jugador">0</strong></div>
       <div>🎒 <strong id="inventario">—</strong></div>
     </div>
 
     <div id="ayuda">
   WASD, flechas o botones<br>
+  I: menú del jugador<br>
   <span id="ayuda-objetivo"></span>
 </div>
 
@@ -103,9 +106,11 @@
 <script src="js/world/mundo.js"></script>
 <script src="js/systems/camara.js"></script>
 <script src="js/core/estado.js"></script>
+<script src="js/systems/progresion.js"></script>
 <script src="js/world/chunks.js"></script>
 <script src="js/entities/items.js"></script>
 <script src="js/entities/mobs.js"></script>
+<script src="js/systems/loot.js"></script>
 <script src="js/entities/enemigos.js"></script>
 <script src="js/systems/efectos.js"></script>
 <script src="js/systems/barra-timing.js"></script>
@@ -114,6 +119,7 @@
 <script src="js/entities/jugador.js"></script>
 <script src="js/ui/combate-ui.js"></script>
 <script src="js/systems/combate.js"></script>
+<script src="js/ui/menu-jugador.js"></script>
 <script src="js/ui/victoria.js"></script>
 <script src="js/core/input.js"></script>
 <script src="js/systems/rotura.js"></script>
