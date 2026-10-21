@@ -18,7 +18,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F10 · Bioma "playa" como bioma separado
 - F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
 - F12 · Objetos equipables de mejor nivel (+ linterna + stats)
-- F13 · Drops alternativos de objetos
+- F13 · Drops alternativos de objetos · ✅ IMPLEMENTADO en v2.8-alpha (loot por mob + únicos)
 - F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 - F15 · Biomas forzados + chunks de transición
 - F16 · Rediseño del bioma "costa" · ✅ IMPLEMENTADO en v1.7.1
@@ -41,7 +41,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F28.5 · Combo de 3 perfectos · ✅ IMPLEMENTADO en v2.7-alpha
 - F28.6 · Historial de combate y último golpe · ✅ IMPLEMENTADO en v2.7-alpha
 - F29 · Escalado dinámico de dificultad del timing
-- F30 · Sistema de niveles del jugador
+- F30 · Sistema de niveles del jugador · ✅ IMPLEMENTADO en v2.8-alpha (XP + habilidades + menú)
 - F31 · Adaptación móvil y controles táctiles
 - F32 · Campaña por etapas de bioma único + etapa final
 - F33 · Menú, guardado/carga y muerte
@@ -362,9 +362,19 @@ Además de los equipables de herramienta (hacha, pico, linterna, barco), hay **e
 - Al abrir cofres.
 - Al completar misiones.
 
-**Relación con F26 y F27:** los drops únicos de mobs especiales y bosses se implementan en esta fase.
+**Implementado en v2.8-alpha (base):**
+- `js/systems/loot.js` centraliza `LOOT_POR_MOB` con `xp`, `dropea`, `probabilidad`, `objetos` y `unicos`.
+- Cada objeto define `{ id, prob, min, max }` (también acepta `cantidad: [min, max]`).
+- Los drops van directo al inventario al ganar el combate.
+- Los drops únicos se registran en `estado.dropsUnicos` y se entregan una sola vez por mundo.
+- `LOOT_UNICOS_POR_MOB` queda preparado para mobs especiales/bosses (ej. `tigre_boss`).
+- El resumen de victoria muestra XP y objetos reales; el HUD y el menú se refrescan solos.
 
-**Estado:** ⏸️ Anotado. Futuro medio.
+**Pendiente para fases futuras:** cofres, drops por rotura y misiones.
+
+**Relación con F26 y F27:** los drops únicos de mobs especiales y bosses ya tienen soporte; falta cargar sus tablas cuando existan.
+
+**Estado:** ✅ Implementado en v2.8-alpha (base de loot por mob).
 
 ---
 
@@ -800,7 +810,7 @@ Antes de F28 el overlay de batalla era simulado (sin HP, sin daño, sin consecue
    - `dañoFinal = max(1, ataqueJug - defMob) * multiplicadorDaño`.
    - `aplicarEfecto(mob, "efecto-ataque", 500)`.
    - Esperar 800ms.
-6. Si el mob muere → resumen de victoria (XP + objetos de prueba) y cierre.
+6. Si el mob muere → resumen de victoria (XP + drops reales de F13) y cierre.
 7. **Turno del mob (defensa):**
    - Telegráfico: anuncia el ataque elegido (`DELAY_TELEGRAFO_MS = 900`).
    - Barra de timing con el perfil del ataque (duración y zonas).
@@ -938,10 +948,10 @@ Al derrotar un mob, después del cierre del combate, se muestra un overlay `#vic
 
 - Título "¡HAS GANADO!" y nombre del mob derrotado.
 - XP estimada: `5 + nivelMob * 3` (placeholder; tigre nivel 4 = 17 XP).
-- Objetos de prueba: `💰 Moneda antigua x2` y `🦴 Resto de <mob> x1`.
+- Objetos reales según `LOOT_POR_MOB` (F13): carne, pluma, huevo, colmillo, hueso, etc.
 - Desglose de recompensas y botón **Continuar**.
 - Mientras se muestra, el juego queda pausado; **Continuar** reanuda ticks/HUD.
-- El loot/XP real llegará con F13; los valores actuales son solo de prueba.
+- Implementado en v2.8-alpha: la XP y los drops reales llegan desde F13 (`js/systems/loot.js`).
 
 ### F28.4 · Motor de efectos y modificadores de combate · ⏸️ DISEÑADO, NO IMPLEMENTADO
 
@@ -1042,7 +1052,7 @@ Al derrotar un mob, después del cierre del combate, se muestra un overlay `#vic
 | 8 | Muerte del jugador + pantalla derrota | ✅ (overlay con botón de reinicio) |
 | 9 | Corazones + feedback + balance | ✅ (corazones con número; balance fino queda opcional) |
 | 10 | Ataques telegrafiados + perfiles de timing (F28.2) | ✅ v2.7-alpha |
-| 11 | Resumen de victoria con XP/objetos de prueba (F28.3) | ✅ v2.7-alpha |
+| 11 | Resumen de victoria con XP/drops reales (F28.3 + F13) | ✅ v2.8-alpha |
 
 ### Decisiones confirmadas
 
@@ -1057,13 +1067,13 @@ Al derrotar un mob, después del cierre del combate, se muestra un overlay `#vic
 - Ataques del mob definidos por datos (`ataques` en el tema), no hardcodeados en la lógica.
 - Cada ataque tiene perfil de timing propio (duración + zonas); el telegráfico lo anuncia ~0.9s antes.
 - Guardia/punto débil y fases de furia quedan para mobs especiales/bosses (F26/F27), no para mobs comunes.
-- Resumen de victoria con XP/objetos de prueba hasta que F13 implemente loot real.
+- Resumen de victoria con XP y drops reales de F13.
 - Combate por reflejos (MARCO 11) reemplazará este sistema en el futuro.
 
 ### Pendiente futuro
 
 - Balance fino de combate (opcional, después de más pruebas).
-- Loot y XP reales (F13).
+- Loot y XP reales (F13): ✅ v2.8-alpha.
 - Stats modificables por equipables (F12).
 - Efectos negativos (veneno, lentitud) para bosses (F27).
 - Guardia/punto débil y fases de furia para mobs especiales/bosses.
@@ -1208,37 +1218,24 @@ Fórmula tentativa: `zonaVerde = base - (nivel * 0.2)`.
 
 **Idea:** sistema de progresión del jugador basado en experiencia (XP). Afecta probabilidades de huida (F28 fase 6) y dificultad del timing (F29 eje 3).
 
-### Estado actual (placeholder)
+### Implementación actual (v2.8-alpha)
 
-- `estado.jugador.nivel = 1` (hardcodeado en `estado.js`).
-- La fórmula de huida (`calcularProbHuida`, `calcularPenalizacionHuida`) ya usa `nivelJug` y `nivelMob`.
-- `calcularNivelMob(mob)` = `(hp + ataque + defensa) / 4` (heurística, en `combate.js`).
+- `js/systems/progresion.js` administra XP, habilidades, nivel y recálculo de stats.
+- **La XP es moneda.** No hay barra de nivel automática: cada rango comprado suma 1 nivel.
+- La XP se gana al vencer mobs (`loot.xp` de F13).
+- Habilidades (5 rangos cada una):
+  - `vitalidad`: +2 HP máximos por rango (y cura la diferencia al comprar).
+  - `fuerza`: +1 ataque por rango.
+  - `defensa`: +1 defensa por rango.
+  - `movilidad`: +10% velocidad de caminata por rango.
+  - `herramientas`: +15% velocidad de rotura con hacha/pico por rango.
+- Costos escalan por rango (`costoBase + costoIncremento * rango`).
+- `js/ui/menu-jugador.js` agrega un menú único con pestañas **Personaje, Habilidades, Inventario y Misiones** (placeholder). Se abre con `I` o con el botón 👤.
+- El juego se pausa mientras el menú está abierto; no se puede abrir durante combate, victoria o derrota.
+- El nivel se usa en las fórmulas de huida existentes y queda disponible para F29.
+- Al reiniciar el mundo se resetean XP, habilidades y drops únicos.
 
-### Cómo ganar XP (a definir)
-
-**Opciones:**
-- **A)** Matar mobs → +XP según el mob (`loot.xp` ya existe en la data).
-- **B)** Completar quests → +XP.
-- **C)** Romper tiles → +XP chico.
-- **D)** Explorar chunks nuevos → +XP.
-- **E)** Combinación de las anteriores.
-
-### Progresión de nivel
-
-**Opciones:**
-- **A)** Lineal: 100 XP por nivel.
-- **B)** Exponencial: `XP_necesaria = 100 * nivel^1.5`.
-- **C)** Curva: rápido al principio, lento después.
-
-### Qué se gana por nivel
-
-**Futuro (a definir):**
-- +HP máximo cada N niveles.
-- +Ataque / +Defensa cada N niveles.
-- Mejor probabilidad de huida (ya parcialmente en F28).
-- Zona verde más chica en timing (F29 eje 3).
-
-### Fórmulas actuales (placeholder, ya en `combate.js`)
+### Fórmulas actuales (ya en `combate.js`)
 
 ```js
 function calcularNivelMob(mob) {
@@ -1254,19 +1251,15 @@ function calcularPenalizacionHuida(nivelJug, nivelMob) {
 }
 ```
 
-**Cuando exista F30 real**, estas fórmulas se pueden ajustar o mantener.
-
 ### Preguntas pendientes
 
-- ¿Cómo se gana XP? (ver opciones arriba)
-- ¿Cómo se sube de nivel? (ver opciones arriba)
-- ¿Qué se gana por nivel? (ver opciones arriba)
-- ¿El nivel del jugador se persiste entre sesiones? (requiere F33)
+- ¿La progresión se persiste entre sesiones? (requiere F33)
 - ¿El nivel del mob se deriva de sus stats o es un dato explícito?
+- ¿Se agregan más habilidades (suerte, resistencia, etc.)?
 
-**Requiere:** F28 (fase 6 ya lo usa) + sistema de XP + persistencia (F33).
+**Requiere:** F28 (fase 6 ya lo usa) + F13 (XP de mobs). La persistencia queda en F33.
 
-**Estado:** ⏸️ Anotado. Se implementa después de F28 (ya completo).
+**Estado:** ✅ Implementado en v2.8-alpha. Persistencia pendiente de F33.
 
 ---
 

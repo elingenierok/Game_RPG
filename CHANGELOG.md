@@ -3,6 +3,49 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v2.8-alpha · 2026-10-21 (F30 progresión + F13 loot y XP)
+
+### 🎯 Objetivo
+
+Convertir la XP en una moneda de progresión y cerrar el ciclo de recompensas: cada mob suelta objetos según su tabla, la XP se gasta en habilidades y el jugador administra todo desde un menú único.
+
+### ✅ Completado
+
+**F30 · Progresión y menú del jugador**
+
+- `js/systems/progresion.js`: XP, habilidades, compra de rangos, nivel por compras y recálculo de stats.
+- Habilidades: Vitalidad (+2 HP máx.), Fuerza (+1 ataque), Defensa (+1 defensa), Movilidad (+10% velocidad) y Herramientas (+15% velocidad de rotura).
+- Nivel = 1 + rangos comprados. La XP no sube niveles automáticamente.
+- `js/ui/menu-jugador.js`: menú único con pestañas Personaje, Habilidades, Inventario y Misiones (placeholder).
+- El menú se abre con `I` o el botón 👤, pausa el juego y no se puede abrir en combate/victoria/derrota.
+- HUD muestra nivel y XP disponible.
+
+**F13 · Loot y XP por mob**
+
+- `js/systems/loot.js`: tablas por mob con `xp`, `dropea`, `probabilidad`, `objetos` y `unicos`.
+- Cada objeto usa `{ id, prob, min, max }`; los drops van directo al inventario.
+- Drops únicos una vez por mundo mediante `estado.dropsUnicos`; soporte para mobs especiales/bosses.
+- El resumen de victoria muestra XP y objetos reales; se eliminaron las recompensas de prueba.
+
+**Integración**
+
+- Movimiento y rotura usan las habilidades de Movilidad y Herramientas.
+- Al reiniciar el mundo se resetean XP, habilidades y drops únicos.
+- Cheat de prueba: `debugXP(500)` en consola.
+
+### 📚 Documentación
+
+- README, BACKLOG, CHANGELOG y AGENTS actualizados a `v2.8-alpha`.
+- `index.html` actualizado con scripts, HUD y botón del menú.
+
+### 🧪 Estado
+
+- `node --check` OK en archivos modificados.
+- Harness temporal de progresión y loot OK.
+- Validación en Chrome headless: menú, pausa, compra de habilidad, HUD, drops y reset OK.
+- **v2.8-alpha jugable.** Próxima prioridad: F12 (equipables que modifican stats) y pulir balance de XP/costos.
+
+---
 ## v2.7-alpha · 2026-10-21 (F28.2 ataques telegrafiados + F28.3 resumen de victoria + F28.5 combo + F28.6 historial)
 
 ### 🎯 Objetivo

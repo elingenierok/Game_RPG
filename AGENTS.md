@@ -12,7 +12,7 @@ Motor de un roguelike procedural en **JavaScript vanilla**, sin frameworks, sin 
 
 **Frase guía del creador:** *"Si el test se siente entretenido, agrego complejidad."*
 
-**Versión actual:** v2.7-alpha (F28 completo, ataques telegrafiados, resumen de victoria, combo de perfectos, historial de combate y F28.4 solo diseñado).
+**Versión actual:** v2.8-alpha (F28 completo, F30 de progresión con XP/habilidades/menú, F13 de loot por mob y F28.4 solo diseñado).
 
 ---
 
@@ -45,17 +45,17 @@ Game_RPG/
     ├── core/               ← config, rng, ruido, tiles, estado, input, temas
     ├── world/              ← biomas, mundo, chunks
     ├── entities/           ← jugador, mobs, enemigos, items
-    ├── ui/                 ← render, combate-ui, victoria
-    └── systems/            ← camara, efectos, barra-timing, combate, ia, rotura, barco, cheats
+    ├── ui/                 ← render, combate-ui, menu-jugador, victoria
+    └── systems/            ← camara, efectos, barra-timing, combate, progresion, loot, ia, rotura, barco, cheats
 ```
 
 **Orden de carga en `index.html` (CRÍTICO — respetar):**
 
 ```
 temas → config → ruido → tiles → rng → biomas → mundo → camara → estado
-→ chunks → items → mobs → enemigos → efectos → barra-timing → render
-→ ia → jugador → combate-ui → combate → victoria → input → rotura
-→ barco → cheats → main
+→ progresion → chunks → items → mobs → loot → enemigos → efectos → barra-timing
+→ render → ia → jugador → combate-ui → combate → menu-jugador → victoria
+→ input → rotura → barco → cheats → main
 ```
 
 Cambiar este orden rompe dependencias. No agregar archivos sin actualizar `index.html` y este archivo.
@@ -131,7 +131,7 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 
 ---
 
-## Estado actual (v2.7-alpha)
+## Estado actual (v2.8-alpha)
 
 ### Implementado
 - Mundo 2D circular, cámara fluida, movimiento 360°.
@@ -144,10 +144,13 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 - **Combate por turnos con minijuego de timing** (F28 fases 1-9).
 - Aviso inicial de combate y modos visuales ataque (⚔️) / defensa (🛡️).
 - **Ataques telegrafiados por mob** (F28.2): catálogo `ATAQUE_1..8` + `ATAQUE_BOSS_1`, campo `ataques` en cada tema y perfiles de barra (duración + zonas + `mitigacionMaxima`). `Golpe` es 50% imbloqueable.
-- **Resumen de victoria** (F28.3) con XP y objetos de prueba; botón Continuar.
+- **Resumen de victoria** (F28.3) con XP y drops reales; botón Continuar.
 - **Combo de 3 perfectos** (F28.5): 3 ataques perfectos cargan slots; el 4.º pega ×1.5 y consume la carga.
 - **Historial de combate y último golpe** (F28.6): registro color-coded (rojo/amarillo/verde/gris), 24 entradas con scroll y badges `−N HP` / `BLOQUEO` / `SIN DAÑO` / `+N HP`.
 - **HP normalizado al cerrar combate**: `redondearHP()` lleva el HP a medios puntos hacia arriba (`14.899999 → 15`) para que las manzanas sumen `+1` exacto.
+- **Progresión con XP** (F30): 5 habilidades comprables, nivel = 1 + rangos, recálculo de stats y movimiento/rotura mejorados.
+- **Menú único del jugador** (F30): pestañas Personaje, Habilidades, Inventario y Misiones; se abre con `I` o 👤 y pausa el juego.
+- **Loot por mob y XP real** (F13): `LOOT_POR_MOB` con probabilidad/cantidades, drops directos al inventario y únicos una vez por mundo.
 - **Motor de efectos de combate** (F28.4): solo diseñado, no implementado.
 - HP del jugador, daño real, muerte y derrota con botón de reinicio.
 - Corazones de HP con número (2 HP por corazón).
@@ -165,9 +168,9 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 Ver `BACKLOG.md · F28.1 y B10` para causas y soluciones.
 
 ### Prioridad actual
-1. F30 (sistema de niveles del jugador).
-2. F13 (loot y XP).
-3. F12 (equipables que modifican stats y HP máximo).
+1. F12 (equipables que modifican stats y HP máximo).
+2. Balance de XP/costos de F30 y tablas de F13.
+3. Persistencia de progresión (F33).
 
 ### Líneas futuras anotadas (no implementadas)
 - **F31 · Adaptación móvil:** controles táctiles, layout responsive, acción contextual para reemplazar Espacio, posibles automatizaciones y ajuste de velocidad/zonas para compensar latencia.

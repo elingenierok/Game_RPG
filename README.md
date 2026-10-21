@@ -3,8 +3,8 @@
 > Motor de mundo procedural con semilla, mundo 2D circular, cámara fluida,
 > chunks de 32×32, biomas por celda con ruido, ítems recolectables,
 > mobs con IA en tiempo real, sistema de efectos visuales genéricos,
-> sistema de combate con timing y ataques telegrafiados por mob,
-> y módulo de combate por reflejos en desarrollo paralelo.
+> combate con timing y ataques telegrafiados, progresión con XP,
+> loot por mob y menú único del jugador.
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.7-alpha · F28 completo + catálogo de ataques (Golpe/boss) + combo de perfectos + resumen de victoria + historial de combate |
-| **Última actualización** | 2026-10-21 (F28.2 catálogo ampliado + ataques telegrafiados, F28.3 resumen de victoria, F28.5 combo, F28.6 historial y último golpe; notas F31-F33) |
+| **Versión actual** | v2.8-alpha · F28 completo + F30 (XP, habilidades y menú del jugador) + F13 (loot por mob y drops únicos) |
+| **Última actualización** | 2026-10-21 (F30 progresión y menú; F13 loot/XP; combate F28 completo) |
 | **Estado global** | ✅ Jugable · Combate completo · sin bugs críticos conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -130,10 +130,13 @@ Game_RPG/
     ├── ui/                       ← Render visual y pantallas
     │   ├── render.js             ← BLOQUES 9, 10, 11: render y HUD
     │   ├── combate-ui.js         ← BLOQUE 13.7: overlay de combate
+    │   ├── menu-jugador.js       ← BLOQUE 7.18: menú único con pestañas
     │   └── victoria.js           ← BLOQUES 13, 13.5: victoria + batalla (delega a combate.js)
     │
     └── systems/                  ← Sistemas transversales
         ├── camara.js             ← BLOQUE 20: cámara fluida
+        ├── progresion.js         ← BLOQUE 7.16: XP, habilidades y stats
+        ├── loot.js               ← BLOQUE 7.17: loot y XP por mob
         ├── efectos.js            ← BLOQUE 7.12: efectos visuales genéricos
         ├── barra-timing.js       ← BLOQUE 7.13: minijuego de timing
         ├── combate.js            ← BLOQUE 7.14: lógica de combate por turnos
@@ -147,9 +150,9 @@ Game_RPG/
 
 ```text
 tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas → mundo
-→ camara → estado → chunks → items → mobs → enemigos → efectos → barra-timing
-→ render → ia → jugador → combate-ui → combate → victoria → input → rotura
-→ barco → cheats → main
+→ camara → estado → progresion → chunks → items → mobs → loot → enemigos
+→ efectos → barra-timing → render → ia → jugador → combate-ui → combate
+→ menu-jugador → victoria → input → rotura → barco → cheats → main
 ```
 
 **Criterio de organización en carpetas:**
@@ -160,7 +163,7 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 | `world/` | Generación y gestión del terreno: chunks 2D, biomas |
 | `entities/` | Todo lo que "vive" en el mundo: jugador, mobs, ítems |
 | `ui/` | Render visual, pantallas y overlays |
-| `systems/` | Sistemas transversales: cámara, efectos, timing, combate, IA, rotura, barco, cheats |
+| `systems/` | Sistemas transversales: cámara, progresión, loot, efectos, timing, combate, IA, rotura, barco, cheats |
 | `auditor/` | Herramientas de diagnóstico y experimentación |
 | `pruebas/` | Archivos HTML aislados para experimentar (no se cargan desde el juego) |
 
@@ -171,7 +174,10 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 - `ruido.js` **antes** de `mundo.js` (lo usa `obtenerBiomaDeCelda`).
 - `mobs.js` **antes** de `enemigos.js`.
 - `camara.js` **antes** de `estado.js`.
-- `estado.js` **antes** de `chunks.js`, `items.js`, `mobs.js`, `enemigos.js`.
+- `estado.js` **antes** de `chunks.js`, `items.js`, `progresion.js`, `loot.js`, `mobs.js`, `enemigos.js`.
+- `items.js` y `mobs.js` **antes** de `loot.js` (catálogo y datos de mobs).
+- `combate.js` **antes** de `menu-jugador.js` (`estadoCombate`).
+- `menu-jugador.js` **antes** de `main.js` (reinicio del menú).
 - `efectos.js` **antes** de `render.js` (lo usa `actualizarEfectosEnGrid`).
 - `efectos.js` **antes** de `rotura.js` y `combate.js` (lo usan `aplicarEfecto` y `quitarEfecto`).
 - `barra-timing.js` **antes** de `combate.js` (lo usa `BarraTiming`).
@@ -274,7 +280,7 @@ cd Game_RPG
 | J1 | Objetivo del juego | 🧪 | Encontrar la 🔑 (o 🔋 en espacio) | Test de exploración |
 | J2 | Condición de victoria | 🧪 | Pisar la llave | Pantalla de "¡Ganaste!" |
 | J3 | Condición de derrota | 🧪 | HP del jugador en 0 durante combate | v2.5-alpha (F28) |
-| J4 | Progresión | ⏸️ | No hay | Ver BACKLOG · F30 (niveles) |
+| J4 | Progresión | ✅ | XP como moneda + habilidades compradas | v2.8-alpha (F30) |
 | J5 | Muerte definitiva | 🧪 | Pantalla de derrota + botón de reinicio | v2.6-alpha |
 | J6 | Turnos vs tiempo real | 🟢 | Mobs en tiempo real, combate por turnos | Ticks 400ms, turnos 1500ms |
 | J7 | Sistema de iniciativa | ⏸️ | No aplica | Fase futura |
@@ -283,7 +289,7 @@ cd Game_RPG
 | J10 | Diálogos con NPCs | ⏸️ | No | Fase futura |
 | J11 | Sistema de combate | 🟢 | Turnos + timing + ataques telegrafiados por mob (F28) | v2.7-alpha |
 | J12 | Escalado del timing | ⏸️ | Por mob y por fase del día | Ver BACKLOG · F29 |
-| J13 | Sistema de niveles del jugador | ⏸️ | Placeholder (nivel 1 hardcodeado) | Ver BACKLOG · F30 |
+| J13 | Sistema de niveles del jugador | ✅ | Nivel = 1 + rangos comprados | v2.8-alpha (F30) |
 
 ---
 
@@ -371,7 +377,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | E4 | Entrada al combate | 🧪 | Choque jugador↔mob → overlay real | v2.5-alpha |
 | E5 | Tipo de combate | 🟢 | Turnos + timing con perfiles por ataque | v2.7-alpha (F28.2) |
 | E6 | Huida del combate | 🧪 | Probabilística: penalización + mob desaparece | v2.5-alpha (F28 fase 6) |
-| E7 | Loot y XP | ⏸️ | No | Campos definidos (F13, F30) |
+| E7 | Loot y XP | ✅ | Tabla por mob + drops directos al inventario | v2.8-alpha (F13) |
 | E8 | Combate grupal (1vN) | ⏸️ | No | Fase avanzada |
 | E9 | Jefes (bosses) | ⏸️ | No | Ver BACKLOG · F27 |
 | E10 | Tamaño de enemigos | 🟢 | 1×1 | v1.1 |
@@ -581,7 +587,7 @@ Ver BACKLOG · F12 para el detalle completo.
 | U14 | Botón de cambio de tema | 🟢 | Arriba a la derecha, fixed | v2.3-alpha |
 | U15 | Botón de cheat (temporal) | 🧪 | Arriba a la derecha, junto al de tema | v2.4.1-alpha |
 | U16 | Corazones de HP | 🟢 | 10 corazones (2 HP c/u) + número; sin barra | v2.6-alpha (F28 fase 9) |
-| U17 | Inventario visual | ⏸️ | Ventana nueva con todo pausado | Futuro (F8) |
+| U17 | Inventario visual | ✅ | Menú único con pestañas y pausa | v2.8-alpha (F30) |
 | U18 | Overlay de combate | 🟢 | Paneles + HP + timing + telegráfico + victoria/derrota | v2.7-alpha (F28) |
 
 ---
@@ -722,7 +728,7 @@ Sistema de combate por turnos con minijuego de timing y ataques telegrafiados. V
 - **Combo de perfectos:** 3 ataques perfectos seguidos llenan 3 slots; el 4.º ataque pega ×1.5 y consume la carga.
 - **Historial de combate:** registro con color por tipo (rojo daño recibido, amarillo avisos, verde acciones favorables, gris sistema), hasta 24 entradas con scroll.
 - **Último golpe:** badge temporal sobre cada panel (`−N HP`, `BLOQUEO`, `SIN DAÑO` o `+N HP`).
-- Muerte del mob: animación, cierre diferido (~0.9s) y **resumen de victoria** con XP/objetos de prueba.
+- Muerte del mob: animación, cierre diferido (~0.9s) y **resumen de victoria** con XP/drops reales (F13).
 - Derrota: overlay propio con HP final y botón **Reiniciar mundo**.
 
 **Catálogo maestro de ataques:**
@@ -783,11 +789,32 @@ La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo
 | `pruebas/barra-timing.html` | Prueba del minijuego de timing. Mide precisión del click. |
 | `js/core/tiles_muestrario.md` | Documento de referencia con el uso de tiles. |
 
-**Consola:** `debugCombate("cerdo", "ATAQUE_8")` inicia un combate de prueba con 100 HP para validar el combo y `Golpe` sin buscar un reptiliano. Es temporal (`cheats.js`).
+**Consola:** `debugCombate("cerdo", "ATAQUE_8")` inicia un combate de prueba con 100 HP para validar el combo y `Golpe` sin buscar un reptiliano. `debugXP(500)` otorga XP para probar habilidades y el menú. Ambos son temporales (`cheats.js`).
 
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v2.7-alpha)
+### Progresión y menú del jugador (v2.8-alpha)
+
+**Archivos:** `js/systems/progresion.js` (lógica) + `js/ui/menu-jugador.js` (UI).
+
+- La XP se gana al vencer mobs y se gasta en habilidades.
+- **Nivel = 1 + rangos comprados.** No hay subida automática por XP.
+- Habilidades: Vitalidad (+2 HP máx.), Fuerza (+1 ataque), Defensa (+1 defensa), Movilidad (+10% velocidad) y Herramientas (+15% velocidad de rotura).
+- El menú se abre con `I` o el botón 👤, pausa el juego y tiene pestañas Personaje, Habilidades, Inventario y Misiones (placeholder).
+- El HUD muestra nivel y XP disponible.
+- Al reiniciar el mundo se resetean XP, habilidades y drops únicos.
+
+### Loot y XP por mob (v2.8-alpha)
+
+**Archivo:** `js/systems/loot.js`.
+
+- `LOOT_POR_MOB` define `xp`, `dropea`, `probabilidad`, `objetos` y `unicos` por mob.
+- Cada objeto usa `{ id, prob, min, max }`; la cantidad se tira en ese rango.
+- Los drops van directo al inventario y el resumen de victoria muestra los objetos reales.
+- Los drops únicos se guardan en `estado.dropsUnicos` y se entregan una sola vez por mundo.
+- `LOOT_UNICOS_POR_MOB` queda preparado para mobs especiales/bosses.
+
+## 🧪 MARCO 9 · Sistema de Test (v2.8-alpha)
 
 ### Lo que hay ahora
 
@@ -810,13 +837,16 @@ La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo
 - **Sistema de combate por turnos** con timing (F28 fases 1-11).
 - **Aviso inicial de combate** + modos visuales ataque/defensa.
 - **Ataques telegrafiados** por mob con perfiles de timing propios, `Golpe` 50% imbloqueable y placeholder de ataque de boss (F28.2).
-- **Resumen de victoria** con XP y objetos de prueba (F28.3).
+- **Resumen de victoria** con XP y drops reales (F28.3 + F13).
 - **Combo de 3 perfectos** con slots visibles y golpe ×1.5 (F28.5).
 - **Historial de combate** color-coded y **badges de último golpe** por panel (F28.6).
 - **Motor de efectos/estados de combate** solo diseñado, no implementado (F28.4).
 - **Huida probabilística** con penalización + mob desaparece.
 - **Muerte del jugador** → pantalla de derrota con botón de reinicio.
 - **Pausa global en combate** (bloquea movimiento, IA, rotura, barco).
+- **Progresión con XP** y 5 habilidades comprables; el nivel sube con cada rango (F30).
+- **Menú único del jugador** (`I` o 👤) con Personaje, Habilidades, Inventario y Misiones (F30).
+- **Loot por mob** con probabilidades, cantidades y drops únicos por mundo (F13).
 - **Inventario en HUD** con íconos correctos.
 - **Control de semilla en UI**.
 - **Botones de movimiento** en pantalla.
@@ -856,8 +886,8 @@ Todos los bugs de v2.4-alpha y de F28.1 fueron resueltos:
 - Adaptar `auditor/` al sistema de temas.
 - Barco: mob bloqueando la única celda de tierra.
 - Mobs de chunks vecinos: ¿actúan cuando el jugador no los ve?
-- **F30 (niveles del jugador):** sistema de XP.
 - **F1 (día-noche)**, **F26 (especiales)**, **F27 (bosses)**, **F29 (escalado)**.
+- Persistencia de XP/habilidades (F33).
 
 ### ⚠️ Recordatorio: borrar cheats antes de producción
 
@@ -972,19 +1002,21 @@ Ideas futuras: F1-F33.
 - [x] **Manzanas curativas** (+1 HP al pisarlas, sin superar `hpMax`; al máximo quedan en el suelo) ← v2.6-alpha
 - [x] **HUD inicial** (posición y vida visibles al cargar) ← v2.6-alpha
 - [x] **F28.2 · Ataques telegrafiados** (catálogo + perfiles de barra + telegráfico) ← v2.7-alpha
-- [x] **F28.3 · Resumen de victoria** (XP y objetos de prueba) ← v2.7-alpha
+- [x] **F28.3 · Resumen de victoria** (XP y drops reales) ← v2.8-alpha
 - [x] **UX de combate** (aviso inicial + modos visuales ataque/defensa) ← v2.7-alpha
 - [x] **F28.5 · Combo de 3 perfectos** (slots + ataque ×1.5) ← v2.7-alpha
 - [x] **F28.6 · Historial de combate y último golpe** (colores + badges) ← v2.7-alpha
+- [x] **F30 · Progresión** (XP, habilidades, nivel por compras y menú del jugador) ← v2.8-alpha
+- [x] **F13 · Loot y XP por mob** (probabilidades, cantidades y únicos por mundo) ← v2.8-alpha
 - [ ] **F28.4 · Motor de efectos/estados de combate** (diseñado; falta implementación y tests)
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🟡 Media | F30: sistema de niveles del jugador | ⏸️ | Placeholder actual es nivel 1 |
-| 🟡 Media | Loot y XP de mobs (F13) | ⏸️ | Depende de F30 |
 | 🟡 Media | Equipables mejorados (F12) | ⏸️ | Velocidad, stats, linterna |
+| 🟡 Media | Balance de XP/costos (F30/F13) | ⏸️ | Ajustar curvas tras pruebas |
+| 🟢 Baja | Persistencia de progresión (F33) | ⏸️ | XP, habilidades e inventario |
 | 🟡 Media | Pulir tema espacio | ⏸️ | F19 |
 | 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de F28 |
 | 🟢 Baja | Escalado de timing (F29) | ⏸️ | Base parametrizable lista (v2.7-alpha); falta F1 |
@@ -1036,6 +1068,9 @@ Ideas futuras: F1-F33.
 | 7.12 | Efectos visuales genéricos | `js/systems/efectos.js` |
 | 7.13 | Minijuego de timing | `js/systems/barra-timing.js` |
 | 7.14 | Lógica de combate | `js/systems/combate.js` |
+| 7.16 | Progresión (XP, habilidades, stats) | `js/systems/progresion.js` |
+| 7.17 | Loot y XP por mob | `js/systems/loot.js` |
+| 7.18 | Menú del jugador | `js/ui/menu-jugador.js` |
 | 8 | Carga e inicialización de chunks | `js/world/chunks.js` |
 | 9 | Render del mundo | `js/ui/render.js` |
 | 10 | (Eliminado en v2.0 — barra de zonas) | — |
@@ -1129,8 +1164,8 @@ Ideas futuras: F1-F33.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
 - Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F33).
 - La configuración de agentes vive en **[AGENTS.md](AGENTS.md)**.
-- **Prioridad actual:** F30 (sistema de niveles del jugador).
+- **Prioridad actual:** F12 (equipables que modifican stats) y balance de XP/costos.
 
 ---
 
-**Fin del README · Última revisión: 2026-10-20**
+**Fin del README · Última revisión: 2026-10-21**
