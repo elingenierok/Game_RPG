@@ -33,6 +33,7 @@ const TEMA_ESPACIO = {
     ICE:         "🔷",
     PINE:        "🗼",
     BARCO:       "🚀",
+    HOGUERA:     "🔥",
   },
 
   // ─── Biomas ───

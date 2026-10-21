@@ -17,6 +17,7 @@ const barco = {
 const DURACION_COLOCAR_BARCO_MS = 5000;
 
 function tieneBarcoEquipado() {
+  if (typeof Equipamiento !== "undefined") return Equipamiento.tieneAccion("BARCO");
   return (estado.inventario.BARCO || 0) > 0;
 }
 

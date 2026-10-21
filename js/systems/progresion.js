@@ -49,7 +49,7 @@ const HABILIDADES = {
     max: 5,
     costoBase: 35,
     costoIncremento: 20,
-    descripcion: "+15% de velocidad de rotura con hacha y pico por rango.",
+    descripcion: "+5% de velocidad de rotura con hacha y pico por rango.",
   },
 };
 
@@ -98,10 +98,13 @@ function recalcularStatsJugador(curarDiferencia) {
   const hpMaxAnterior = Number.isFinite(jugador.hpMax) ? jugador.hpMax : p.statsBase.hpMax;
   if (!Number.isFinite(jugador.hp)) jugador.hp = hpMaxAnterior;
 
-  jugador.hpMax = p.statsBase.hpMax + p.habilidades.vitalidad * 2;
-  jugador.ataque = p.statsBase.ataque + p.habilidades.fuerza;
-  jugador.defensa = p.statsBase.defensa + p.habilidades.defensa;
-  jugador.velocidad = Number((p.statsBase.velocidad * (1 + p.habilidades.movilidad * 0.1)).toFixed(2));
+  const bonos = typeof Equipamiento !== "undefined" ? Equipamiento.obtenerBonos() : {};
+  const velocidadBase = p.statsBase.velocidad * (1 + p.habilidades.movilidad * 0.1);
+
+  jugador.hpMax = p.statsBase.hpMax + p.habilidades.vitalidad * 2 + (bonos.hpMax || 0);
+  jugador.ataque = p.statsBase.ataque + p.habilidades.fuerza + (bonos.ataque || 0);
+  jugador.defensa = p.statsBase.defensa + p.habilidades.defensa + (bonos.defensa || 0);
+  jugador.velocidad = Number((velocidadBase * (1 + (bonos.velocidad || 0))).toFixed(2));
   jugador.nivel = 1 + totalRangosComprados();
 
   if (curarDiferencia === true && jugador.hpMax > hpMaxAnterior) {
@@ -181,14 +184,31 @@ function obtenerDuracionMovimiento() {
   return DURACION_MOVIMIENTO_MS / factor;
 }
 
-function obtenerMultiplicadorRotura() {
+function obtenerMultiplicadorRotura(tipoHerramienta) {
   const p = asegurarProgresion();
-  return 1 + (p.habilidades.herramientas || 0) * 0.15;
+  const habilidad = 1 + (p.habilidades.herramientas || 0) * 0.05;
+
+  let herramienta = 1;
+  let roturaEquipo = 0;
+  if (typeof Equipamiento !== "undefined") {
+    if (tipoHerramienta) {
+      herramienta = Equipamiento.obtenerVelocidadHerramienta(tipoHerramienta);
+    } else {
+      herramienta = Math.max(
+        Equipamiento.obtenerVelocidadHerramienta("HACHA"),
+        Equipamiento.obtenerVelocidadHerramienta("PICO")
+      );
+    }
+    roturaEquipo = Equipamiento.obtenerBonos().rotura || 0;
+  }
+
+  return Number((habilidad * herramienta * (1 + roturaEquipo)).toFixed(3));
 }
 
 function obtenerResumenProgresion() {
   const p = asegurarProgresion();
   const jugador = recalcularStatsJugador(false);
+  const bonosEquipo = typeof Equipamiento !== "undefined" ? Equipamiento.obtenerBonos() : {};
   return {
     xp: p.xp,
     xpTotal: p.xpTotal,
@@ -199,6 +219,10 @@ function obtenerResumenProgresion() {
     defensa: jugador.defensa,
     velocidad: jugador.velocidad,
     multiplicadorRotura: obtenerMultiplicadorRotura(),
+    roturaHacha: obtenerMultiplicadorRotura("HACHA"),
+    roturaPico: obtenerMultiplicadorRotura("PICO"),
+    vision: bonosEquipo.vision || 0,
+    bonosEquipo,
     habilidades: { ...p.habilidades },
     rangos: totalRangosComprados(),
   };

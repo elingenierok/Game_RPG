@@ -53,11 +53,50 @@ function inicializarJugador() {
 
   estado.jugador.inicializado = true;
 
+  colocarHoguerasDeSpawn();
+
   if (typeof iniciarCamara === "function") {
     iniciarCamara(estado.jugador.wx, estado.jugador.wy);
   }
 
   inicializarLlave();
+}
+
+// ─── Hogueras del campamento inicial (F1: fuente de luz fija) ───
+//  Solo se generan cerca del spawn, nunca en el resto del mundo.
+function colocarHoguerasDeSpawn() {
+  const chunk = obtenerChunk(0, 0);
+  const rng = crearRNG(hashString(SEMILLA + "@hogueras"));
+  const centroX = estado.jugador.wx;
+  const centroY = estado.jugador.wy;
+  const candidatos = [];
+
+  for (let ly = 1; ly < ALTO_CHUNK - 1; ly++) {
+    for (let lx = 1; lx < ANCHO_CHUNK - 1; lx++) {
+      const dx = lx - centroX;
+      const dy = ly - centroY;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < 1 || d2 > 16) continue;   // entre 1 y 4 celdas del spawn
+      const tile = chunk.mapa[ly][lx];
+      if (BLOQUEANTES.has(tile)) continue;
+      if (tile === LLAGUE || tile === MANZANA || tile === HOGUERA) continue;
+      candidatos.push([lx, ly]);
+    }
+  }
+
+  // Mezcla determinista
+  for (let i = candidatos.length - 1; i > 0; i--) {
+    const j = randInt(rng, 0, i);
+    const tmp = candidatos[i];
+    candidatos[i] = candidatos[j];
+    candidatos[j] = tmp;
+  }
+
+  const cantidad = Math.min(2, candidatos.length);
+  for (let k = 0; k < cantidad; k++) {
+    const [lx, ly] = candidatos[k];
+    chunk.mapa[ly][lx] = HOGUERA;
+  }
 }
 
 // ─── Inicialización de la llave ───

@@ -3,6 +3,67 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v2.10-alpha · 2026-10-21 (F1 ciclo día-noche y luz)
+
+### 🎯 Objetivo
+
+Que el mundo tenga ciclo día-noche: de noche casi todo queda a oscuras y solo se ve el campo de luz del jugador y las fuentes de luz del mundo (hoguera del spawn). La linterna por niveles agranda la visión.
+
+### ✅ Completado
+
+**F1 · Ciclo día-noche (con sistema de luz)**
+
+- `js/systems/ciclo.js` (BLOQUE 7.20): fases `día → atardecer → noche → amanecer` con duraciones en `CICLO_CONFIG` (cambiables a futuro).
+- Luz global por fase con interpolación `smoothstep` (`1 → 0` atardecer, `0 → 1` amanecer, `0` noche, `1` día).
+- Fórmula de luz por celda: `luz = max(global, jugador, hogueras…)` y `oscuridad = 1 - luz`. Falloff de fuentes `potencia * (1 - d/radio)^2` con distancia redonda.
+- El **jugador es una fuente de luz móvil**: radio `1 + visión` (sin linterna ve 3×3; con linterna del sol, 13×13).
+- **Hoguera** (tile nuevo `HOGUERA`, ID 25): se coloca solo en el spawn (hasta 2, deterministas), siempre encendida, radio de luz 4 con titileo.
+- Oscurecimiento por tile con el pseudo-elemento `::after` y las variables CSS `--osc` / `--osc-global`; el `#jugador-fijo` nunca se oscurece.
+- El ciclo se pausa con `estado.pausado` (combate, menú, victoria, derrota) y se reinicia con el mundo.
+- Cheats nuevos: `debugCiclo(fase, progreso)`, `debugNoche()` y `debugDia()`.
+
+### 🧪 Estado
+
+- `node --check` OK en todos los JS.
+- Harness de fórmula F1 (fases, falloff, radio y campo de luz) OK.
+- Validación Chrome headless: noche oscurece celdas lejanas, jugador y hoguera iluminan, día limpia el velo, radio de linterna OK.
+- Regresión F12/F30/F13 OK.
+- **v2.10-alpha jugable.**
+
+---
+
+## v2.9-alpha · 2026-10-21 (F12 equipamiento, niveles y rotura)
+
+### 🎯 Objetivo
+
+Convertir herramientas y equipo en una progresión por niveles: las acciones se mejoran automáticamente al encontrar una versión superior, el equipo se administra por slots y la rotura/visión dependen de lo que tengas puesto.
+
+### ✅ Completado
+
+**F12 · Equipamiento y niveles**
+
+- `js/systems/equipamiento.js`: catálogo de niveles Base, Normal, Especial y Legendario.
+- Herramientas de acción (`HACHA`, `PICO`, `LINTERNA`, `BARCO`) que se reemplazan solas por la mejor versión encontrada; los IDs base se conservan.
+- Velocidad de rotura por nivel: `0.68 / 0.82 / 0.98 / 1.18`; visión de linterna `1 / 2 / 3 / 5`.
+- Equipo por slots `casco`, `pechera`, `guantes` y `botas`, con bonus de HP, ataque, defensa, velocidad y rotura.
+- Objetos legendarios únicos: no se pueden duplicar por mundo.
+- Inventario separado en **Acciones**, **Equipables** y **Uso/trueque**; doble clic o botón **Equipar**.
+- HUD de slots con glow por nivel (`nivel-0` a `nivel-3`).
+- Generación de equipo por chunk (~12%) y niveles ponderados por distancia.
+- Cheats nuevos: `debugHerramienta(tipo, nivel)`, `debugEquipo(nivel)` y `debugVision()`.
+- Herramientas de F30 ahora da `+5%` de rotura por rango (antes `+15%`) para no duplicar el aporte de las herramientas.
+- **Fix de recogida:** las acciones del mapa usaban el ID numérico del tile; ahora se mapean a `HACHA/PICO/LINTERNA/BARCO` y la comparación de nivel funciona.
+- **Pila de equipo:** los equipables no únicos se acumulan hasta **99**; monedas y materiales no tienen tope.
+
+### 🧪 Estado
+
+- `node --check` OK en todos los JS.
+- Harness temporal F12 de equipamiento OK.
+- Harness F30/F13 actualizado al nuevo multiplicador (`1.05`) OK.
+- Validación Chrome headless: equipo, slots, bonus, rotura, visión y menú OK.
+- **v2.9-alpha jugable.** Próximas prioridades: balance de XP/costos, persistencia (F33) y F1 día/noche para la visión de la linterna.
+
+---
 ## v2.8-alpha · 2026-10-21 (F30 progresión + F13 loot y XP)
 
 ### 🎯 Objetivo

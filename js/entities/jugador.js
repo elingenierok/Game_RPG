@@ -115,16 +115,28 @@ function alPisarCelda(wx, wy) {
   // ─── ¿Es un equipable? ───
   const equipable = recogerEquipableEn(wx, wy);
   if (equipable) {
-    const nombre = tipoEquipableANombre(equipable.tipo);
-    let icono = "🎒";
-if (nombre === "HACHA")    icono = ICONOS[HACHA];
-if (nombre === "PICO")     icono = ICONOS[PICO];
-if (nombre === "LINTERNA") icono = ICONOS[LINTERNA];
-if (nombre === "BARCO")    icono = ICONOS[BARCO];
-    if (typeof mostrarCartelRapido === "function") {
-      mostrarCartelRapido(`${icono} ¡${nombre} conseguido!`);
+    const nombre = equipable.item && equipable.item.nombre
+      ? equipable.item.nombre
+      : tipoEquipableANombre(equipable.tipo);
+    const icono = equipable.item && equipable.item.icono
+      ? equipable.item.icono
+      : "🎒";
+
+    if (equipable.ok === false) {
+      let motivo = "Ya tenés algo mejor";
+      if (equipable.motivo === "unico") motivo = "Ese objeto único ya es tuyo";
+      else if (equipable.motivo === "igual") motivo = "Ya tenés uno igual";
+      else if (equipable.motivo === "lleno") motivo = "Tenés 99, vendé alguno";
+      else if (equipable.motivo === "inexistente" || equipable.motivo === "no-equipable") motivo = "No se pudo recoger";
+      if (typeof mostrarCartelRapido === "function") {
+        mostrarCartelRapido(`${icono} ${motivo}`);
+      }
+    } else {
+      if (typeof mostrarCartelRapido === "function") {
+        mostrarCartelRapido(`${icono} ¡${nombre} conseguido!`);
+      }
+      console.log("🎒 Recogiste:", nombre);
     }
-    console.log("🎒 Recogiste:", nombre);
   }
 
   if (typeof actualizarHUD === "function") actualizarHUD();

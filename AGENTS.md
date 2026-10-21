@@ -12,7 +12,7 @@ Motor de un roguelike procedural en **JavaScript vanilla**, sin frameworks, sin 
 
 **Frase guía del creador:** *"Si el test se siente entretenido, agrego complejidad."*
 
-**Versión actual:** v2.8-alpha (F28 completo, F30 de progresión con XP/habilidades/menú, F13 de loot por mob y F28.4 solo diseñado).
+**Versión actual:** v2.10-alpha (F28 completo, F30 de progresión, F13 de loot por mob, F12 de equipamiento por niveles, F1 de ciclo día-noche y F28.4 solo diseñado).
 
 ---
 
@@ -46,14 +46,14 @@ Game_RPG/
     ├── world/              ← biomas, mundo, chunks
     ├── entities/           ← jugador, mobs, enemigos, items
     ├── ui/                 ← render, combate-ui, menu-jugador, victoria
-    └── systems/            ← camara, efectos, barra-timing, combate, progresion, loot, ia, rotura, barco, cheats
+    └── systems/            ← camara, efectos, barra-timing, combate, progresion, loot, equipamiento, ciclo, ia, rotura, barco, cheats
 ```
 
 **Orden de carga en `index.html` (CRÍTICO — respetar):**
 
 ```
 temas → config → ruido → tiles → rng → biomas → mundo → camara → estado
-→ progresion → chunks → items → mobs → loot → enemigos → efectos → barra-timing
+→ progresion → chunks → items → equipamiento → ciclo → mobs → loot → enemigos → efectos → barra-timing
 → render → ia → jugador → combate-ui → combate → menu-jugador → victoria
 → input → rotura → barco → cheats → main
 ```
@@ -131,13 +131,13 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 
 ---
 
-## Estado actual (v2.8-alpha)
+## Estado actual (v2.10-alpha)
 
 ### Implementado
 - Mundo 2D circular, cámara fluida, movimiento 360°.
 - Biomas por celda con ruido (temp + humedad).
 - Sistema de temas (tierra / espacio).
-- Ítems recolectables, equipables (hacha, pico, linterna, barco).
+- Ítems recolectables y acciones equipables (hacha, pico, linterna, barco).
 - Manzanas curativas: +1 HP al pisarlas, sin superar `hpMax`; al máximo quedan en el suelo.
 - Sistema de rotura con efecto de golpe.
 - Mobs con IA (deambular, perseguir, huir).
@@ -151,6 +151,8 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 - **Progresión con XP** (F30): 5 habilidades comprables, nivel = 1 + rangos, recálculo de stats y movimiento/rotura mejorados.
 - **Menú único del jugador** (F30): pestañas Personaje, Habilidades, Inventario y Misiones; se abre con `I` o 👤 y pausa el juego.
 - **Loot por mob y XP real** (F13): `LOOT_POR_MOB` con probabilidad/cantidades, drops directos al inventario y únicos una vez por mundo.
+- **Equipamiento por niveles** (F12): 4 niveles (Base/Normal/Especial/Legendario), acciones auto-mejorables (reemplaza solo si el nivel es mayor), 4 slots de equipo con bonus, glow por nivel, visión de linterna y pila de equipo no único hasta 99.
+- **Ciclo día-noche y luz** (F1): fases día/atardecer/noche/amanecer con `smoothstep`, oscurecimiento por tile (`--osc`/`--osc-global`), jugador como luz móvil (`radio = 1 + visión`) y hoguera del spawn (`HOGUERA`, radio 4). Pausable.
 - **Motor de efectos de combate** (F28.4): solo diseñado, no implementado.
 - HP del jugador, daño real, muerte y derrota con botón de reinicio.
 - Corazones de HP con número (2 HP por corazón).
@@ -168,9 +170,9 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 Ver `BACKLOG.md · F28.1 y B10` para causas y soluciones.
 
 ### Prioridad actual
-1. F12 (equipables que modifican stats y HP máximo).
-2. Balance de XP/costos de F30 y tablas de F13.
-3. Persistencia de progresión (F33).
+1. Balance de XP/costos de F30 y tablas de F13.
+2. Persistencia de progresión (F33).
+3. Ajustes de F1: duraciones del ciclo, radios de luz y aparición de mobs nocturnos (F26).
 
 ### Líneas futuras anotadas (no implementadas)
 - **F31 · Adaptación móvil:** controles táctiles, layout responsive, acción contextual para reemplazar Espacio, posibles automatizaciones y ajuste de velocidad/zonas para compensar latencia.
@@ -206,6 +208,8 @@ Ver `BACKLOG.md · F28.1 y B10` para causas y soluciones.
 | **Perfil de ataque** | Duración y ancho de zonas de la barra de defensa para un `ATAQUE_N`. |
 | **Turno** | Ciclo de ataque o defensa en combate. |
 | **Hubida** | Acción probabilística de escapar del combate. |
+| **Luz global** | Brillo del ciclo (1 día → 0 noche). Multiplica/limita el velo de oscuridad. |
+| **Hoguera** | Tile `HOGUERA` (ID 25) del spawn; fuente de luz fija radio 4. |
 | **RNG** | Generador pseudoaleatorio. Determinista por semilla. |
 
 ---

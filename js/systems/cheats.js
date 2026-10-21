@@ -49,28 +49,91 @@ function debugXP(cantidad = 100) {
 
 window.debugXP = debugXP;
 
+// Prueba rápida de herramientas desde consola:
+//   debugHerramienta("HACHA", 3)
+function debugHerramienta(tipo = "HACHA", nivel = 3) {
+  if (typeof Equipamiento === "undefined") return "Equipamiento no disponible.";
+  const resultado = Equipamiento.recogerAccion(tipo, nivel);
+  if (typeof actualizarHUD === "function") actualizarHUD();
+  return resultado.ok
+    ? `${resultado.item.nombre} (Nv. ${resultado.item.nivel}) equipada`
+    : `No se pudo equipar ${tipo} Nv. ${nivel}`;
+}
+
+// Prueba rápida de equipo desde consola:
+//   debugEquipo(2)
+function debugEquipo(nivel = 1) {
+  if (typeof Equipamiento === "undefined") return "Equipamiento no disponible.";
+  const resultados = Equipamiento.SLOTS.map((slot) => {
+    const id = Equipamiento.idEquipo(slot, nivel);
+    return id ? Equipamiento.recogerEquipo(id) : null;
+  }).filter(Boolean);
+
+  if (typeof actualizarHUD === "function") actualizarHUD();
+  const ok = resultados.filter((r) => r.ok);
+  return ok.length > 0
+    ? `Equipables al inventario: ${ok.map((r) => r.item.nombre).join(", ")}`
+    : "No se pudo generar equipo.";
+}
+
+// Prueba rápida de visión/rotura desde consola:
+//   debugVision()
+function debugVision() {
+  if (typeof Progresion === "undefined") return "Progresión no disponible.";
+  const r = Progresion.obtenerResumen();
+  return `👁 Visión +${r.vision} · ⛏ H x${r.roturaHacha.toFixed(2)} · P x${r.roturaPico.toFixed(2)}`;
+}
+
+window.debugHerramienta = debugHerramienta;
+window.debugEquipo = debugEquipo;
+window.debugVision = debugVision;
+
+// Prueba rápida del ciclo día-noche desde consola:
+//   debugCiclo("noche")  ·  debugNoche()  ·  debugDia()
+function debugCiclo(fase = "noche", progreso = 0) {
+  if (typeof Ciclo === "undefined") return "Ciclo no disponible.";
+  Ciclo.saltarA(fase, progreso);
+  return `Ciclo → ${Ciclo.fase()} (luz global ${Ciclo.luzGlobal().toFixed(2)})`;
+}
+
+function debugNoche(progreso = 0) {
+  return debugCiclo("noche", progreso);
+}
+
+function debugDia() {
+  return debugCiclo("dia", 0);
+}
+
+window.debugCiclo = debugCiclo;
+window.debugNoche = debugNoche;
+window.debugDia = debugDia;
+
 function toggleCheatEquipables() {
-  const tieneTodo =
-    (estado.inventario.HACHA    || 0) > 0 &&
-    (estado.inventario.PICO     || 0) > 0 &&
-    (estado.inventario.LINTERNA || 0) > 0 &&
-    (estado.inventario.BARCO    || 0) > 0;
+  if (typeof Equipamiento === "undefined") return;
+
+  const tieneTodo = ["HACHA", "PICO", "LINTERNA", "BARCO"].every((tipo) => {
+    const item = Equipamiento.obtenerAccion(tipo);
+    return !!(item && item.nivel >= 3);
+  });
 
   if (tieneTodo) {
-    estado.inventario.HACHA    = 0;
-    estado.inventario.PICO     = 0;
-    estado.inventario.LINTERNA = 0;
-    estado.inventario.BARCO    = 0;
+    Object.keys(estado.inventario).forEach((id) => { estado.inventario[id] = 0; });
+    Equipamiento.reiniciarEquipamiento();
     mostrarCartelRapido("🧹 Inventario limpiado");
   } else {
-    estado.inventario.HACHA    = (estado.inventario.HACHA    || 0) + 1;
-    estado.inventario.PICO     = (estado.inventario.PICO     || 0) + 1;
-    estado.inventario.LINTERNA = (estado.inventario.LINTERNA || 0) + 1;
-    estado.inventario.BARCO    = (estado.inventario.BARCO    || 0) + 1;
+    Equipamiento.recogerAccion("HACHA", 3);
+    Equipamiento.recogerAccion("PICO", 3);
+    Equipamiento.recogerAccion("LINTERNA", 3);
+    Equipamiento.recogerAccion("BARCO", 0);
+    Equipamiento.recogerEquipo(Equipamiento.idEquipo("casco", 3));
+    Equipamiento.recogerEquipo(Equipamiento.idEquipo("pechera", 3));
+    Equipamiento.recogerEquipo(Equipamiento.idEquipo("guantes", 3));
+    Equipamiento.recogerEquipo(Equipamiento.idEquipo("botas", 3));
     mostrarCartelRapido("🎁 Equipables cargados");
   }
 
   if (typeof actualizarHUD === "function") actualizarHUD();
+  if (typeof MenuJugador !== "undefined" && MenuJugador.estaAbierto()) MenuJugador.abrir();
 }
 
 document.addEventListener("DOMContentLoaded", initCheats);

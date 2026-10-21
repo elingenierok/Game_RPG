@@ -17,7 +17,7 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - F9 · Sistema de mouse / interacción con click · 🧪 PARCIAL
 - F10 · Bioma "playa" como bioma separado
 - F11 · Fases de objetos equipables · ✅ IMPLEMENTADO en v1.7
-- F12 · Objetos equipables de mejor nivel (+ linterna + stats)
+- F12 · Objetos equipables de mejor nivel (+ linterna + stats) · ✅ IMPLEMENTADO en v2.9-alpha (niveles + slots)
 - F13 · Drops alternativos de objetos · ✅ IMPLEMENTADO en v2.8-alpha (loot por mob + únicos)
 - F14 · Rediseño del sistema de biomas con JSON · ✅ IMPLEMENTADO en v1.6
 - F15 · Biomas forzados + chunks de transición
@@ -94,20 +94,26 @@ Para el estado actual del proyecto, ver [README.md](README.md).
 - **Mobs especiales nocturnos (cat. 2):** aparecen solo de noche. Ver F26.
 - **Bosses (cat. 3):** independiente del ciclo. Ver F27.
 
-### Implementación técnica (futura)
+### Implementación (v2.10-alpha)
 
-- Nueva `estado.ciclo = { fase, tiempoRestante }`.
-- En `render.js`: `filter: brightness()` según fase + radio + tiles de luz.
-- Tiles nuevos: propiedad `emiteLuz: true` y radio.
-- Nueva `js/systems/ciclo.js`.
+- `js/systems/ciclo.js` (BLOQUE 7.20) con `Ciclo` y `CICLO_CONFIG` (duraciones modificables).
+- El día-noche es **opacidad por tile**, no un filtro de pantalla: cada celda se oscurece al atardecer y se aclara al amanecer hasta quedar **completamente negra** de noche.
+- **Fórmula de luz por celda:** `luz = max(global, jugador, hogueras…)`; `oscuridad = 1 - luz`. Falloff `potencia * (1 - d/radio)^2` con distancia redonda.
+- **Jugador como luz móvil:** `radio = RADIO_BASE_JUGADOR (1) + visión`. Sin linterna ve 3×3; con `LINTERNA_SOL` (visión 5) 13×13.
+- **Hoguera:** tile nuevo `HOGUERA` (ID 25, `🔥`) colocado solo en el spawn (hasta 2 deterministas), radio 4, potencia 1, siempre encendida con titileo. Es el único tile con `LUCES_POR_TILE`.
+- Render: `#mapa .tile::after` con `opacity: var(--osc, var(--osc-global, 0))`; `#jugador-fijo` nunca se oscurece.
+- **Pausable:** el ciclo se detiene con `estado.pausado` (combate, menú, victoria, derrota).
+- Cheats: `debugCiclo(fase, progreso)`, `debugNoche()` y `debugDia()`.
+- **LOS:** la luz atraviesa todo (sin oclusión por árboles/paredes) por decisión de simplicidad.
+- **Fuera de alcance (por ahora):** mobs nocturnos (F26), glow legendario que ilumine, tiles de luz adicionales (faroles).
 
 ### Preguntas pendientes
 
-- ¿Los efectos visuales (vibrar, glow) se ven de noche o quedan ocultos?
-- ¿Los mobs especiales nocturnos reaparecen cada noche?
-- ¿Los tiles de luz consumen algo?
+- ¿Las luces fijas (faroles) van a consumir algo?
+- ¿Cuántos tiles de luz fijos queremos en el mundo además del spawn?
+- ¿El ciclo debe seguir corriendo durante la derrota/victoria?
 
-**Estado:** ⏸️ Anotado. Depende de F28 (combate) para que "peligroso" tenga sentido.
+**Estado:** ✅ Implementado en v2.10-alpha. Pendiente de balance: duraciones, radios de luz y conexión con F26 (mobs nocturnos).
 
 ---
 
@@ -270,6 +276,26 @@ mundo = función(semilla, chunk) + deltas
 ## ⚙️ F12 · Objetos equipables de mejor nivel (+ linterna + stats)
 
 **Idea:** cada equipable tiene versiones de mejor nivel. También hay equipables que modifican stats del jugador.
+
+**Estado:** ✅ Implementado en v2.9-alpha.
+
+### Implementación real (v2.9-alpha)
+
+- **Archivo:** `js/systems/equipamiento.js`.
+- **Niveles:** Base (0), Normal (1), Especial (2) y Legendario (3, único por mundo).
+- **Acciones auto-mejorables:** `HACHA`, `PICO`, `LINTERNA`, `BARCO`; solo conservan el mejor nivel en `estado.inventario`.
+- **Velocidad de rotura:** `0.68 / 0.82 / 0.98 / 1.18` por nivel.
+- **Visión de linterna:** `1 / 2 / 3 / 5` por nivel (efecto real pendiente de F1).
+- **Slots reales:** `casco`, `pechera`, `guantes`, `botas`; bonus aditivos de HP, ataque, defensa, velocidad y rotura.
+- **Generación:** `items.js` agrega equipo por chunk (`~12%`) y niveles ponderados por distancia; las herramientas conservan su bioma.
+- **UI:** menú Inventario con categorías Acciones/Equipables/Uso, doble clic o botón Equipar, y HUD con glow por nivel.
+- **Cheats:** `debugHerramienta(tipo, nivel)`, `debugEquipo(nivel)` y `debugVision()`.
+- **Balance:** la habilidad Herramientas pasó de `+15%` a `+5%` por rango para no duplicar el aporte de las herramientas.
+- **Recogida:** las acciones del mapa se mapean de ID numérico de tile a `HACHA/PICO/LINTERNA/BARCO` antes de comparar nivel; si lo recogido es superior, reemplaza; si es igual o peor, no.
+- **Pila:** equipables no únicos hasta **99**; monedas, oro y materiales sin tope (pensado para vender).
+- **Pendiente de balance:** validar en juego el `12%` de spawn de equipo y la ponderación de niveles por distancia.
+
+Las tablas siguientes quedan como referencia del diseño original.
 
 ### Hachas / Picos
 

@@ -73,7 +73,7 @@ function renderMapaBiomas() {
     try {
       const equipables = generarEquipablesDeChunk(c.cx, c.cy);
       if (equipables && equipables.length > 0) {
-        iconosEquip = equipables.map(e => ICONOS[e.tipo] || "?").join(" ");
+        iconosEquip = equipables.map(e => (e.id ? obtenerDatosItem(e.id).icono : ICONOS[e.tipo]) || "?").join(" ");
       }
     } catch (err) {
       console.error("[auditor] error equipables en", c.cx, c.cy, err);

@@ -62,21 +62,52 @@ const MenuJugador = (() => {
     });
 
     contenido.addEventListener("click", (e) => {
-      const boton = e.target.closest("[data-comprar]");
-      if (!boton) return;
-      const id = boton.dataset.comprar;
-      const resultado = Progresion.comprarHabilidad(id);
-      if (!resultado.ok) {
-        if (resultado.motivo === "xp") {
-          mostrarAviso(`Faltan ${resultado.faltante} XP`);
-        } else if (resultado.motivo === "maximo") {
-          mostrarAviso("Habilidad al máximo");
+      const botonComprar = e.target.closest("[data-comprar]");
+      if (botonComprar) {
+        const id = botonComprar.dataset.comprar;
+        const resultado = Progresion.comprarHabilidad(id);
+        if (!resultado.ok) {
+          if (resultado.motivo === "xp") {
+            mostrarAviso(`Faltan ${resultado.faltante} XP`);
+          } else if (resultado.motivo === "maximo") {
+            mostrarAviso("Habilidad al máximo");
+          }
+          return;
         }
+        mostrarAviso(`+1 rango · Nv. ${resultado.nivel}`);
+        render();
         return;
       }
-      mostrarAviso(`+1 rango · Nv. ${resultado.nivel}`);
-      render();
+
+      const botonEquipar = e.target.closest("[data-equipar]");
+      if (botonEquipar) {
+        equiparItem(botonEquipar.dataset.equipar);
+        return;
+      }
+
+      const botonQuitar = e.target.closest("[data-desequipar]");
+      if (botonQuitar) {
+        const resultado = Equipamiento.desequipar(botonQuitar.dataset.desequipar);
+        if (resultado.ok) mostrarAviso(`${resultado.item.nombre} desequipado`);
+        render();
+      }
     });
+
+    contenido.addEventListener("dblclick", (e) => {
+      const card = e.target.closest("[data-item-equipable]");
+      if (card) equiparItem(card.dataset.itemEquipable);
+    });
+  }
+
+  function equiparItem(id) {
+    if (typeof Equipamiento === "undefined") return;
+    const resultado = Equipamiento.equipar(id);
+    if (!resultado.ok) {
+      if (resultado.motivo === "inventario") mostrarAviso("Ese objeto ya no está en el inventario");
+      return;
+    }
+    mostrarAviso(`${resultado.item.nombre} equipado`);
+    render();
   }
 
   function mostrarAviso(texto) {
@@ -153,6 +184,30 @@ const MenuJugador = (() => {
   }
 
   function renderPersonaje(resumen) {
+    const equipo = typeof Equipamiento !== "undefined" ? Equipamiento.obtenerEquipoEquipado() : [];
+    const equipoHTML = equipo.length > 0
+      ? `
+        <div class="menu-seccion">
+          <div class="menu-seccion-titulo">Equipo</div>
+          <div class="menu-equipo-grid">
+            ${equipo.map((slot) => {
+              const item = slot.item;
+              const nivel = item ? item.nivel : 0;
+              return `
+                <div class="menu-equipo-slot ${item ? `nivel-${nivel}` : "vacio"}">
+                  <span class="menu-equipo-icono">${item ? item.icono : slot.icono}</span>
+                  <span class="menu-equipo-info">
+                    <strong>${item ? item.nombre : slot.nombre}</strong>
+                    <small>${item ? item.descripcion : "Sin equipar"}</small>
+                  </span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `
+      : "";
+
     contenido.innerHTML = `
       <div class="menu-stats">
         ${tarjetaStat("⭐ Nivel", resumen.nivel, "Cada rango comprado suma 1")}
@@ -160,9 +215,11 @@ const MenuJugador = (() => {
         ${tarjetaStat("⚔️ Ataque", resumen.ataque, "Daño base")}
         ${tarjetaStat("🛡️ Defensa", resumen.defensa, "Reduce daño recibido")}
         ${tarjetaStat("👟 Velocidad", `x${resumen.velocidad.toFixed(2)}`, "Caminata")}
-        ${tarjetaStat("⛏️ Rotura", `x${resumen.multiplicadorRotura.toFixed(2)}`, "Hacha y pico")}
+        ${tarjetaStat("⛏️ Rotura", `H x${resumen.roturaHacha.toFixed(2)} · P x${resumen.roturaPico.toFixed(2)}`, "Hacha / pico")}
+        ${tarjetaStat("🔦 Visión", `+${resumen.vision}`, "Linterna y equipo")}
       </div>
-      <div class="menu-nota">La XP se gasta en la pestaña Habilidades. No hay niveles automáticos: cada compra sube el nivel.</div>
+      ${equipoHTML}
+      <div class="menu-nota">La XP se gasta en Habilidades. El equipo se cambia desde Inventario: botón Equipar o doble clic.</div>
     `;
   }
 
@@ -196,34 +253,108 @@ const MenuJugador = (() => {
           `;
         }).join("")}
       </div>
-      <div class="menu-nota">La XP se gana al vencer mobs. Los drops reales también llegan con F13.</div>
+      <div class="menu-nota">La XP se gana al vencer mobs. Las herramientas mejoran al encontrar una versión superior; el equipo se administra en Inventario.</div>
     `;
   }
 
   function renderInventario() {
     const items = typeof listarInventario === "function" ? listarInventario() : [];
-    if (items.length === 0) {
+    const acciones = typeof Equipamiento !== "undefined" ? Equipamiento.listarAcciones() : [];
+    const equipables = typeof Equipamiento !== "undefined" ? Equipamiento.listarEquipoInventario() : [];
+    const equipados = typeof Equipamiento !== "undefined" ? Equipamiento.obtenerEquipoEquipado() : [];
+    const uso = items.filter((item) => item.categoria === "uso" || item.categoria === "unico" || item.categoria === "consumible");
+    const tieneEquipoPuesto = equipados.some((slot) => !!slot.item);
+
+    if (acciones.length === 0 && equipables.length === 0 && uso.length === 0 && !tieneEquipoPuesto) {
       contenido.innerHTML = `
         <div class="menu-vacio">🎒 El inventario está vacío.</div>
-        <div class="menu-nota">Recogé equipables del mundo o vencé mobs para conseguir materiales.</div>
+        <div class="menu-nota">Explorá el mundo para encontrar herramientas y equipo. Los mobs sueltan materiales de uso o trueque.</div>
       `;
       return;
     }
 
-    contenido.innerHTML = `
-      <div class="menu-inventario">
-        ${items.map((item) => `
-          <div class="menu-item">
-            <span class="menu-item-icono">${item.icono}</span>
-            <span class="menu-item-info">
-              <strong>${item.nombre}</strong>
-              <small>${item.tipo}</small>
-            </span>
-            <span class="menu-item-cantidad">x${item.cantidad}</span>
+    const seccionAcciones = acciones.length > 0
+      ? `
+        <div class="menu-seccion">
+          <div class="menu-seccion-titulo">Acciones · se mejoran al encontrar una versión superior</div>
+          <div class="menu-inventario">
+            ${acciones.map((item) => `
+              <div class="menu-item nivel-${item.nivel || 0}">
+                <span class="menu-item-icono">${item.icono}</span>
+                <span class="menu-item-info">
+                  <strong>${item.nombre}</strong>
+                  <small>${item.descripcion || item.material || "Herramienta"}</small>
+                </span>
+                <span class="menu-item-cantidad">Nv. ${item.nivel || 0}</span>
+              </div>
+            `).join("")}
           </div>
-        `).join("")}
-      </div>
-    `;
+        </div>
+      `
+      : "";
+
+    const seccionEquipo = typeof Equipamiento !== "undefined"
+      ? `
+        <div class="menu-seccion">
+          <div class="menu-seccion-titulo">Equipo · doble clic o Equipar</div>
+          <div class="menu-equipo-grid">
+            ${equipados.map((slot) => {
+              const item = slot.item;
+              const nivel = item ? item.nivel : 0;
+              return `
+                <div class="menu-equipo-slot ${item ? `nivel-${nivel}` : "vacio"}">
+                  <span class="menu-equipo-icono">${item ? item.icono : slot.icono}</span>
+                  <span class="menu-equipo-info">
+                    <strong>${item ? item.nombre : slot.nombre}</strong>
+                    <small>${item ? item.descripcion : "Sin equipar"}</small>
+                  </span>
+                  ${item ? `<button class="menu-quitar" data-desequipar="${slot.id}">Quitar</button>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+          ${equipables.length > 0 ? `
+            <div class="menu-inventario menu-inventario-equipo">
+              ${equipables.map((item) => `
+                <div class="menu-item menu-item-equipable nivel-${item.nivel || 0}"
+                     data-item-equipable="${item.id}"
+                     title="Doble clic para equipar">
+                  <span class="menu-item-icono">${item.icono}</span>
+                  <span class="menu-item-info">
+                    <strong>${item.nombre}</strong>
+                    <small>${item.descripcion || item.tipo}</small>
+                  </span>
+                  <span class="menu-item-cantidad">x${item.cantidad}</span>
+                  <button class="menu-equipar" data-equipar="${item.id}">Equipar</button>
+                </div>
+              `).join("")}
+            </div>
+          ` : `<div class="menu-nota">No hay equipables guardados. Buscá cofres, mobs o explorá el mundo.</div>`}
+        </div>
+      `
+      : "";
+
+    const seccionUso = uso.length > 0
+      ? `
+        <div class="menu-seccion">
+          <div class="menu-seccion-titulo">Uso y trueque</div>
+          <div class="menu-inventario">
+            ${uso.map((item) => `
+              <div class="menu-item">
+                <span class="menu-item-icono">${item.icono}</span>
+                <span class="menu-item-info">
+                  <strong>${item.nombre}</strong>
+                  <small>${item.tipo}</small>
+                </span>
+                <span class="menu-item-cantidad">x${item.cantidad}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `
+      : "";
+
+    contenido.innerHTML = `${seccionAcciones}${seccionEquipo}${seccionUso}`;
   }
 
   function renderMisiones() {

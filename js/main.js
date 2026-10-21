@@ -26,18 +26,25 @@
 // Inicializar el jugador (busca spawn en el chunk 0,0)
 inicializarJugador();
 iniciarTicks();   // ← NUEVO
+if (typeof Ciclo !== "undefined") Ciclo.iniciar();
 
 // Refrescar el HUD desde el arranque (antes del primer movimiento).
 if (typeof actualizarHUD === "function") actualizarHUD();
 
 // Flag para no duplicar el loop
 let _loopIniciado = false;
+let _ultimoFrame = performance.now();
 
 // Loop principal: actualiza animaciones y renderiza
 function loop() {
+  const ahora = performance.now();
+  const dt = ahora - _ultimoFrame;
+  _ultimoFrame = ahora;
+
   if (typeof verificarMuerteJugador === "function") verificarMuerteJugador();
   if (typeof actualizarJugador === "function") actualizarJugador();
   if (typeof sincronizarCamara === "function") sincronizarCamara();
+  if (typeof Ciclo !== "undefined") Ciclo.actualizar(dt);
 
   // Si el jugador está quieto y hay una tecla apretada, mover
   if (!estado.jugador.animando) {
@@ -70,8 +77,10 @@ function reiniciarMundo(nuevaSemilla) {
   if (typeof cancelarCombateSiActivo === "function") cancelarCombateSiActivo();
 
   if (typeof MenuJugador !== "undefined" && MenuJugador.estaAbierto()) MenuJugador.cerrar();
+  if (typeof Equipamiento !== "undefined") Equipamiento.reiniciarEquipamiento();
   if (typeof Progresion !== "undefined") Progresion.reiniciarProgresion();
   if (typeof Loot !== "undefined") Loot.reiniciarLoot();
+  if (typeof Ciclo !== "undefined") Ciclo.reiniciar();
 
   limpiarCacheBiomas();
   cacheChunks.clear();

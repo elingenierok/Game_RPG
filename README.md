@@ -4,7 +4,7 @@
 > chunks de 32×32, biomas por celda con ruido, ítems recolectables,
 > mobs con IA en tiempo real, sistema de efectos visuales genéricos,
 > combate con timing y ataques telegrafiados, progresión con XP,
-> loot por mob y menú único del jugador.
+> loot por mob, equipamiento por niveles y menú único del jugador.
 
 ---
 
@@ -12,8 +12,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.8-alpha · F28 completo + F30 (XP, habilidades y menú del jugador) + F13 (loot por mob y drops únicos) |
-| **Última actualización** | 2026-10-21 (F30 progresión y menú; F13 loot/XP; combate F28 completo) |
+| **Versión actual** | v2.10-alpha · F28 completo + F30 (XP, habilidades y menú) + F13 (loot por mob) + F12 (equipamiento por niveles) + F1 (ciclo día-noche y luz) |
+| **Última actualización** | 2026-10-21 (F1 día-noche y luz; F12 equipamiento y rotura; F30 progresión; F13 loot/XP; combate F28 completo) |
 | **Estado global** | ✅ Jugable · Combate completo · sin bugs críticos conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -137,6 +137,8 @@ Game_RPG/
         ├── camara.js             ← BLOQUE 20: cámara fluida
         ├── progresion.js         ← BLOQUE 7.16: XP, habilidades y stats
         ├── loot.js               ← BLOQUE 7.17: loot y XP por mob
+        ├── equipamiento.js       ← BLOQUE 7.19: niveles, acciones y slots de equipo (F12)
+        ├── ciclo.js              ← BLOQUE 7.20: ciclo día-noche y luz (F1)
         ├── efectos.js            ← BLOQUE 7.12: efectos visuales genéricos
         ├── barra-timing.js       ← BLOQUE 7.13: minijuego de timing
         ├── combate.js            ← BLOQUE 7.14: lógica de combate por turnos
@@ -150,7 +152,7 @@ Game_RPG/
 
 ```text
 tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas → mundo
-→ camara → estado → progresion → chunks → items → mobs → loot → enemigos
+→ camara → estado → progresion → chunks → items → equipamiento → ciclo → mobs → loot → enemigos
 → efectos → barra-timing → render → ia → jugador → combate-ui → combate
 → menu-jugador → victoria → input → rotura → barco → cheats → main
 ```
@@ -163,7 +165,7 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 | `world/` | Generación y gestión del terreno: chunks 2D, biomas |
 | `entities/` | Todo lo que "vive" en el mundo: jugador, mobs, ítems |
 | `ui/` | Render visual, pantallas y overlays |
-| `systems/` | Sistemas transversales: cámara, progresión, loot, efectos, timing, combate, IA, rotura, barco, cheats |
+| `systems/` | Sistemas transversales: cámara, progresión, loot, equipamiento, ciclo día-noche, efectos, timing, combate, IA, rotura, barco, cheats |
 | `auditor/` | Herramientas de diagnóstico y experimentación |
 | `pruebas/` | Archivos HTML aislados para experimentar (no se cargan desde el juego) |
 
@@ -178,6 +180,7 @@ tema-tierra → tema-espacio → config → ruido → tiles → rng → biomas �
 - `items.js` y `mobs.js` **antes** de `loot.js` (catálogo y datos de mobs).
 - `combate.js` **antes** de `menu-jugador.js` (`estadoCombate`).
 - `menu-jugador.js` **antes** de `main.js` (reinicio del menú).
+- `ciclo.js` **antes** de `render.js` (lo usa `actualizarOscuridadEnGrid`) y **después** de `equipamiento.js` (visión) y `tiles.js` (`HOGUERA`).
 - `efectos.js` **antes** de `render.js` (lo usa `actualizarEfectosEnGrid`).
 - `efectos.js` **antes** de `rotura.js` y `combate.js` (lo usan `aplicarEfecto` y `quitarEfecto`).
 - `barra-timing.js` **antes** de `combate.js` (lo usa `BarraTiming`).
@@ -269,7 +272,7 @@ cd Game_RPG
 | M20 | Sistema de temas | 🟢 | `tema-tierra` / `tema-espacio` (datos) | v2.2-alpha |
 | M21 | Biomas por celda (ruido) | 🟢 | `obtenerBiomaDeCelda` con temp/humedad + `ESCALA_BIOMA = 0.01` | v2.4.1-alpha |
 | M22 | Bioma dominante del chunk | 🟢 | Se usa para spawns (mobs e ítems) | v2.4-alpha |
-| M23 | Ciclo día-noche | ⏸️ | Fases: día → transición → noche → transición. Pausable. Ver BACKLOG · F1 | Pendiente |
+| M23 | Ciclo día-noche | ✅ | Fases: día → atardecer → noche → amanecer. Luz por celda + hoguera. Pausable. Ver BACKLOG · F1 | v2.10-alpha |
 
 ---
 
@@ -300,8 +303,9 @@ cd Game_RPG
 | P1 | Cantidad de personajes | 🟢 | 1 | Sin clases por ahora |
 | P2 | Estadísticas | 🧪 | HP 20, ataque 3, defensa 1, velocidad 1, nivel 1 | v2.5-alpha (F28 fase 1) |
 | P3 | Controles | 🟢 | WASD + flechas + botones + Espacio (combate) | v2.5-alpha |
-| P4 | Inventario | 🧪 | Contador de ítems | Ventana visual futura (F8) |
-| P5 | Tipos de objetos | 🧪 | 🍎 + 4 equipables (🪓 ⛏️ 🕯️ 🛶) | v1.9 |
+| P4 | Inventario | 🧪 | Contador + menú con categorías Acciones/Equipables/Uso | v2.9-alpha (F12) |
+| P5 | Tipos de objetos | 🧪 | 🍎 + acciones por nivel + equipo por slots (🪓 ⛏️ 🕯️ 🛶 + ⛑️ 🦺 🧤 👢) | v2.9-alpha (F12) |
+| P6 | Equipamiento y niveles | ✅ | Acciones auto-mejorables + 4 slots de equipo | v2.9-alpha (F12) |
 | P6 | Habilidades especiales | ⏸️ | Ninguna | Fase futura |
 | P7 | Modificar el mundo | 🟢 | Romper árboles, piedras, muros, cactus, hielo | v1.7 |
 | P8 | Necesidades (hambre/sed) | ⏸️ | No | Fase futura |
@@ -400,13 +404,18 @@ Cada mob es un **objeto de datos** con una estructura común.
 - **Inventario:** las manzanas no se acumulan; son comida de uso inmediato.
 - **Futuro:** la misma función `curarJugador(cantidad)` servirá para otras comidas o consumibles.
 
-### Objetos equipables
+### Objetos equipables y niveles (v2.9-alpha · F12)
 
-- **4 objetos:** 🪓 Hacha, ⛏️ Pico, 🔦 Linterna, 🛶 Barco.
-- **Spawn:** en cada chunk de su bioma (`porChunk: true`). Determinista por semilla.
-- **Recolección:** al pisarlos, se suman al inventario.
-- **Slots de equipados:** arriba del mapa, 4 slots.
-- **Efecto:** permiten romper tiles y navegar con el barco.
+- **Acciones:** 🪓 Hacha, ⛏️ Pico, 🔦 Linterna, 🛶 Barco. No se mueven del inventario: al encontrar una versión superior, reemplazan a la anterior automáticamente.
+- **Equipo por slots:** ⛑️ Casco, 🦺 Pechera, 🧤 Guantes, 👢 Botas. Se acumulan en el inventario y se equipan por slot; al reemplazar, el objeto anterior vuelve al inventario.
+- **Niveles:** Base (0), Normal (1), Especial (2) y Legendario (3). Los legendarios son únicos por mundo.
+- **Recogida:** si lo recogido es de nivel superior al que tenés, reemplaza; si es igual o peor, no se guarda.
+- **Pila:** equipables no únicos hasta **99**; monedas, oro y materiales sin tope (pensado para vender).
+- **Velocidad de rotura:** `0.68 / 0.82 / 0.98 / 1.18` según nivel de hacha o pico.
+- **Visión de linterna:** `1 / 2 / 3 / 5` según nivel de linterna. Con F1 el radio de luz del jugador es `1 + visión` celdas (sin linterna ves 3×3).
+- **Spawn:** herramientas por bioma (`porChunk: true`) y equipo por chunk (`~12%`), con niveles ponderados por distancia.
+- **Slots de equipados en HUD:** arriba del mapa, 4 slots con glow por nivel (`nivel-0` a `nivel-3`).
+- **Cheats:** `debugHerramienta("HACHA", 3)`, `debugEquipo(2)` y `debugVision()`.
 
 ### Configuración
 
@@ -416,6 +425,15 @@ Cada mob es un **objeto de datos** con una estructura común.
 | ⛏️ Pico | ruina |
 | 🕯️ Linterna | costa |
 | 🛶 Barco | costa |
+
+**Bonus de equipo (por slot y nivel):**
+
+| Slot | Base | Normal | Especial | Legendario |
+|------|------|--------|----------|------------|
+| Casco | +1 def | +2 def | +2 def · +1 HP | +3 def · +1 atk |
+| Pechera | +2 HP | +3 HP | +5 HP · +1 def | +7 HP · +1 def |
+| Guantes | +1 atk | +1 atk · +5% rotura | +2 atk · +10% rotura | +3 atk · +1 def · +10% rotura |
+| Botas | +4% vel | +7% vel | +10% vel | +15% vel · +1 HP |
 
 ### Sistema de rotura
 
@@ -428,14 +446,19 @@ Cada mob es un **objeto de datos** con una estructura común.
 
 **Tiles rompibles actuales:**
 
-| Tile | Objeto | Duración |
-|------|:------:|:--------:|
+| Tile | Objeto | Duración base |
+|------|:------:|:-------------:|
 | 🌳 TREE | 🪓 HACHA | 3.0 s |
 | 🌲 PINE | 🪓 HACHA | 3.0 s |
 | 🌵 CACTUS | 🪓 HACHA | 2.5 s |
 | ⛰️ ROCK | ⛏️ PICO | 3.0 s |
 | 🧱 WALL | ⛏️ PICO | 4.0 s |
 | 🧊 ICE | ⛏️ PICO | 2.5 s |
+
+**Duración real:** `duracionMs / (habilidad Herramientas × velocidad de herramienta × bonus de guantes)`.
+- Habilidad **Herramientas**: `+5%` de velocidad por rango (F30, rebalanceado en v2.9).
+- Velocidad de herramienta: `0.68` (base) a `1.18` (legendaria).
+- Guantes: `+0% / +5% / +10% / +10%` según nivel.
 
 **Tile base por bioma (al romper):**
 
@@ -587,7 +610,7 @@ Ver BACKLOG · F12 para el detalle completo.
 | U14 | Botón de cambio de tema | 🟢 | Arriba a la derecha, fixed | v2.3-alpha |
 | U15 | Botón de cheat (temporal) | 🧪 | Arriba a la derecha, junto al de tema | v2.4.1-alpha |
 | U16 | Corazones de HP | 🟢 | 10 corazones (2 HP c/u) + número; sin barra | v2.6-alpha (F28 fase 9) |
-| U17 | Inventario visual | ✅ | Menú único con pestañas y pausa | v2.8-alpha (F30) |
+| U17 | Inventario visual | ✅ | Menú único con pestañas, categorías y equipo | v2.9-alpha (F12) |
 | U18 | Overlay de combate | 🟢 | Paneles + HP + timing + telegráfico + victoria/derrota | v2.7-alpha (F28) |
 
 ---
@@ -789,7 +812,7 @@ La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo
 | `pruebas/barra-timing.html` | Prueba del minijuego de timing. Mide precisión del click. |
 | `js/core/tiles_muestrario.md` | Documento de referencia con el uso de tiles. |
 
-**Consola:** `debugCombate("cerdo", "ATAQUE_8")` inicia un combate de prueba con 100 HP para validar el combo y `Golpe` sin buscar un reptiliano. `debugXP(500)` otorga XP para probar habilidades y el menú. Ambos son temporales (`cheats.js`).
+**Consola:** `debugCombate("cerdo", "ATAQUE_8")` inicia un combate de prueba con 100 HP para validar el combo y `Golpe` sin buscar un reptiliano. `debugXP(500)` otorga XP para probar habilidades y el menú. `debugHerramienta("HACHA", 3)`, `debugEquipo(2)` y `debugVision()` prueban F12. Todos son temporales (`cheats.js`).
 
 ---
 
@@ -799,7 +822,7 @@ La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo
 
 - La XP se gana al vencer mobs y se gasta en habilidades.
 - **Nivel = 1 + rangos comprados.** No hay subida automática por XP.
-- Habilidades: Vitalidad (+2 HP máx.), Fuerza (+1 ataque), Defensa (+1 defensa), Movilidad (+10% velocidad) y Herramientas (+15% velocidad de rotura).
+- Habilidades: Vitalidad (+2 HP máx.), Fuerza (+1 ataque), Defensa (+1 defensa), Movilidad (+10% velocidad) y Herramientas (+5% velocidad de rotura).
 - El menú se abre con `I` o el botón 👤, pausa el juego y tiene pestañas Personaje, Habilidades, Inventario y Misiones (placeholder).
 - El HUD muestra nivel y XP disponible.
 - Al reiniciar el mundo se resetean XP, habilidades y drops únicos.
@@ -814,7 +837,32 @@ La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo
 - Los drops únicos se guardan en `estado.dropsUnicos` y se entregan una sola vez por mundo.
 - `LOOT_UNICOS_POR_MOB` queda preparado para mobs especiales/bosses.
 
-## 🧪 MARCO 9 · Sistema de Test (v2.8-alpha)
+### Equipamiento por niveles (v2.9-alpha)
+
+**Archivo:** `js/systems/equipamiento.js`.
+
+- Niveles Base, Normal, Especial y Legendario para herramientas y equipo.
+- Las acciones (`HACHA`, `PICO`, `LINTERNA`, `BARCO`) se auto-mejoran: al encontrar una versión superior, reemplazan la anterior y se eliminan los niveles viejos del inventario.
+- Equipo por slots (`casco`, `pechera`, `guantes`, `botas`) con bonus de HP, ataque, defensa, velocidad y rotura.
+- `estado.equipamiento` guarda `{ equipo, unicos }`; las herramientas siguen en `estado.inventario` con su mejor nivel.
+- El menú Inventario agrupa **Acciones**, **Equipables** y **Uso/trueque**; se equipa con doble clic o botón.
+- El HUD de slots muestra el ícono con glow según nivel.
+
+### Ciclo día-noche y luz (v2.10-alpha)
+
+**Archivo:** `js/systems/ciclo.js`.
+
+- Fases `día → atardecer → noche → amanecer`, con duraciones en `CICLO_CONFIG` (día 60s, transición 8s, noche 30s) modificables a futuro.
+- **Luz global** por fase con interpolación `smoothstep`: `1` de día, `0` de noche, transiciones suaves.
+- **Luz por celda:** `luz = max(global, jugador, hogueras…)`; `oscuridad = 1 - luz`. Las luces no se suman.
+- Falloff de fuentes: `potencia * (1 - d/radio)^2` con distancia redonda (Euclídea).
+- **Jugador como luz móvil:** radio `1 + visión`; sin linterna ves 3×3, con linterna del sol 13×13.
+- **Hoguera** (`HOGUERA`, tile 25): solo en el spawn (hasta 2 deterministas), siempre encendida, radio 4 con titileo.
+- Render: pseudo-elemento `::after` con `opacity: var(--osc, var(--osc-global, 0))`; `#jugador-fijo` nunca se oscurece.
+- Se pausa con `estado.pausado` y se reinicia con el mundo.
+- **Cheats:** `debugCiclo("noche", 0.5)`, `debugNoche()` y `debugDia()`.
+
+## 🧪 MARCO 9 · Sistema de Test (v2.10-alpha)
 
 ### Lo que hay ahora
 
@@ -828,7 +876,8 @@ La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo
 - **Costa con forma de franja**.
 - **Ítems recolectables**: manzanas curativas (0-3 por chunk).
 - **Manzanas**: curan 1 HP al pisarlas, sin superar `hpMax`; al máximo quedan en el suelo.
-- **Objetos equipables**: 🪓 ⛏️ 🕯️ 🛶 (o ⚡ 🔫 💡 🚀 en espacio).
+- **Objetos equipables**: 🪓 ⛏️ 🕯️ 🛶 (o ⚡ 🔫 💡 🚀 en espacio), con niveles Base/Normal/Especial/Legendario (F12).
+- **Ciclo día-noche**: oscurece por tile, ilumina el radio del jugador y las hogueras del spawn (F1).
 - **Sistema de rotura** (click + barra de stamina + efecto de golpe).
 - **Sistema del barco** (navegar sobre agua).
 - **Mobs con IA** (deambular, perseguir, huir).
@@ -847,6 +896,7 @@ La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo
 - **Progresión con XP** y 5 habilidades comprables; el nivel sube con cada rango (F30).
 - **Menú único del jugador** (`I` o 👤) con Personaje, Habilidades, Inventario y Misiones (F30).
 - **Loot por mob** con probabilidades, cantidades y drops únicos por mundo (F13).
+- **Equipamiento por niveles** con herramientas auto-mejorables, slots de equipo, glow y bonus (F12).
 - **Inventario en HUD** con íconos correctos.
 - **Control de semilla en UI**.
 - **Botones de movimiento** en pantalla.
@@ -1008,18 +1058,20 @@ Ideas futuras: F1-F33.
 - [x] **F28.6 · Historial de combate y último golpe** (colores + badges) ← v2.7-alpha
 - [x] **F30 · Progresión** (XP, habilidades, nivel por compras y menú del jugador) ← v2.8-alpha
 - [x] **F13 · Loot y XP por mob** (probabilidades, cantidades y únicos por mundo) ← v2.8-alpha
+- [x] **F12 · Equipamiento por niveles** (acciones auto-mejorables, slots, glow y bonus) ← v2.9-alpha
+- [x] **F1 · Ciclo día-noche y luz** (oscuridad por tile, radio del jugador y hoguera del spawn) ← v2.10-alpha
 - [ ] **F28.4 · Motor de efectos/estados de combate** (diseñado; falta implementación y tests)
 
 ### 🔥 Próximas tareas (urgentes)
 
 | Prioridad | Tarea | Estado | Notas |
 |:---------:|-------|:------:|-------|
-| 🟡 Media | Equipables mejorados (F12) | ⏸️ | Velocidad, stats, linterna |
+| ✅ Done | Equipables mejorados (F12) | ✅ | Niveles, slots, rotura y visión · v2.9-alpha |
+| ✅ Done | Ciclo día-noche (F1) | ✅ | Oscuridad por tile + hoguera + visión · v2.10-alpha |
 | 🟡 Media | Balance de XP/costos (F30/F13) | ⏸️ | Ajustar curvas tras pruebas |
 | 🟢 Baja | Persistencia de progresión (F33) | ⏸️ | XP, habilidades e inventario |
 | 🟡 Media | Pulir tema espacio | ⏸️ | F19 |
-| 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de F28 |
-| 🟢 Baja | Escalado de timing (F29) | ⏸️ | Base parametrizable lista (v2.7-alpha); falta F1 |
+| 🟢 Baja | Escalado de timing (F29) | ⏸️ | Base parametrizable lista (v2.7-alpha); falta conectar fases de F1 |
 | 🟢 Baja | Mobs especiales (F26) | ⏸️ | Fase tardía |
 | 🟢 Baja | Mobs bosses (F27) | ⏸️ | Fase tardía |
 | 🟢 Baja | Inventario visual (F8) | ⏸️ | Ventana con pausa |
@@ -1071,6 +1123,8 @@ Ideas futuras: F1-F33.
 | 7.16 | Progresión (XP, habilidades, stats) | `js/systems/progresion.js` |
 | 7.17 | Loot y XP por mob | `js/systems/loot.js` |
 | 7.18 | Menú del jugador | `js/ui/menu-jugador.js` |
+| 7.19 | Equipamiento y niveles | `js/systems/equipamiento.js` |
+| 7.20 | Ciclo día-noche y luz | `js/systems/ciclo.js` |
 | 8 | Carga e inicialización de chunks | `js/world/chunks.js` |
 | 9 | Render del mundo | `js/ui/render.js` |
 | 10 | (Eliminado en v2.0 — barra de zonas) | — |
@@ -1164,7 +1218,7 @@ Ideas futuras: F1-F33.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
 - Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F33).
 - La configuración de agentes vive en **[AGENTS.md](AGENTS.md)**.
-- **Prioridad actual:** F12 (equipables que modifican stats) y balance de XP/costos.
+- **Prioridad actual:** balance de XP/costos, persistencia (F33) y F1 (día/noche) para la visión de la linterna.
 
 ---
 

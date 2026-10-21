@@ -208,8 +208,56 @@ function generarEquipablesDeChunk(cx, cy, semillaMundo, semillaObjetos) {
         if (mobs && mobs.some(m => m.wx === wx && m.wy === wy)) continue;
       }
 
-      equipables.push({ tipo, wx, wy });
+      const tipoNombre = tipoEquipableANombre(tipo);
+      const nivelHerramienta = tipoNombre === "BARCO" || typeof Equipamiento === "undefined"
+        ? 0
+        : Equipamiento.elegirNivel(rng, cx, cy);
+      const idHerramienta = typeof Equipamiento !== "undefined"
+        ? Equipamiento.idHerramienta(tipoNombre, nivelHerramienta)
+        : null;
+
+      equipables.push({
+        tipo: tipoNombre,
+        nivel: nivelHerramienta,
+        id: idHerramienta,
+        wx,
+        wy,
+      });
       break;
+    }
+  }
+
+  // ─── Equipo (casco, pechera, guantes, botas) ───
+  if (typeof Equipamiento !== "undefined") {
+    const rngEquipo = crearRNG(hashString(sObjetos + "@equipo@" + cx + "," + cy));
+    if (rngEquipo() < 0.12) {
+      const slots = Equipamiento.SLOTS;
+      const slot = slots[Math.floor(rngEquipo() * slots.length)];
+      const nivel = Equipamiento.elegirNivel(rngEquipo, cx, cy);
+      const id = Equipamiento.idEquipo(slot, nivel);
+
+      if (id) {
+        for (let intento = 0; intento < 30; intento++) {
+          const lx = randInt(rngEquipo, 1, ANCHO_CHUNK - 2);
+          const ly = randInt(rngEquipo, 1, ALTO_CHUNK - 2);
+
+          if (BLOQUEANTES.has(chunk.mapa[ly][lx])) continue;
+          if (chunk.mapa[ly][lx] === WATER) continue;
+
+          const wx = cx * ANCHO_CHUNK + lx;
+          const wy = cy * ALTO_CHUNK + ly;
+
+          if (equipables.some(e => e.wx === wx && e.wy === wy)) continue;
+
+          if (typeof cacheMobs !== "undefined") {
+            const mobs = cacheMobs.get(cx + "," + cy);
+            if (mobs && mobs.some(m => m.wx === wx && m.wy === wy)) continue;
+          }
+
+          equipables.push({ tipo: "EQUIPO", id, slot, nivel, wx, wy });
+          break;
+        }
+      }
     }
   }
 
@@ -233,15 +281,29 @@ function recogerEquipableEn(wx, wy) {
   const eq = equipables.find(e => e.wx === wx && e.wy === wy);
   if (!eq) return null;
 
-  const nombre = tipoEquipableANombre(eq.tipo);
-  estado.inventario[nombre] = (estado.inventario[nombre] || 0) + 1;
-
   estado.itemsRecogidos.add(clave);
 
-  return eq;
+  if (typeof Equipamiento !== "undefined") {
+    if (eq.tipo === "EQUIPO") {
+      const resultado = Equipamiento.recogerEquipo(eq.id);
+      return { ...eq, ...resultado, item: resultado.item };
+    }
+
+    const resultado = Equipamiento.recogerAccion(eq.tipo, eq.nivel || 0);
+    return { ...eq, ...resultado, item: resultado.item };
+  }
+
+  const nombre = tipoEquipableANombre(eq.tipo);
+  estado.inventario[nombre] = (estado.inventario[nombre] || 0) + 1;
+  return {
+    ...eq,
+    ok: true,
+    item: obtenerDatosItem(nombre),
+  };
 }
 
 function tipoEquipableANombre(tipo) {
+  if (tipo === "HACHA" || tipo === "PICO" || tipo === "LINTERNA" || tipo === "BARCO") return tipo;
   if (tipo === HACHA)    return "HACHA";
   if (tipo === PICO)     return "PICO";
   if (tipo === LINTERNA) return "LINTERNA";
@@ -253,22 +315,24 @@ function tipoEquipableANombre(tipo) {
 //  BLOQUE 7.5c · CATÁLOGO E INVENTARIO (F13)
 // ═══════════════════════════════════════════════════════════════
 
+const LIMITE_PILA_EQUIPO = 99;
+
 const CATALOGO_ITEMS = {
-  MANZANA:  { id: "MANZANA",  nombre: "Manzana",         icono: ICONOS[MANZANA],  tipo: "consumible" },
-  HACHA:    { id: "HACHA",    nombre: "Hacha",           icono: ICONOS[HACHA],    tipo: "herramienta" },
-  PICO:     { id: "PICO",     nombre: "Pico",            icono: ICONOS[PICO],     tipo: "herramienta" },
-  LINTERNA: { id: "LINTERNA", nombre: "Linterna",        icono: ICONOS[LINTERNA], tipo: "equipable" },
-  BARCO:    { id: "BARCO",    nombre: "Barco",           icono: ICONOS[BARCO],    tipo: "equipable" },
-  PLUMA:    { id: "PLUMA",    nombre: "Pluma",           icono: "🪶",             tipo: "material" },
-  CARNE:    { id: "CARNE",    nombre: "Carne",           icono: "🥩",             tipo: "material" },
-  COLMILLO: { id: "COLMILLO", nombre: "Colmillo",        icono: "🦷",             tipo: "material" },
-  HUEVO:    { id: "HUEVO",    nombre: "Huevo",           icono: "🥚",             tipo: "material" },
-  HUESO:    { id: "HUESO",    nombre: "Hueso",           icono: "🦴",             tipo: "material" },
-  MONEDA:   { id: "MONEDA",   nombre: "Moneda antigua",  icono: "🪙",             tipo: "material" },
-  CHATARRA: { id: "CHATARRA", nombre: "Chatarra",        icono: "⚙️",             tipo: "material" },
-  NUCLEO:   { id: "NUCLEO",   nombre: "Núcleo",          icono: "🔮",             tipo: "material" },
-  LLAVE_BOSQUE: { id: "LLAVE_BOSQUE", nombre: "Llave del bosque", icono: "🗝️", tipo: "único" },
-  TROFEO_TIGRE: { id: "TROFEO_TIGRE", nombre: "Trofeo del tigre", icono: "🏆", tipo: "único" },
+  MANZANA:  { id: "MANZANA",  nombre: "Manzana",         icono: ICONOS[MANZANA],  tipo: "consumible", categoria: "consumible" },
+  HACHA:    { id: "HACHA",    nombre: "Hacha de madera", icono: ICONOS[HACHA],    tipo: "herramienta", categoria: "accion", nivel: 0 },
+  PICO:     { id: "PICO",     nombre: "Pico de piedra",  icono: ICONOS[PICO],     tipo: "herramienta", categoria: "accion", nivel: 0 },
+  LINTERNA: { id: "LINTERNA", nombre: "Linterna de aceite", icono: ICONOS[LINTERNA], tipo: "herramienta", categoria: "accion", nivel: 0 },
+  BARCO:    { id: "BARCO",    nombre: "Bote de madera",  icono: ICONOS[BARCO],    tipo: "herramienta", categoria: "accion", nivel: 0 },
+  PLUMA:    { id: "PLUMA",    nombre: "Pluma",           icono: "🪶",             tipo: "material", categoria: "uso" },
+  CARNE:    { id: "CARNE",    nombre: "Carne",           icono: "🥩",             tipo: "material", categoria: "uso" },
+  COLMILLO: { id: "COLMILLO", nombre: "Colmillo",        icono: "🦷",             tipo: "material", categoria: "uso" },
+  HUEVO:    { id: "HUEVO",    nombre: "Huevo",           icono: "🥚",             tipo: "material", categoria: "uso" },
+  HUESO:    { id: "HUESO",    nombre: "Hueso",           icono: "🦴",             tipo: "material", categoria: "uso" },
+  MONEDA:   { id: "MONEDA",   nombre: "Moneda antigua",  icono: "🪙",             tipo: "material", categoria: "uso" },
+  CHATARRA: { id: "CHATARRA", nombre: "Chatarra",        icono: "⚙️",             tipo: "material", categoria: "uso" },
+  NUCLEO:   { id: "NUCLEO",   nombre: "Núcleo",          icono: "🔮",             tipo: "material", categoria: "uso" },
+  LLAVE_BOSQUE: { id: "LLAVE_BOSQUE", nombre: "Llave del bosque", icono: "🗝️", tipo: "único", categoria: "unico" },
+  TROFEO_TIGRE: { id: "TROFEO_TIGRE", nombre: "Trofeo del tigre", icono: "🏆", tipo: "único", categoria: "unico" },
 };
 
 function normalizarIdItem(id) {
@@ -277,19 +341,32 @@ function normalizarIdItem(id) {
 
 function obtenerDatosItem(id) {
   const clave = normalizarIdItem(id);
-  return CATALOGO_ITEMS[clave] || {
+  const datos = CATALOGO_ITEMS[clave];
+
+  if (datos) {
+    return {
+      categoria: datos.tipo === "material" || datos.tipo === "único" ? "uso" : datos.tipo,
+      ...datos,
+    };
+  }
+
+  return {
     id: clave || "DESCONOCIDO",
     nombre: clave || "Desconocido",
     icono: "❓",
     tipo: "material",
+    categoria: "uso",
   };
 }
 
 function agregarItemInventario(id, cantidad) {
   const datos = obtenerDatosItem(id);
   const n = Math.max(1, Math.floor(Number(cantidad) || 1));
-  estado.inventario[datos.id] = (estado.inventario[datos.id] || 0) + n;
-  return { ...datos, cantidad: n };
+  const actual = estado.inventario[datos.id] || 0;
+  const tope = datos.categoria === "equipable" && !datos.unico ? LIMITE_PILA_EQUIPO : Infinity;
+  const agregado = Math.min(tope, actual + n) - actual;
+  estado.inventario[datos.id] = actual + Math.max(0, agregado);
+  return { ...datos, cantidad: Math.max(0, agregado) };
 }
 
 function listarInventario() {

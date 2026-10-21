@@ -78,6 +78,8 @@ function hayTeclaApretada() {
 function dibujarCeldaEnGrid(celda, wx, wy) {
   celda.style.transform = "";
   celda.style.background = "transparent";
+  celda.style.animation = "";
+  celda.style.textShadow = "";
 
   if (estado.llave.wx === wx && estado.llave.wy === wy) {
     celda.textContent = ICONOS[LLAGUE];
@@ -101,7 +103,9 @@ function dibujarCeldaEnGrid(celda, wx, wy) {
   if (equip) {
     const clave = wx + "," + wy;
     if (!estado.itemsRecogidos.has(clave)) {
-      celda.textContent = ICONOS[equip.tipo];
+      celda.textContent = equip.id && typeof obtenerDatosItem === "function"
+        ? obtenerDatosItem(equip.id).icono
+        : (ICONOS[equip.tipo] || "❓");
       celda.style.background = colorDeBioma(wx, wy);
       return;
     }
@@ -128,6 +132,14 @@ function dibujarCeldaEnGrid(celda, wx, wy) {
   const icono = ICONOS[tileID];
   celda.textContent = icono !== undefined ? icono : ICONOS[GRASS];
   celda.style.background = colorDeBioma(wx, wy);
+
+  if (tileID === HOGUERA) {
+    const color = colorDeBioma(wx, wy);
+    celda.style.background =
+      `radial-gradient(ellipse at 50% 80%, #7a4a22 0%, #4a2b14 38%, transparent 58%), ${color}`;
+    celda.style.textShadow = "0 0 8px rgba(255,150,40,0.95)";
+    celda.style.animation = "hoguera-titilar 640ms ease-in-out infinite alternate";
+  }
 }
 
 // ─── Recalcula todo el grid ───
@@ -180,6 +192,56 @@ function actualizarEfectosEnGrid() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  OSCURIDAD DEL CICLO DÍA-NOCHE (F1)
+// ─────────────────────────────────────────────────────────────────
+//  El velo negro de cada celda sale de `1 - luz`. Si la celda no
+//  tiene luz local, hereda `--osc-global` (variable de #mapa).
+//  De día la luz global es 1 → no se calcula nada (velo en 0).
+// ═══════════════════════════════════════════════════════════════
+let _oscCache = null;
+
+function actualizarOscuridadEnGrid() {
+  if (typeof Ciclo === "undefined" || _esquinaGridX === null || _esquinaGridY === null) return;
+
+  const sol = Ciclo.luzGlobal();
+  divMapa.style.setProperty("--osc-global", (1 - sol).toFixed(3));
+
+  const total = ANCHO_GRID * ALTO_GRID;
+  if (!_oscCache || _oscCache.length !== total) {
+    _oscCache = new Array(total).fill(-1);
+  }
+
+  // De día: limpiar cualquier luz local y salir.
+  if (sol >= 1) {
+    for (let idx = 0; idx < total; idx++) {
+      if (_oscCache[idx] !== -1) {
+        celdas[idx].style.removeProperty("--osc");
+        _oscCache[idx] = -1;
+      }
+    }
+    return;
+  }
+
+  const campo = Ciclo.calcularCampoLuz(_esquinaGridX, _esquinaGridY, ANCHO_GRID, ALTO_GRID);
+
+  for (let idx = 0; idx < total; idx++) {
+    const luz = campo[idx];
+    // Solo pisar el velo global si la celda está más iluminada que el sol.
+    const usarLocal = luz > sol + 0.004;
+    const valor = usarLocal ? Number((1 - luz).toFixed(3)) : -1;
+
+    if (_oscCache[idx] !== valor) {
+      if (valor < 0) {
+        celdas[idx].style.removeProperty("--osc");
+      } else {
+        celdas[idx].style.setProperty("--osc", valor.toFixed(3));
+      }
+      _oscCache[idx] = valor;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  RENDER PRINCIPAL
 // ═══════════════════════════════════════════════════════════════
 function render() {
@@ -205,6 +267,9 @@ function render() {
 
   // ─── Efectos visuales ───
   actualizarEfectosEnGrid();
+
+  // ─── Oscuridad día-noche ───
+  actualizarOscuridadEnGrid();
 
   // ─── Emoji + orientación del jugador fijo ───
   const datosJugador = _temaActivo.jugador;
@@ -261,7 +326,11 @@ function actualizarHUD() {
     xpEl.textContent = resumen.xp;
   }
 
-  const entradas = Object.entries(estado.inventario);
+  const entradas = Object.entries(estado.inventario).filter(([id]) => {
+    if (typeof obtenerDatosItem !== "function") return true;
+    const categoria = obtenerDatosItem(id).categoria;
+    return categoria !== "accion" && categoria !== "equipable";
+  });
   if (entradas.length === 0) {
     document.getElementById("inventario").textContent = "—";
   } else {
@@ -309,6 +378,15 @@ function actualizarCorazones() {
   }
 }
 
+function aplicarNivelVisual(elemento, datos) {
+  if (!elemento) return;
+  for (let i = 0; i < 4; i++) elemento.classList.remove(`nivel-${i}`);
+  if (!datos) return;
+  const nivel = Number.isInteger(datos.nivel) ? datos.nivel : 0;
+  elemento.classList.add(`nivel-${nivel}`);
+  elemento.dataset.nivel = nivel;
+}
+
 function actualizarSlotsEquipados() {
   const slotHacha    = document.getElementById("slot-hacha");
   const slotPico     = document.getElementById("slot-pico");
@@ -317,20 +395,27 @@ function actualizarSlotsEquipados() {
 
   if (!slotHacha) return;
 
-  const tieneHacha    = (estado.inventario.HACHA    || 0) > 0;
-  const tienePico     = (estado.inventario.PICO     || 0) > 0;
-  const tieneLinterna = (estado.inventario.LINTERNA || 0) > 0;
-  const tieneBarco    = (estado.inventario.BARCO    || 0) > 0;
+  const obtener = (tipo, icono) => {
+    if (typeof Equipamiento !== "undefined") return Equipamiento.obtenerAccion(tipo);
+    return (estado.inventario[tipo] || 0) > 0
+      ? { icono, nombre: tipo, nivel: 0 }
+      : null;
+  };
 
-  slotHacha.textContent = tieneHacha ? ICONOS[HACHA] : "—";
-  slotHacha.classList.toggle("tiene", tieneHacha);
+  const hacha = obtener("HACHA", ICONOS[HACHA]);
+  const pico = obtener("PICO", ICONOS[PICO]);
+  const linterna = obtener("LINTERNA", ICONOS[LINTERNA]);
+  const barco = obtener("BARCO", ICONOS[BARCO]);
 
-  slotPico.textContent = tienePico ? ICONOS[PICO] : "—";
-  slotPico.classList.toggle("tiene", tienePico);
+  const aplicar = (slot, datos, iconoBase) => {
+    slot.textContent = datos ? (datos.icono || iconoBase) : "—";
+    slot.classList.toggle("tiene", !!datos);
+    slot.title = datos ? `${datos.nombre} · ${datos.nivelNombre || "Base"}` : "";
+    aplicarNivelVisual(slot, datos);
+  };
 
-  slotLinterna.textContent = tieneLinterna ? ICONOS[LINTERNA] : "—";
-  slotLinterna.classList.toggle("tiene", tieneLinterna);
-
-  slotBarco.textContent = tieneBarco ? ICONOS[BARCO] : "—";
-  slotBarco.classList.toggle("tiene", tieneBarco);
+  aplicar(slotHacha, hacha, ICONOS[HACHA]);
+  aplicar(slotPico, pico, ICONOS[PICO]);
+  aplicar(slotLinterna, linterna, ICONOS[LINTERNA]);
+  aplicar(slotBarco, barco, ICONOS[BARCO]);
 }

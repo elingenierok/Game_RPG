@@ -34,6 +34,7 @@ const TEMA_TIERRA = {
     ICE:         "🧊",
     PINE:        "🌲",
     BARCO:       "🛶",
+    HOGUERA:     "🔥",
   },
 
   // ─── Biomas ───

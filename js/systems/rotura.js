@@ -58,6 +58,11 @@ function tieneObjetoEquipado(nombre) {
   return (estado.inventario[nombre] || 0) > 0;
 }
 
+function tieneHerramientaPara(objeto) {
+  if (typeof Equipamiento !== "undefined") return Equipamiento.tieneAccion(objeto);
+  return tieneObjetoEquipado(objeto);
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  INICIAR ROTURA
 // ═══════════════════════════════════════════════════════════════
@@ -68,7 +73,7 @@ function intentarIniciarRotura(wx, wy) {
 
   if (!jugadorAdyacenteA(wx, wy)) return false;
 
-  if (!tieneObjetoEquipado(config.objeto)) {
+  if (!tieneHerramientaPara(config.objeto)) {
     const nombreObjeto = config.objeto === "HACHA" ? "hacha" : "pico";
     mostrarCartelRapido(`Necesitás un ${nombreObjeto}`);
     return false;
@@ -83,7 +88,7 @@ function intentarIniciarRotura(wx, wy) {
   rotura.tileBase = NOMBRE_A_TILE[BIOMAS[bioma].tileBase];
 
   const multiplicador = typeof obtenerMultiplicadorRotura === "function"
-    ? obtenerMultiplicadorRotura()
+    ? obtenerMultiplicadorRotura(config.objeto)
     : 1;
 
   rotura.tiempoInicio = Date.now();
@@ -115,7 +120,7 @@ function actualizarRotura() {
   }
 
   const config = ROTURA_POR_TILE[rotura.tileOriginal];
-  if (!tieneObjetoEquipado(config.objeto)) {
+  if (!tieneHerramientaPara(config.objeto)) {
     cancelarRotura();
     return;
   }
