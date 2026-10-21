@@ -3,7 +3,8 @@
 > Motor de mundo procedural con semilla, mundo 2D circular, cámara fluida,
 > chunks de 32×32, biomas por celda con ruido, ítems recolectables,
 > mobs con IA en tiempo real, sistema de efectos visuales genéricos,
-> sistema de combate con timing, y módulo de combate por reflejos en desarrollo paralelo.
+> sistema de combate con timing y ataques telegrafiados por mob,
+> y módulo de combate por reflejos en desarrollo paralelo.
 
 ---
 
@@ -11,8 +12,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión actual** | v2.6-alpha · F28 completo (fases 1-9) + corazones + manzanas curativas |
-| **Última actualización** | 2026-10-20 (F28 fases 7-9, corazones, HUD inicial y manzanas curativas) |
+| **Versión actual** | v2.7-alpha · F28 completo + catálogo de ataques (Golpe/boss) + combo de perfectos + resumen de victoria + historial de combate |
+| **Última actualización** | 2026-10-21 (F28.2 catálogo ampliado + ataques telegrafiados, F28.3 resumen de victoria, F28.5 combo, F28.6 historial y último golpe; notas F31-F33) |
 | **Estado global** | ✅ Jugable · Combate completo · sin bugs críticos conocidos |
 | **Archivo principal** | `index.html` (solo estructura HTML) |
 | **Lenguaje** | HTML + CSS + JavaScript (sin dependencias) |
@@ -25,7 +26,7 @@
 📖 **Documentos complementarios:**
 
 - [CHANGELOG.md](CHANGELOG.md) — Historial completo de versiones
-- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F30)
+- [BACKLOG.md](BACKLOG.md) — Ideas futuras (F1-F33)
 - [AGENTS.md](AGENTS.md) — Configuración para agentes de IA (OpenCode)
 
 ---
@@ -94,7 +95,7 @@ Game_RPG/
 ├── index.html                    ← Solo HTML (estructura + <script src>)
 ├── README.md                     ← Este documento
 ├── CHANGELOG.md                  ← Historial de versiones
-├── BACKLOG.md                    ← Ideas futuras (F1-F30)
+├── BACKLOG.md                    ← Ideas futuras (F1-F33)
 ├── AGENTS.md                     ← Configuración para agentes de IA
 ├── opencode.json                 ← Configuración de OpenCode
 ├── .gitignore                    ← Archivos ignorados por Git
@@ -280,7 +281,7 @@ cd Game_RPG
 | J8 | Pantallas/menús | 🧪 | Mapa + overlay de combate con timing | v2.5-alpha |
 | J9 | Cambio entre pantallas | 🧪 | Overlay con pausa global (`estado.pausado`) | v2.5-alpha |
 | J10 | Diálogos con NPCs | ⏸️ | No | Fase futura |
-| J11 | Sistema de combate | 🟢 | Turnos + minijuego de timing (F28 fases 1-9) | v2.6-alpha |
+| J11 | Sistema de combate | 🟢 | Turnos + timing + ataques telegrafiados por mob (F28) | v2.7-alpha |
 | J12 | Escalado del timing | ⏸️ | Por mob y por fase del día | Ver BACKLOG · F29 |
 | J13 | Sistema de niveles del jugador | ⏸️ | Placeholder (nivel 1 hardcodeado) | Ver BACKLOG · F30 |
 
@@ -368,7 +369,7 @@ Cada mob es un **objeto de datos** con una estructura común.
 | E2 | Movimiento de mobs | 🟢 | Tiempo real (ticks 400ms) | v1.5 |
 | E3 | Detección del jugador | 🟢 | Por distancia Manhattan | v1.5 |
 | E4 | Entrada al combate | 🧪 | Choque jugador↔mob → overlay real | v2.5-alpha |
-| E5 | Tipo de combate | 🟢 | Combate por turnos + timing | v2.6-alpha (F28 fases 1-9) |
+| E5 | Tipo de combate | 🟢 | Turnos + timing con perfiles por ataque | v2.7-alpha (F28.2) |
 | E6 | Huida del combate | 🧪 | Probabilística: penalización + mob desaparece | v2.5-alpha (F28 fase 6) |
 | E7 | Loot y XP | ⏸️ | No | Campos definidos (F13, F30) |
 | E8 | Combate grupal (1vN) | ⏸️ | No | Fase avanzada |
@@ -581,7 +582,7 @@ Ver BACKLOG · F12 para el detalle completo.
 | U15 | Botón de cheat (temporal) | 🧪 | Arriba a la derecha, junto al de tema | v2.4.1-alpha |
 | U16 | Corazones de HP | 🟢 | 10 corazones (2 HP c/u) + número; sin barra | v2.6-alpha (F28 fase 9) |
 | U17 | Inventario visual | ⏸️ | Ventana nueva con todo pausado | Futuro (F8) |
-| U18 | Overlay de combate | 🟢 | Paneles jugador vs mob + barras HP + timing + botón huir | v2.6-alpha (F28 fases 4-9) |
+| U18 | Overlay de combate | 🟢 | Paneles + HP + timing + telegráfico + victoria/derrota | v2.7-alpha (F28) |
 
 ---
 
@@ -643,8 +644,8 @@ Ver BACKLOG · F12 para el detalle completo.
 | Botón de cheat | Rojo, arriba a la derecha | v2.4.1-alpha |
 | Biomas orgánicos | Manchas sin bordes rectos (ruido) | v2.4-alpha |
 | **Efectos visuales genéricos** | Vibrar, parpadear, destello, glow, pulse | v2.4.2-alpha |
-| **Overlay de combate** | Paneles con glow + barras HP + timing + derrota | v2.6-alpha |
-| **Barra de timing** | Zonas verde/naranja/roja con marcador | v2.5-alpha |
+| **Overlay de combate** | Paneles con glow + HP + telegráfico + victoria/derrota | v2.7-alpha |
+| **Barra de timing** | Zonas verde/naranja/roja parametrizables + modos ataque/defensa | v2.7-alpha |
 
 **Regla de oro:** los efectos de **glow / borde luminoso** son parte de la identidad visual.
 
@@ -705,22 +706,70 @@ aplicarEfecto(wx, wy, "efecto-glow");              // permanente
 quitarEfecto(wx, wy, "efecto-glow");               // quitar
 ```
 
-### Overlay de combate (v2.6-alpha)
+### Overlay de combate (v2.7-alpha)
 
-Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
+Sistema de combate por turnos con minijuego de timing y ataques telegrafiados. Ver BACKLOG · F28.
 
 **Componentes:**
 - Dos paneles: jugador (izq) y mob (der), con emoji + barra de HP.
+- Aviso inicial antes del primer turno: quién ataca y "¡PREPÁRATE!".
 - Mensaje central de estado del turno.
-- Barra de timing horizontal con zonas coloreadas.
-- Botón "Huir" con confirmación y probabilidad. Se puede usar durante la barra de timing: la cancela y abre el diálogo.
+- **Telegráfico del mob:** anuncia el ataque (`🐾 Zarpazo`, `💥 Embestida`, `🎯 Disparo`, etc.) ~0.9s antes de la barra.
+- Barra de timing horizontal con zonas coloreadas y **perfil por ataque** (duración y ancho de zonas).
+- **Modo ataque** (⚔️ rojo) y **modo defensa** (🛡️ celeste) visualmente distintos.
+- Botón "Huir" con confirmación y probabilidad. Se puede usar durante el timing: cancela la barra y abre el diálogo.
 - Feedback de precisión: perfecto, bien o débil.
-- Muerte del mob: animación, mensaje y cierre diferido (~0.9s).
+- **Combo de perfectos:** 3 ataques perfectos seguidos llenan 3 slots; el 4.º ataque pega ×1.5 y consume la carga.
+- **Historial de combate:** registro con color por tipo (rojo daño recibido, amarillo avisos, verde acciones favorables, gris sistema), hasta 24 entradas con scroll.
+- **Último golpe:** badge temporal sobre cada panel (`−N HP`, `BLOQUEO`, `SIN DAÑO` o `+N HP`).
+- Muerte del mob: animación, cierre diferido (~0.9s) y **resumen de victoria** con XP/objetos de prueba.
 - Derrota: overlay propio con HP final y botón **Reiniciar mundo**.
+
+**Catálogo maestro de ataques:**
+
+La barra base de referencia es **1500 ms, verde 20%, naranja 15% por lado y rojo 25% por lado**. Los porcentajes entre paréntesis indican la diferencia contra esa base.
+
+| ID | Ataque | Perfil | Duración | Verde | Naranja/lado | Rojo/lado | Mitigación máxima | Daño | Efecto |
+|----|--------|--------|---------:|------:|-------------:|----------:|------------------:|:----:|--------|
+| `ATAQUE_1` | 🐾 Zarpazo | Rápido y angosto | 1100 ms (−27%) | 12% (−40%) | 14% | 30% | 100% | ×1.0 | — |
+| `ATAQUE_2` | 💥 Embestida | Lento y amplio | 1700 ms (+13%) | 32% (+60%) | 18% | 16% | 100% | ×1.0 | — |
+| `ATAQUE_3` | 🦷 Mordida | Normal | 1400 ms (−7%) | 20% (base) | 15% | 25% | 100% | ×1.0 | — |
+| `ATAQUE_4` | 🎯 Disparo | Muy rápido y angosto | 950 ms (−37%) | 8% (−60%) | 10% | 36% | 100% | ×1.0 | — |
+| `ATAQUE_5` | 💢 Golpe contundente | Muy rápido y barras finas | 800 ms (−47%) | 6% (−70%) | 8% | 39% | 100% | ×1.0 | — |
+| `ATAQUE_6` | 🐔 Picotazo | Rápido y preciso | 1000 ms (−33%) | 16% (−20%) | 16% | 26% | 100% | ×1.0 | — |
+| `ATAQUE_7` | 🐙 Tentáculo | Amplio y envolvente | 1600 ms (+7%) | 28% (+40%) | 18% | 18% | 100% | ×1.0 | — |
+| `ATAQUE_8` | 👊 Golpe | 50% imbloqueable | 1200 ms (−20%) | 16% (−20%) | 14% | 28% | **50%** | ×1.0 | El 50% del daño entra siempre |
+| `ATAQUE_BOSS_1` | ☠️ Ataque especial | Placeholder de boss | 1000 ms (−33%) | 10% (−50%) | 10% | 35% | 100% | ×1.0 | Cada boss define su `ATAQUE_BOSS_N` |
+
+**Cómo leer la mitigación:** `100%` significa que un bloqueo perfecto puede anular todo el daño. `50%` significa que, incluso con precisión perfecta, solo se puede mitigar la mitad; la otra mitad entra siempre. Es una regla determinista, no una probabilidad.
+
+**Zona roja:** es el espacio restante de la barra, repartido en dos mitades (antes y después de las zonas de bloqueo). Por eso `rojo/lado = (100 − verde − 2 × naranja) / 2`.
+
+**Daño:** hoy todos los ataques usan el ataque base del mob (`×1.0`). El multiplicador de daño por ataque y los efectos de estado todavía no están implementados; el combo de perfectos sí aplica `×1.5`.
+
+**Combo de perfectos:** el contador se conserva entre turnos de defensa. Un ataque no perfecto reinicia la cadena. El 4.º ataque recibe `×1.5` aunque no sea perfecto; si es perfecto, arranca una nueva cadena con `1/3`. Se reinicia al cerrar el combate.
+
+**Historial de combate (F28.6):** cada acción se agrega al panel `#combate-historial` mediante `CombateUI.agregarHistorial(tipo, texto)`. Tipos y colores: `negativo` (rojo, daño recibido o huida fallida), `alerta` (amarillo, ataque fallado), `positivo` (verde, daño hecho, bloqueo o curación) y `sistema` (gris, inicio de combate). Conserva las últimas 24 entradas y auto-scrollea. `CombateUI.actualizarUltimoGolpe(objetivo, cantidad, tipo)` muestra un badge temporal en el panel del jugador o del mob; `CombateUI.registrarCuracion(cantidad, fuente)` deja `+N HP` verde para futuras curas en combate.
+
+**HP fraccionario:** los daños con porcentajes y mitigación pueden dejar HP con decimales durante la pelea (ej: `14.899999`). Al cerrar el combate, `redondearHP()` normaliza el HP del jugador y el HP remanente del mob hacia arriba al medio punto más cercano (`14.899999 → 15`, `14.1 → 14.5`), con tope en `hpMax`. Así una manzana siempre suma exactamente `+1 HP` sin arrastrar artefactos de coma flotante.
+
+**Ataques actuales por mob:**
+
+| Mob | Ataques |
+|-----|---------|
+| Tigre 🐅 | Zarpazo, Embestida, Mordida |
+| Gallina 🐓 | Picotazo |
+| Cerdo 🐖 | Embestida |
+| Alien hostil 👽 | Zarpazo, Mordida, Disparo |
+| Dron 🤖 | Disparo |
+| Reptiliano 🦎 | Embestida, Mordida, Golpe |
+
+`Golpe contundente` queda reservado para un boss futuro (F27). `ATAQUE_BOSS_1` está como placeholder para ataques únicos de bosses.
 
 **Flujo:**
 - Turno jugador → ataque con timing → daño al mob.
-- Turno mob → defensa con timing → reducción de daño.
+- Turno mob → telegráfico del ataque → defensa con timing → reducción de daño según perfil y mitigación máxima.
+- Si el mob muere → resumen de victoria. Si el jugador muere → derrota.
 - Repetir hasta que uno muera.
 
 **Pausa:** al abrir el overlay, `estado.pausado = true`. Bloquea movimiento, IA, rotura, barco.
@@ -734,9 +783,11 @@ Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 | `pruebas/barra-timing.html` | Prueba del minijuego de timing. Mide precisión del click. |
 | `js/core/tiles_muestrario.md` | Documento de referencia con el uso de tiles. |
 
+**Consola:** `debugCombate("cerdo", "ATAQUE_8")` inicia un combate de prueba con 100 HP para validar el combo y `Golpe` sin buscar un reptiliano. Es temporal (`cheats.js`).
+
 ---
 
-## 🧪 MARCO 9 · Sistema de Test (v2.6-alpha)
+## 🧪 MARCO 9 · Sistema de Test (v2.7-alpha)
 
 ### Lo que hay ahora
 
@@ -756,7 +807,13 @@ Sistema de combate por turnos con minijuego de timing. Ver BACKLOG · F28.
 - **Mobs con IA** (deambular, perseguir, huir).
 - **HP del jugador** con corazones + número en el HUD (2 HP por corazón).
 - **HUD inicializado** al cargar (posición y vida sin esperar al primer paso).
-- **Sistema de combate por turnos** con timing (F28 fases 1-9).
+- **Sistema de combate por turnos** con timing (F28 fases 1-11).
+- **Aviso inicial de combate** + modos visuales ataque/defensa.
+- **Ataques telegrafiados** por mob con perfiles de timing propios, `Golpe` 50% imbloqueable y placeholder de ataque de boss (F28.2).
+- **Resumen de victoria** con XP y objetos de prueba (F28.3).
+- **Combo de 3 perfectos** con slots visibles y golpe ×1.5 (F28.5).
+- **Historial de combate** color-coded y **badges de último golpe** por panel (F28.6).
+- **Motor de efectos/estados de combate** solo diseñado, no implementado (F28.4).
 - **Huida probabilística** con penalización + mob desaparece.
 - **Muerte del jugador** → pantalla de derrota con botón de reinicio.
 - **Pausa global en combate** (bloquea movimiento, IA, rotura, barco).
@@ -868,7 +925,7 @@ Interfaz radial con 6 sectores anidados. El jugador **bloquea** arrastrando el m
 
 **Movido a [BACKLOG.md](BACKLOG.md).**
 
-Ideas futuras: F1-F30.
+Ideas futuras: F1-F33.
 
 ---
 
@@ -914,6 +971,12 @@ Ideas futuras: F1-F30.
 - [x] **F28 fases 7-9** (muerte pulida, derrota con botón, corazones + feedback) ← v2.6-alpha
 - [x] **Manzanas curativas** (+1 HP al pisarlas, sin superar `hpMax`; al máximo quedan en el suelo) ← v2.6-alpha
 - [x] **HUD inicial** (posición y vida visibles al cargar) ← v2.6-alpha
+- [x] **F28.2 · Ataques telegrafiados** (catálogo + perfiles de barra + telegráfico) ← v2.7-alpha
+- [x] **F28.3 · Resumen de victoria** (XP y objetos de prueba) ← v2.7-alpha
+- [x] **UX de combate** (aviso inicial + modos visuales ataque/defensa) ← v2.7-alpha
+- [x] **F28.5 · Combo de 3 perfectos** (slots + ataque ×1.5) ← v2.7-alpha
+- [x] **F28.6 · Historial de combate y último golpe** (colores + badges) ← v2.7-alpha
+- [ ] **F28.4 · Motor de efectos/estados de combate** (diseñado; falta implementación y tests)
 
 ### 🔥 Próximas tareas (urgentes)
 
@@ -924,24 +987,30 @@ Ideas futuras: F1-F30.
 | 🟡 Media | Equipables mejorados (F12) | ⏸️ | Velocidad, stats, linterna |
 | 🟡 Media | Pulir tema espacio | ⏸️ | F19 |
 | 🟢 Baja | Ciclo día-noche (F1) | ⏸️ | Después de F28 |
-| 🟢 Baja | Escalado de timing (F29) | ⏸️ | Después de F28 + F1 |
+| 🟢 Baja | Escalado de timing (F29) | ⏸️ | Base parametrizable lista (v2.7-alpha); falta F1 |
 | 🟢 Baja | Mobs especiales (F26) | ⏸️ | Fase tardía |
 | 🟢 Baja | Mobs bosses (F27) | ⏸️ | Fase tardía |
 | 🟢 Baja | Inventario visual (F8) | ⏸️ | Ventana con pausa |
 | 🟢 Baja | Sonidos simples | ⏸️ | Feedback |
 | 🟢 Baja | Estructuras Forma A | ⏸️ | Plantillas de emojis |
+| 🟢 Baja | Adaptación móvil (F31) | ⏸️ | Controles táctiles, layout y acciones automáticas |
+| 🟢 Baja | Campaña por etapas (F32) | ⏸️ | Mundos de un bioma + etapa final con boss |
+| 🟢 Baja | Menú/guardado/muerte (F33) | ⏸️ | Ciclo de partida y persistencia |
 
 ### 🌟 Ideas para más adelante
 
 - Fronteras con obstáculos rompibles
 - Sistema de inventario completo (F8)
 - Refactorización a módulos ES
-- Entidades multi-tile (mobs 2×2)
+- Entidades multi-tile (mobs especiales 2×2) — ver F26
 - Sprites reales (PNG) — ver F20
-- Sistema de misiones (F26)
-- Sistema de bosses con fases (F27)
-- Persistencia de progreso (F8 fase 3)
-- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F30)
+- Sistema de misiones (F32)
+- Sistema de bosses con fases (F27/F32)
+- Adaptación a celular con controles táctiles (F31)
+- Campaña por etapas de un solo bioma + etapa final (F32)
+- Menú principal, guardado/carga y política de muerte (F33)
+- Persistencia de progreso (F33, antes F8 fase 3)
+- **Ver [BACKLOG.md](BACKLOG.md)** (F1-F33)
 
 ---
 
@@ -1008,7 +1077,7 @@ Ideas futuras: F1-F30.
 
 ### Al cambiar de versión
 
-1. Bump en el encabezado (ej: `v2.6-alpha` → `v2.7-alpha`).
+1. Bump en el encabezado (ej: `v2.7-alpha` → `v2.8-alpha`).
 2. Agregar entrada en `CHANGELOG.md`.
 3. Actualizar la fecha.
 
@@ -1058,7 +1127,7 @@ Ideas futuras: F1-F30.
 - Los IDs (M1, J1, R1, X1, F1, etc.) **no cambian** aunque se modifiquen las decisiones.
 - Los bloques del código (BLOQUE 1 a 99) son referenciables para modificaciones puntuales.
 - El changelog completo vive en **[CHANGELOG.md](CHANGELOG.md)**.
-- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F30).
+- Las ideas futuras viven en **[BACKLOG.md](BACKLOG.md)** (F1-F33).
 - La configuración de agentes vive en **[AGENTS.md](AGENTS.md)**.
 - **Prioridad actual:** F30 (sistema de niveles del jugador).
 

@@ -12,7 +12,7 @@ Motor de un roguelike procedural en **JavaScript vanilla**, sin frameworks, sin 
 
 **Frase guía del creador:** *"Si el test se siente entretenido, agrego complejidad."*
 
-**Versión actual:** v2.6-alpha (F28 completo, corazones y manzanas curativas).
+**Versión actual:** v2.7-alpha (F28 completo, ataques telegrafiados, resumen de victoria, combo de perfectos, historial de combate y F28.4 solo diseñado).
 
 ---
 
@@ -32,7 +32,7 @@ Motor de un roguelike procedural en **JavaScript vanilla**, sin frameworks, sin 
 Game_RPG/
 ├── index.html              ← HTML + orden de carga de scripts
 ├── README.md               ← fuente de verdad (arquitectura)
-├── BACKLOG.md              ← ideas futuras (F1-F30)
+├── BACKLOG.md              ← ideas futuras (F1-F33)
 ├── CHANGELOG.md            ← historial de versiones
 ├── AGENTS.md               ← este archivo
 ├── opencode.json           ← config de OpenCode
@@ -125,13 +125,13 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 
 ## Herramientas auxiliares (no modificar sin motivo)
 
-- **`js/systems/cheats.js`** → botón 🎁 en la UI. **TEMPORAL, borrar antes de producción.**
+- **`js/systems/cheats.js`** → botón 🎁 en la UI y `debugCombate(tipo, ataque)` en consola. **TEMPORAL, borrar antes de producción.**
 - **`auditor/`** → herramienta de diagnóstico de mundos.
 - **`pruebas/`** → archivos HTML sueltos.
 
 ---
 
-## Estado actual (v2.6-alpha)
+## Estado actual (v2.7-alpha)
 
 ### Implementado
 - Mundo 2D circular, cámara fluida, movimiento 360°.
@@ -142,6 +142,13 @@ Estos archivos son **críticos** y un cambio puede romper todo el motor. **Pedí
 - Sistema de rotura con efecto de golpe.
 - Mobs con IA (deambular, perseguir, huir).
 - **Combate por turnos con minijuego de timing** (F28 fases 1-9).
+- Aviso inicial de combate y modos visuales ataque (⚔️) / defensa (🛡️).
+- **Ataques telegrafiados por mob** (F28.2): catálogo `ATAQUE_1..8` + `ATAQUE_BOSS_1`, campo `ataques` en cada tema y perfiles de barra (duración + zonas + `mitigacionMaxima`). `Golpe` es 50% imbloqueable.
+- **Resumen de victoria** (F28.3) con XP y objetos de prueba; botón Continuar.
+- **Combo de 3 perfectos** (F28.5): 3 ataques perfectos cargan slots; el 4.º pega ×1.5 y consume la carga.
+- **Historial de combate y último golpe** (F28.6): registro color-coded (rojo/amarillo/verde/gris), 24 entradas con scroll y badges `−N HP` / `BLOQUEO` / `SIN DAÑO` / `+N HP`.
+- **HP normalizado al cerrar combate**: `redondearHP()` lleva el HP a medios puntos hacia arriba (`14.899999 → 15`) para que las manzanas sumen `+1` exacto.
+- **Motor de efectos de combate** (F28.4): solo diseñado, no implementado.
 - HP del jugador, daño real, muerte y derrota con botón de reinicio.
 - Corazones de HP con número (2 HP por corazón).
 - HUD inicializado al cargar (posición y vida sin esperar al primer paso).
@@ -161,6 +168,11 @@ Ver `BACKLOG.md · F28.1 y B10` para causas y soluciones.
 1. F30 (sistema de niveles del jugador).
 2. F13 (loot y XP).
 3. F12 (equipables que modifican stats y HP máximo).
+
+### Líneas futuras anotadas (no implementadas)
+- **F31 · Adaptación móvil:** controles táctiles, layout responsive, acción contextual para reemplazar Espacio, posibles automatizaciones y ajuste de velocidad/zonas para compensar latencia.
+- **F32 · Campaña por etapas:** cada etapa es un mapa finito de un solo bioma con misión principal; tras varias etapas se abre un mapa final amplio con todos los biomas, más misiones y boss final.
+- **F33 · Menú, guardado/carga y muerte:** menú principal/pausa, persistencia versionada (seed + etapa + jugador + inventario + flags), carga validada y política de muerte (permadeath, checkpoint o reinicio de etapa). Absorbe “persistencia de progreso (F8 fase 3)”.
 
 ---
 
@@ -187,6 +199,8 @@ Ver `BACKLOG.md · F28.1 y B10` para causas y soluciones.
 | **Tema** | Conjunto de datos visuales (tierra o espacio). Cambia emojis y nombres sin tocar el motor. |
 | **Efecto** | Clase CSS animada aplicada a una celda (vibrar, parpadear, glow). |
 | **Timing** | Minijuego de precisión con barra horizontal y marcador. |
+| **Telegráfico** | Aviso previo del ataque que va a usar el mob (emoji + nombre). |
+| **Perfil de ataque** | Duración y ancho de zonas de la barra de defensa para un `ATAQUE_N`. |
 | **Turno** | Ciclo de ataque o defensa en combate. |
 | **Hubida** | Acción probabilística de escapar del combate. |
 | **RNG** | Generador pseudoaleatorio. Determinista por semilla. |

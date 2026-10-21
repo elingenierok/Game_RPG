@@ -3,6 +3,100 @@
 Historial completo de versiones del proyecto. Para el estado actual, ver [README.md](README.md).
 
 ---
+## v2.7-alpha · 2026-10-21 (F28.2 ataques telegrafiados + F28.3 resumen de victoria + F28.5 combo + F28.6 historial)
+
+### 🎯 Objetivo
+
+Hacer que el combate comunique mejor qué está pasando y que cada mob se sienta distinto: aviso inicial, modos visuales de ataque/defensa, ataques telegrafiados con perfiles de timing propios, resumen de recompensas al ganar e historial legible de la batalla.
+
+### ✅ Completado
+
+**Aviso inicial de combate**
+
+- Overlay `#combate-aviso` antes del primer timing: emoji del mob, "¡Atención! <MOB> te va a atacar." y "¡PREPÁRATE!".
+- `COMBATE.DELAY_AVISO_MS = 1800`.
+- El botón Huir queda deshabilitado durante el aviso y se rehabilita al ocultarlo.
+
+**Modos visuales de la barra**
+
+- Ataque: ⚔️ + etiqueta `ATAQUE` + marco rojo + hint "Espacio para atacar".
+- Defensa: 🛡️ + etiqueta `DEFENSA` + marco celeste + hint "Espacio para bloquear".
+- Icono de fondo grande (220px, opacidad 0.28, pulso) detrás del panel.
+
+**F28.2 — Ataques telegrafiados por mob**
+
+- Catálogo `ATAQUES_MOB` en `combate.js` con `ATAQUE_1..8` + `ATAQUE_BOSS_1`: Zarpazo, Embestida, Mordida, Disparo, Golpe contundente, Picotazo, Tentáculo, Golpe y Ataque especial.
+- Cada ataque define `duracionMs`, `zonaPerfecta`, `zonaAceptable`, emoji y descripción.
+- `ATAQUE_5 · Golpe contundente` quedó como el ataque más rápido: 800 ms, verde 6% y naranja 8% por lado.
+- `ATAQUE_8 · Golpe` incorpora `mitigacionMaxima: 0.5`: incluso con bloqueo perfecto entra el 50% del daño. Es determinista, no una probabilidad.
+- `ATAQUE_BOSS_1` es el placeholder para ataques únicos de bosses; la convención futura es `ATAQUE_BOSS_N`.
+- Campo `ataques: ["ATAQUE_N", ...]` en cada mob de `tema-tierra.js` y `tema-espacio.js`.
+- `Golpe` quedó asignado al Reptiliano; `Golpe contundente` queda reservado para un boss futuro y `ATAQUE_BOSS_1` como placeholder de boss.
+- `elegirAtaqueMob()` elige al azar y evita repetir el ataque anterior cuando hay más de uno.
+- Telegráfico en el panel de combate (`CombateUI.mostrarTelegrafo`) ~900ms antes de la barra: "Tigre prepara Zarpazo" + "¡Preparate para defenderte!".
+- `BarraTiming.iniciar()` acepta `zonaPerfecta` y `zonaAceptable`; las zonas se dibujan con CSS variables (`--zona-perfecta`, `--zona-aceptable`, `--zona-roja`).
+- La precisión se calcula según las zonas reales: perfecta (0.8-1.0), aceptable (0.4-0.8), resto (0-0.4).
+- La barra de defensa muestra el nombre del ataque y su perfil (ej: `🐾 Zarpazo`, `💥 Embestida`).
+
+**F28.3 — Resumen de victoria**
+
+- Overlay `#victoria-overlay` al derrotar un mob: "¡HAS GANADO!", XP y objetos.
+- Recompensas placeholder: `xp = 5 + nivelMob * 3`; `💰 Moneda antigua x2` y `🦴 Resto de <mob> x1`.
+- Desglose de recompensas + botón **Continuar**.
+- El juego queda pausado hasta Continuar; luego se reanudan ticks/HUD.
+- El loot/XP real llegará con F13.
+
+**F28.5 — Combo de 3 perfectos**
+
+- `estadoCombate.perfectosSeguidos` (0..3) persiste entre turnos de ataque y defensa.
+- `COMBATE.PERFECTOS_PARA_COMBO = 3` y `COMBATE.MULTIPLICADOR_COMBO = 1.5`.
+- Tres perfectos cargan el combo; el 4.º ataque pega ×1.5 y consume la carga.
+- Si el 4.º ataque también es perfecto, arranca una nueva cadena con 1/3.
+- Un ataque no perfecto reinicia la cadena.
+- UI: 3 slots en el panel del jugador (`CombateUI.actualizarCombo`), estado `¡LISTO! ×1.5` y mensaje con `1/3`, `2/3`, `3/3`.
+
+**F28.6 — Historial de combate y último golpe**
+
+- Panel `#combate-historial` con las últimas 24 acciones, scroll y auto-scroll a la entrada más reciente.
+- Colores por tipo: rojo (`negativo`, daño recibido/huida fallida), amarillo (`alerta`, ataque fallado), verde (`positivo`, daño hecho/bloqueo/curación) y gris (`sistema`, inicio de combate).
+- `CombateUI.agregarHistorial(tipo, texto)` registra cada entrada; `combate.js` loguea inicio, ataque, defensa y huida fallida.
+- `CombateUI.actualizarUltimoGolpe(objetivo, cantidad, tipo)` agrega un badge temporal en el panel del jugador o del mob: `−N HP`, `BLOQUEO`, `SIN DAÑO` o `+N HP`.
+- `CombateUI.registrarCuracion(cantidad, fuente)` queda preparado para curas dentro del combate.
+
+**Fix — HP fraccionario**
+
+- `redondearHP()` normaliza HP a medios puntos hacia arriba al cerrar cualquier combate (`14.899999 → 15`, `14.1 → 14.5`).
+- Se aplica al jugador y al mob con HP remanente en huida, con tope en `hpMax`.
+- Evita que una manzana sume `+0.999999` por acumulación de fracciones; ahora suma exactamente `+1 HP`.
+
+### 🧪 Pruebas
+
+- `node --check` OK en `combate.js`, `barra-timing.js`, `combate-ui.js`, `tema-tierra.js` y `tema-espacio.js`.
+- Harness Node del flujo: aviso → turno jugador → telegráfico → barra de defensa → resultado.
+- Harness Node del flujo de victoria: cierre con pausa, resumen, Continuar y reanudación.
+- Harness de mitigación: ataque normal con bloqueo perfecto deja 0 de daño; `Golpe` deja 5 de 10 (50% imbloqueable).
+- Harness de combo: 3 perfectos cargan, el 4.º multiplica ×1.5, un fallo reinicia y un 4.º perfecto arranca en 1/3.
+- Harness de historial: entrada de sistema, ataque favorable, defensa y badges de último golpe del mob y del jugador.
+- Harness de redondeo: jugador `14.899999 → 15`, mob huido `7.2 → 7.5` y manzana `+1` exacta hasta `16`.
+- Capturas headless de la barra de ataque, barra de defensa, aviso inicial, slots de combo (2/3 y listo), historial y resumen de victoria.
+- Pendiente: validación manual del usuario con un tigre y prueba de combo con `debugCombate("cerdo", "ATAQUE_8")`.
+
+### 📝 Documentación
+
+- README, BACKLOG, CHANGELOG, AGENTS e `index.html` actualizados a `v2.7-alpha`.
+- F28 ampliado con F28.2 (ataques telegrafiados), F28.3 (resumen de victoria), F28.5 (combo de perfectos), F28.6 (historial y último golpe) y F28.4 (motor de efectos, solo diseñado).
+- F29 actualizado: la barra ya es parametrizable; falta modular por fase del día (F1).
+- Tabla maestra de ataques con duración, zonas, zona roja, mitigación máxima, daño y efectos.
+- Asignación por mob actualizada: Reptiliano incorpora `Golpe`.
+
+### 📌 Estado
+
+- **v2.7-alpha jugable.** Combate con aviso, modos visuales, ataques telegrafiados (incluye `Golpe` 50% imbloqueable), combo de 3 perfectos, historial de batalla y resumen de victoria.
+- F28.4 (efectos/estados) queda diseñado; no implementado hasta tener tests de secuencia por turno.
+- Próxima prioridad: F30 (sistema de niveles del jugador), F13 (loot/XP) y F12 (equipables con stats).
+- Guardia/punto débil y fases de furia quedan reservados para mobs especiales/bosses (F26/F27).
+
+---
 ## v2.6-alpha · 2026-10-20 (F28 completo + corazones + manzanas curativas)
 
 ### 🎯 Objetivo

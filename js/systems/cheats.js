@@ -16,6 +16,29 @@ function initCheats() {
   btn.addEventListener("click", toggleCheatEquipables);
 }
 
+// Prueba rápida de combate desde consola:
+//   debugCombate("cerdo", "ATAQUE_8")
+// Usa 100 HP para poder probar el combo sin matar al mob en 2 golpes.
+function debugCombate(tipo = "cerdo", ataque = "ATAQUE_8") {
+  if (typeof iniciarCombate !== "function" || typeof MOBS === "undefined" || !MOBS[tipo]) {
+    return "No se pudo iniciar: mob o combate no disponible.";
+  }
+
+  const hp = 100;
+  iniciarCombate({
+    ...MOBS[tipo],
+    tipo,
+    hp,
+    hpActual: hp,
+    hpMax: hp,
+    ataques: [ataque],
+  });
+
+  return `Combate de prueba: ${MOBS[tipo].nombre} con ${ataque} (${hp} HP)`;
+}
+
+window.debugCombate = debugCombate;
+
 function toggleCheatEquipables() {
   const tieneTodo =
     (estado.inventario.HACHA    || 0) > 0 &&

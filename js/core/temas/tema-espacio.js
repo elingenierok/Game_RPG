@@ -193,6 +193,7 @@ const TEMA_ESPACIO = {
       ataque: 5,
       defensa: 2,
       velocidadAtaque: 2,
+      ataques: ["ATAQUE_1", "ATAQUE_3", "ATAQUE_4"],
       spawn: {
         porChunk: [2, 3],
         porMapa: null,
@@ -217,6 +218,7 @@ const TEMA_ESPACIO = {
       ataque: 0,
       defensa: 0,
       velocidadAtaque: 0,
+      ataques: ["ATAQUE_4"],
       spawn: {
         porChunk: [0, 2],
         porMapa: null,
@@ -241,6 +243,7 @@ const TEMA_ESPACIO = {
       ataque: 2,
       defensa: 1,
       velocidadAtaque: 2,
+      ataques: ["ATAQUE_2", "ATAQUE_3", "ATAQUE_8"],
       spawn: {
         porChunk: [0, 2],
         porMapa: null,

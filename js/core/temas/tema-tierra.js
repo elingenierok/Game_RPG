@@ -194,6 +194,7 @@ const TEMA_TIERRA = {
       ataque: 5,
       defensa: 2,
       velocidadAtaque: 2,
+      ataques: ["ATAQUE_1", "ATAQUE_2", "ATAQUE_3"],
       spawn: {
         porChunk: [2, 3],
         porMapa: null,
@@ -218,6 +219,7 @@ const TEMA_TIERRA = {
       ataque: 0,
       defensa: 0,
       velocidadAtaque: 0,
+      ataques: ["ATAQUE_6"],
       spawn: {
         porChunk: [0, 2],
         porMapa: null,
@@ -242,6 +244,7 @@ const TEMA_TIERRA = {
       ataque: 2,
       defensa: 1,
       velocidadAtaque: 2,
+      ataques: ["ATAQUE_2"],
       spawn: {
         porChunk: [0, 2],
         porMapa: null,

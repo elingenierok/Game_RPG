@@ -569,6 +569,10 @@ body {
 }
 
 #barra-timing-panel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
   background: #111;
   border: 2px solid #6cf;
   border-radius: 12px;
@@ -577,8 +581,89 @@ body {
   pointer-events: auto;
   cursor: pointer;
   min-width: 440px;
+  min-height: 190px;
   text-align: center;
   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* ─── Modo ataque / defensa ─── */
+#barra-timing-panel.modo-ataque {
+  background: radial-gradient(circle at 50% 45%, #260b0b 0%, #111 68%);
+  border-color: #f66;
+  box-shadow: 0 0 38px rgba(255, 80, 80, 0.45);
+}
+
+#barra-timing-panel.modo-defensa {
+  background: radial-gradient(circle at 50% 45%, #081a2a 0%, #111 68%);
+  border-color: #6cf;
+  box-shadow: 0 0 38px rgba(102, 204, 255, 0.45);
+}
+
+#barra-timing-icono {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 220px;
+  line-height: 1;
+  opacity: 0.28;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  animation: timingIconoPulso 2.4s ease-in-out infinite;
+}
+
+#barra-timing-panel.modo-ataque #barra-timing-icono {
+  filter: drop-shadow(0 0 26px rgba(255, 80, 80, 0.75));
+}
+
+#barra-timing-panel.modo-defensa #barra-timing-icono {
+  filter: drop-shadow(0 0 26px rgba(102, 204, 255, 0.75));
+}
+
+#barra-timing-contenido {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+#barra-timing-modo {
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+#barra-timing-panel.modo-ataque #barra-timing-modo {
+  color: #f88;
+}
+
+#barra-timing-panel.modo-defensa #barra-timing-modo {
+  color: #8fd8ff;
+}
+
+#barra-timing-panel.modo-ataque #barra-timing-titulo {
+  color: #ff9a9a;
+  text-shadow: 0 0 10px rgba(255, 80, 80, 0.55);
+}
+
+#barra-timing-panel.modo-defensa #barra-timing-titulo {
+  color: #9adcff;
+  text-shadow: 0 0 10px rgba(102, 204, 255, 0.55);
+}
+
+#barra-timing-panel.modo-ataque #barra-timing-barra {
+  border-color: rgba(255, 102, 102, 0.55);
+}
+
+#barra-timing-panel.modo-defensa #barra-timing-barra {
+  border-color: rgba(102, 204, 255, 0.55);
+}
+
+@keyframes timingIconoPulso {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.05); }
 }
 
 #barra-timing-panel.perfecto {
@@ -620,11 +705,11 @@ body {
   height: 100%;
 }
 
-.zona.roja-izq    { width: 25%; background: rgba(221, 51, 51, 0.6); }
-.zona.naranja-izq { width: 15%; background: rgba(238, 136, 85, 0.7); }
-.zona.verde       { width: 20%; background: rgba(85, 204, 85, 0.8); }
-.zona.naranja-der { width: 15%; background: rgba(238, 136, 85, 0.7); }
-.zona.roja-der    { width: 25%; background: rgba(221, 51, 51, 0.6); }
+.zona.roja-izq    { width: var(--zona-roja, 25%); background: rgba(221, 51, 51, 0.6); }
+.zona.naranja-izq { width: var(--zona-aceptable, 15%); background: rgba(238, 136, 85, 0.7); }
+.zona.verde       { width: var(--zona-perfecta, 20%); background: rgba(85, 204, 85, 0.8); }
+.zona.naranja-der { width: var(--zona-aceptable, 15%); background: rgba(238, 136, 85, 0.7); }
+.zona.roja-der    { width: var(--zona-roja, 25%); background: rgba(221, 51, 51, 0.6); }
 
 #barra-timing-marcador {
   position: absolute;
@@ -669,6 +754,74 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* ─── Aviso inicial antes del combate ─── */
+#combate-aviso {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 42%, rgba(92, 10, 10, 0.98) 0%, rgba(0, 0, 0, 0.995) 70%);
+  animation: combateAvisoEntrada 0.22s ease-out;
+}
+
+#combate-aviso-emoji {
+  font-size: 104px;
+  line-height: 1;
+  filter: drop-shadow(0 0 24px rgba(255, 90, 90, 0.7));
+  animation: combateAvisoAmenaza 0.55s ease-in-out infinite alternate;
+}
+
+#combate-aviso-texto {
+  font-size: 22px;
+  color: #ffd7d7;
+  letter-spacing: 0.5px;
+}
+
+#combate-aviso-texto strong {
+  color: #fff;
+  font-size: 1.2em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#combate-aviso-prep {
+  font-size: 46px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  color: #ff5a5a;
+  text-shadow: 0 0 18px rgba(255, 70, 70, 0.8), 0 0 40px rgba(255, 0, 0, 0.5);
+  animation: combateAvisoPrep 0.5s ease-in-out infinite alternate;
+}
+
+#combate-aviso-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #b9a4a4;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+@keyframes combateAvisoEntrada {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes combateAvisoAmenaza {
+  from { transform: scale(1) rotate(-2deg); }
+  to   { transform: scale(1.08) rotate(2deg); }
+}
+
+@keyframes combateAvisoPrep {
+  from { opacity: 0.65; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1.04); }
 }
 
 /* ─── Header ─── */
@@ -761,6 +914,90 @@ body {
   font-weight: bold;
 }
 
+#combate-combo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #090909;
+  border: 1px solid #333;
+  border-radius: 999px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.combate-combo-label {
+  font-size: 9px;
+  color: #777;
+  letter-spacing: 1px;
+}
+
+#combate-combo-slots {
+  display: flex;
+  gap: 4px;
+}
+
+.combate-combo-slot {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #555;
+  border-radius: 50%;
+  background: #111;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.combate-combo-slot.activo {
+  background: #6cf;
+  border-color: #9df;
+  box-shadow: 0 0 8px rgba(102, 204, 255, 0.8);
+}
+
+#combate-combo-texto {
+  min-width: 52px;
+  color: #8ad;
+  font-size: 9px;
+  text-align: right;
+}
+
+#combate-combo.combo-listo {
+  border-color: #ffd166;
+  box-shadow: 0 0 12px rgba(255, 209, 102, 0.45);
+  animation: comboListo 0.6s ease-in-out infinite alternate;
+}
+
+#combate-combo.combo-listo .combate-combo-slot {
+  background: #ffd166;
+  border-color: #ffe6a3;
+  box-shadow: 0 0 8px rgba(255, 209, 102, 0.8);
+}
+
+#combate-combo.combo-listo #combate-combo-texto {
+  color: #ffd166;
+}
+
+@keyframes comboListo {
+  from { transform: scale(1); }
+  to { transform: scale(1.04); }
+}
+
+.combate-ultimo-golpe {
+  min-height: 16px;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.combate-ultimo-golpe.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.combate-ultimo-golpe.negativo { color: #ff6b6b; }
+.combate-ultimo-golpe.positivo { color: #7fe07f; }
+.combate-ultimo-golpe.alerta { color: #ffd166; }
+
 #combate-vs {
   font-size: 28px;
   color: #f4a;
@@ -781,6 +1018,103 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ─── Historial de combate ─── */
+#combate-historial {
+  max-height: 108px;
+  overflow-y: auto;
+  padding: 7px 10px;
+  background: #070707;
+  border: 1px solid #2b2b2b;
+  border-radius: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #333 #070707;
+}
+
+#combate-historial-titulo {
+  margin-bottom: 4px;
+  color: #666;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+#combate-historial-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.historial-entrada {
+  padding-left: 6px;
+  border-left: 3px solid #456;
+  color: #8ab;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.historial-entrada.negativo {
+  border-color: #d33;
+  color: #ff7a7a;
+}
+
+.historial-entrada.alerta {
+  border-color: #c90;
+  color: #ffd166;
+}
+
+.historial-entrada.positivo {
+  border-color: #3a3;
+  color: #7fe07f;
+}
+
+.historial-entrada.sistema {
+  border-color: #456;
+  color: #8ab;
+}
+
+/* ─── Telegráfico del ataque del mob ─── */
+#combate-telegrafo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  animation: combateTelegrafoEntrada 0.18s ease-out;
+}
+
+#combate-telegrafo-emoji {
+  font-size: 28px;
+  line-height: 1;
+  filter: drop-shadow(0 0 12px rgba(255, 90, 90, 0.8));
+  animation: combateTelegrafoPulso 0.6s ease-in-out infinite alternate;
+}
+
+#combate-telegrafo-texto {
+  color: #ffd7d7;
+  font-size: 14px;
+}
+
+#combate-telegrafo-texto strong {
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#combate-telegrafo-hint {
+  font-size: 9px;
+  color: #f88;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+@keyframes combateTelegrafoEntrada {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes combateTelegrafoPulso {
+  from { transform: scale(1); }
+  to   { transform: scale(1.14); }
 }
 
 /* ─── Contenedor del timing (futuro) ─── */
@@ -994,4 +1328,161 @@ body {
   font-size: 10px;
   color: #666;
   letter-spacing: 1px;
+}
+
+/* --- Pantalla de victoria --- */
+#victoria-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 12, 5, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, background 0.25s ease;
+  font-family: monospace;
+}
+
+#victoria-overlay.visible {
+  opacity: 1;
+  background: rgba(0, 12, 5, 0.92);
+  pointer-events: auto;
+}
+
+#victoria-panel {
+  min-width: 400px;
+  max-width: 520px;
+  padding: 28px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: radial-gradient(circle at 50% 0%, #17230d 0%, #111 70%);
+  border: 2px solid #8d5;
+  border-radius: 12px;
+  box-shadow: 0 0 52px rgba(120, 220, 80, 0.45);
+  transform: translateY(12px) scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+#victoria-overlay.visible #victoria-panel {
+  transform: translateY(0) scale(1);
+}
+
+#victoria-icono {
+  font-size: 58px;
+  line-height: 1;
+  filter: drop-shadow(0 0 18px rgba(255, 215, 106, 0.55));
+}
+
+#victoria-titulo {
+  font-size: 30px;
+  font-weight: bold;
+  letter-spacing: 5px;
+  color: #b7ff6a;
+  text-shadow: 0 0 16px rgba(140, 255, 90, 0.55);
+}
+
+#victoria-mensaje {
+  font-size: 14px;
+  color: #ddd;
+  text-align: center;
+}
+
+#victoria-mensaje strong {
+  color: #fff;
+}
+
+#victoria-resumen {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #f0e6c8;
+  text-align: center;
+}
+
+#victoria-resumen strong {
+  color: #ffd76a;
+}
+
+#victoria-desglose {
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 14px;
+  background: #0a0a0a;
+  border: 1px solid #3d4a29;
+  border-radius: 8px;
+}
+
+#victoria-desglose-titulo {
+  margin-bottom: 8px;
+  font-size: 10px;
+  color: #8fa86a;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+#victoria-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+#victoria-lista li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #ddd;
+}
+
+.victoria-item-icono {
+  width: 22px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.victoria-item-nombre {
+  flex: 1;
+  text-align: left;
+}
+
+.victoria-item-cantidad {
+  color: #ffd76a;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+#victoria-btn-continuar {
+  margin-top: 6px;
+  padding: 10px 28px;
+  background: #1a1a1a;
+  border: 1px solid #8d5;
+  border-radius: 8px;
+  color: #b7ff6a;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#victoria-btn-continuar:hover,
+#victoria-btn-continuar:focus {
+  background: #8d5;
+  color: #0a0a0a;
+  box-shadow: 0 0 16px rgba(140, 255, 90, 0.7);
+  outline: none;
+}
+
+#victoria-hint {
+  font-size: 10px;
+  color: #667;
+  letter-spacing: 1px;
+  text-align: center;
 }
